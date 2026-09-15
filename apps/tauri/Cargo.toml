@@ -1,9 +1,9 @@
 [package]
-name = "zeroclaw-desktop"
+name = "max-desktop"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "ZeroClaw Desktop — Tauri-powered system tray app"
+description = "Max Desktop — Tauri-powered system tray app"
 publish = false
 
 [build-dependencies]

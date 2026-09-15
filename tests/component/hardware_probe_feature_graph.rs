@@ -63,9 +63,9 @@ fn distribution_inputs(root: &toml::Value) -> Vec<&str> {
         .and_then(toml::Value::as_table)
         .and_then(|package| package.get("metadata"))
         .and_then(toml::Value::as_table)
-        .and_then(|metadata| metadata.get("zeroclaw"))
+        .and_then(|metadata| metadata.get("max"))
         .and_then(toml::Value::as_table)
-        .and_then(|zeroclaw| zeroclaw.get("dist_extra_features"))
+        .and_then(|max| max.get("dist_extra_features"))
         .and_then(toml::Value::as_array)
         .expect("root manifest must define dist_extra_features");
 
@@ -107,7 +107,7 @@ fn probe_boundary_violations<'a>(reachable: &BTreeSet<&'a str>) -> Vec<&'a str> 
         .iter()
         .copied()
         .filter(|reference| {
-            if matches!(*reference, "hardware" | "probe" | "dep:zeroclaw-hardware") {
+            if matches!(*reference, "hardware" | "probe" | "dep:max-hardware") {
                 return true;
             }
 
@@ -116,8 +116,8 @@ fn probe_boundary_violations<'a>(reachable: &BTreeSet<&'a str>) -> Vec<&'a str> 
             };
             let dependency_feature_is_active = !weak || active_dependencies.contains(dependency);
             dependency_feature_is_active
-                && ((dependency == "zeroclaw-hardware" && matches!(feature, "hardware" | "probe"))
-                    || (dependency == "zeroclaw-tools" && feature == "probe"))
+                && ((dependency == "max-hardware" && matches!(feature, "hardware" | "probe"))
+                    || (dependency == "max-tools" && feature == "probe"))
         })
         .collect()
 }
@@ -133,19 +133,19 @@ fn assert_probe_boundary(profile: &str, reachable: &BTreeSet<&str>) {
 
 #[test]
 fn probe_boundary_applies_weak_dependency_feature_semantics() {
-    let active_weak_edge = BTreeSet::from(["dep:zeroclaw-tools", "zeroclaw-tools?/probe"]);
+    let active_weak_edge = BTreeSet::from(["dep:max-tools", "max-tools?/probe"]);
     assert_eq!(
         probe_boundary_violations(&active_weak_edge),
-        vec!["zeroclaw-tools?/probe"]
+        vec!["max-tools?/probe"]
     );
 
-    let inactive_weak_edge = BTreeSet::from(["zeroclaw-tools?/probe"]);
+    let inactive_weak_edge = BTreeSet::from(["max-tools?/probe"]);
     assert!(probe_boundary_violations(&inactive_weak_edge).is_empty());
 
-    let strong_edge = BTreeSet::from(["zeroclaw-tools/probe"]);
+    let strong_edge = BTreeSet::from(["max-tools/probe"]);
     assert_eq!(
         probe_boundary_violations(&strong_edge),
-        vec!["zeroclaw-tools/probe"]
+        vec!["max-tools/probe"]
     );
 }
 
@@ -153,28 +153,28 @@ fn probe_boundary_applies_weak_dependency_feature_semantics() {
 fn probe_feature_graph_preserves_forwarding_and_distribution_boundaries() {
     let root = parse_manifest(include_str!("../../Cargo.toml"), "root Cargo.toml");
     let hardware = parse_manifest(
-        include_str!("../../crates/zeroclaw-hardware/Cargo.toml"),
-        "zeroclaw-hardware Cargo.toml",
+        include_str!("../../crates/max-hardware/Cargo.toml"),
+        "max-hardware Cargo.toml",
     );
     let tools = parse_manifest(
-        include_str!("../../crates/zeroclaw-tools/Cargo.toml"),
-        "zeroclaw-tools Cargo.toml",
+        include_str!("../../crates/max-tools/Cargo.toml"),
+        "max-tools Cargo.toml",
     );
     let root_features = feature_table(&root, "root Cargo.toml");
-    let hardware_features = feature_table(&hardware, "zeroclaw-hardware Cargo.toml");
-    let tools_features = feature_table(&tools, "zeroclaw-tools Cargo.toml");
+    let hardware_features = feature_table(&hardware, "max-hardware Cargo.toml");
+    let tools_features = feature_table(&tools, "max-tools Cargo.toml");
 
     let root_hardware = feature_values(root_features, "hardware");
-    assert_feature_contains("root hardware", &root_hardware, "dep:zeroclaw-hardware");
+    assert_feature_contains("root hardware", &root_hardware, "dep:max-hardware");
     assert_feature_contains(
         "root hardware",
         &root_hardware,
-        "zeroclaw-hardware/hardware",
+        "max-hardware/hardware",
     );
 
     let root_probe = feature_values(root_features, "probe");
-    assert_feature_contains("root probe", &root_probe, "dep:zeroclaw-hardware");
-    assert_feature_contains("root probe", &root_probe, "zeroclaw-hardware/probe");
+    assert_feature_contains("root probe", &root_probe, "dep:max-hardware");
+    assert_feature_contains("root probe", &root_probe, "max-hardware/probe");
 
     let ci_all_reachable = root_feature_reachable(root_features, &["ci-all"]);
     for expected in ["hardware", "probe"] {
@@ -185,15 +185,15 @@ fn probe_feature_graph_preserves_forwarding_and_distribution_boundaries() {
     }
 
     let hardware_probe = feature_values(hardware_features, "probe");
-    assert_feature_contains("zeroclaw-hardware probe", &hardware_probe, "dep:probe-rs");
+    assert_feature_contains("max-hardware probe", &hardware_probe, "dep:probe-rs");
     assert_feature_contains(
-        "zeroclaw-hardware probe",
+        "max-hardware probe",
         &hardware_probe,
-        "zeroclaw-tools/probe",
+        "max-tools/probe",
     );
 
     let tools_probe = feature_values(tools_features, "probe");
-    assert_feature_contains("zeroclaw-tools probe", &tools_probe, "dep:probe-rs");
+    assert_feature_contains("max-tools probe", &tools_probe, "dep:probe-rs");
 
     let default_reachable = root_feature_reachable(root_features, &["default"]);
     assert_probe_boundary("root default", &default_reachable);

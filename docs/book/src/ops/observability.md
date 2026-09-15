@@ -1,6 +1,6 @@
 # Logs & observability
 
-Every event ZeroClaw emits flows through one crate: `zeroclaw-log`. The crate owns the on-disk JSONL schema, the in-process broadcast stream the dashboard reads, the optional bridge to the typed `Observer` (Prometheus / OTel), and the macros (`record!`, `scope!`, `spawn!`) that subsystems call.
+Every event Max emits flows through one crate: `max-log`. The crate owns the on-disk JSONL schema, the in-process broadcast stream the dashboard reads, the optional bridge to the typed `Observer` (Prometheus / OTel), and the macros (`record!`, `scope!`, `spawn!`) that subsystems call.
 
 This page covers what an operator needs: configuration, where the log lives,
 the shape of the events, and how to query them.
@@ -11,7 +11,7 @@ Defaults: `log_persistence = "rolling"`, `log_persistence_max_entries = 200`,
 `log_tool_io = "redacted"`, `log_tool_io_truncate_bytes = 40960`,
 `log_llm_request_payload = "off"`. A fresh
 install produces a 200-event rolling JSONL at
-`~/.zeroclaw/data/state/runtime-trace.jsonl`, and the dashboard's Logs page
+`~/.max/data/state/runtime-trace.jsonl`, and the dashboard's Logs page
 works without further configuration.
 
 `log_persistence = "none"` disables persistence entirely but does not gate the broadcast stream used by dashboard SSE. The optional typed `Observer` bridge is also independent of persistence, but it receives canonical log events only when explicitly bound; the current production bootstrap does not install that binding.
@@ -20,7 +20,7 @@ Persistence is best-effort rather than a transactional audit guarantee. The Obse
 
 ### Archive rotation (`log_persistence = "rotating"`)
 
-`rotating` applies no entry-count trim to events accepted by the background writer, like `full`, but ZeroClaw manages the active file: it is rotated to a timestamped archive on a size and/or daily boundary, and old archives are pruned by count and age. This differs from `rolling`, which trims old entries out of the active file; rotated events are preserved in archive files for later diagnostics.
+`rotating` applies no entry-count trim to events accepted by the background writer, like `full`, but Max manages the active file: it is rotated to a timestamped archive on a size and/or daily boundary, and old archives are pruned by count and age. This differs from `rolling`, which trims old entries out of the active file; rotated events are preserved in archive files for later diagnostics.
 
 | Key | Default | Effect |
 | --- | --- | --- |
@@ -102,13 +102,13 @@ otel_tool_io_max_chars = 1000        # per-field truncation limit
 attributed agent turn, so a full turn (memory recall, autosave store,
 LLM calls, tool calls) renders as one trace in Langfuse/Tempo. The three
 events carry the same `channel` / `agent_alias` / `turn_id` triple as LLM
-and tool events, exposed as `zeroclaw.channel`, `gen_ai.agent.name`, and
-`zeroclaw.turn_id` span attributes.
+and tool events, exposed as `max.channel`, `gen_ai.agent.name`, and
+`max.turn_id` span attributes.
 
 Memory operations outside a correlated turn keep producing root spans: the
 gateway REST memory store, and the `process_message` hardware-RAG
 retrieval, which runs before the turn bracket opens and therefore stays a
-root span carrying the matching `zeroclaw.turn_id` attribute (full nesting
+root span carrying the matching `max.turn_id` attribute (full nesting
 of that span is tracked in #8844). A `turn_id` that no longer matches a
 live turn also degrades to a root span rather than guessing a parent.
 
@@ -116,7 +116,7 @@ live turn also degrades to a root span rather than guessing a parent.
 
 `log_llm_request_payload` controls whether the `llm_request` event records the
 outbound prompt and conversation in addition to its `messages_count`. It is
-**off by default** and is a privacy-sensitive surface: when enabled, ZeroClaw
+**off by default** and is a privacy-sensitive surface: when enabled, Max
 persists the full system prompt plus the entire conversation history on every
 turn.
 
@@ -136,7 +136,7 @@ redeploy.
 
 JSONL: one event per line, UTF-8, `0o600` permissions on Unix. The
 hot path is non-blocking: `record_event` hands the serialized event
-to a dedicated background thread (`zeroclaw-log-writer`) via a bounded
+to a dedicated background thread (`max-log-writer`) via a bounded
 channel and returns immediately. The worker calls `sync_all` on a
 periodic cadence: every 100 writes or every 1 second of wall-clock
 time, whichever fires first, plus a final `sync_all` when the channel
@@ -149,7 +149,7 @@ disabling and re-enabling persistence via `init_from_config` drops the
 old worker (channel close triggers its final sync and thread exit) and
 spawns a fresh one.
 
-Line shape mirrors `zeroclaw_log::event::LogEvent`. Top-level keys:
+Line shape mirrors `max_log::event::LogEvent`. Top-level keys:
 
 | Key | Type | Notes |
 | --- | --- | --- |
@@ -160,19 +160,19 @@ Line shape mirrors `zeroclaw_log::event::LogEvent`. Top-level keys:
 | `event.category` | string | `agent`, `channel`, `cron`, `memory`, `tool`, `provider`, `session`, `system`, or `internal`. |
 | `event.action` | string | Stable identifier (`llm_request`, `channel_message_inbound`, …). |
 | `event.outcome` | string \| omitted | `success`, `failure`, `unknown` (omitted when `unknown`). |
-| `service.name` | string | Constant `"zeroclaw"`. |
+| `service.name` | string | Constant `"max"`. |
 | `service.version` | string | Crate version of the running daemon. |
 | `trace_id` | hex string \| omitted | Per-turn correlation. One agent turn = one trace_id. |
 | `span_id` | hex string \| omitted | Sub-span within a turn. |
-| `zeroclaw.*` | flat string map | Alias-bound attribution (see below). |
+| `max.*` | flat string map | Alias-bound attribution (see below). |
 | `message` | string \| omitted | Human-readable line body. |
 | `attributes` | object \| omitted | Free-form per-action payload. |
 | `schema_version` | u8 | Currently `2`. v1 rows migrate in-place on startup. |
 
-### `zeroclaw.*` attribution
+### `max.*` attribution
 
 The Rust source of truth is `ATTRIBUTION_FIELDS` + `COMPOSITE_PREFIXES`
-in `crates/zeroclaw-log/src/event.rs`. The `/api/logs` response carries
+in `crates/max-log/src/event.rs`. The `/api/logs` response carries
 the canonical list as `attribution_keys`; fetch it instead of
 hard-coding.
 
@@ -211,16 +211,16 @@ Examples:
 
 ```sh
 # All WARN+ events since the daemon started.
-curl "$ZEROCLAW_GATEWAY/api/logs?severity_min=13"
+curl "$MAX_GATEWAY/api/logs?severity_min=13"
 
 # A specific agent's events:
-curl "$ZEROCLAW_GATEWAY/api/logs?agent_alias=glados"
+curl "$MAX_GATEWAY/api/logs?agent_alias=glados"
 
 # Discord traffic for one bot:
-curl "$ZEROCLAW_GATEWAY/api/logs?channel=discord.glados"
+curl "$MAX_GATEWAY/api/logs?channel=discord.glados"
 
 # A single agent turn:
-curl "$ZEROCLAW_GATEWAY/api/logs?trace_id=<value-from-a-prior-event>"
+curl "$MAX_GATEWAY/api/logs?trace_id=<value-from-a-prior-event>"
 ```
 
 </div>
@@ -237,10 +237,10 @@ extra round-trip.
 
 The JSONL schema is an OTel-logs + ECS hybrid: `@timestamp`,
 `severity_number` + `severity_text`, `event.{category,action,outcome}`,
-`service.{name,version}`, `attributes`, plus the `zeroclaw.*` vendor
+`service.{name,version}`, `attributes`, plus the `max.*` vendor
 namespace. Most log viewers ingest it with little or no transform.
 Replace `<install>` with the absolute path to your install dir in the
-examples below (typically `~/.zeroclaw` expanded).
+examples below (typically `~/.max` expanded).
 
 ### Grafana Loki
 
@@ -249,17 +249,17 @@ they're filterable in Grafana:
 
 ```yaml
 scrape_configs:
-  - job_name: zeroclaw
+  - job_name: max
     static_configs:
       - targets: [localhost]
         labels:
-          job: zeroclaw
+          job: max
           __path__: <install>/data/state/runtime-trace.jsonl
     pipeline_stages:
       - json:
           expressions:
-            agent: zeroclaw.agent_alias
-            channel: zeroclaw.channel
+            agent: max.agent_alias
+            channel: max.channel
             level: severity_text
       - labels:
           agent:
@@ -277,7 +277,7 @@ sink afterward (Tempo, Honeycomb, Datadog, etc.):
 
 ```yaml
 receivers:
-  filelog/zeroclaw:
+  filelog/max:
     include: [<install>/data/state/runtime-trace.jsonl]
     operators:
       - type: json_parser
@@ -338,19 +338,19 @@ volume governor for genuine errors.
 
 ## Files of interest
 
-- `crates/zeroclaw-log/src/event.rs`: the canonical `LogEvent` shape.
-- `crates/zeroclaw-log/src/layer.rs`: the `tracing-subscriber` Layer
+- `crates/max-log/src/event.rs`: the canonical `LogEvent` shape.
+- `crates/max-log/src/layer.rs`: the `tracing-subscriber` Layer
   that captures every `tracing::*` call and feeds the pipeline.
-- `crates/zeroclaw-log/src/macro.rs`: `record!`, `scope!`, `spawn!`.
-- `crates/zeroclaw-log/src/writer.rs`: append, rolling trim, and archive
+- `crates/max-log/src/macro.rs`: `record!`, `scope!`, `spawn!`.
+- `crates/max-log/src/writer.rs`: append, rolling trim, and archive
   rotation.
-- `crates/zeroclaw-log/src/reader.rs`: `/api/logs` reader.
-- `crates/zeroclaw-log/src/config.rs`: `StoragePolicy`, `ToolIoPolicy`,
+- `crates/max-log/src/reader.rs`: `/api/logs` reader.
+- `crates/max-log/src/config.rs`: `StoragePolicy`, `ToolIoPolicy`,
   `ResolvedPolicy`.
-- `crates/zeroclaw-log/src/migrate.rs`: schema-1 → schema-2 streaming
+- `crates/max-log/src/migrate.rs`: schema-1 → schema-2 streaming
   migration.
-- `crates/zeroclaw-log/src/observer_bridge.rs`: typed `Observer`
+- `crates/max-log/src/observer_bridge.rs`: typed `Observer`
   projection for Prometheus / OTel consumers.
-- `crates/zeroclaw-gateway/src/api_logs.rs`: the HTTP adapter.
+- `crates/max-gateway/src/api_logs.rs`: the HTTP adapter.
 
 Touch the source before you trust the prose on this page.

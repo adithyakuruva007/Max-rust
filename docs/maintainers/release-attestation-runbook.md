@@ -69,16 +69,16 @@ workflow linting, a dry run, or a previous release.
 ```bash
 TAG=vX.Y.Z
 SOURCE_DIGEST=<release-commit-sha>
-VERIFY_ARCHIVE="zeroclaw-${TAG}-verification.tar.gz"
+VERIFY_ARCHIVE="max-${TAG}-verification.tar.gz"
 
-gh release view "$TAG" --repo zeroclaw-labs/zeroclaw \
+gh release view "$TAG" --repo max-labs/max \
   --json assets --jq '.assets[].name'
-gh release download "$TAG" --repo zeroclaw-labs/zeroclaw \
+gh release download "$TAG" --repo max-labs/max \
   --pattern SHA256SUMS --pattern "$VERIFY_ARCHIVE"
 awk -v file="$VERIFY_ARCHIVE" '$2 == file { print }' SHA256SUMS | sha256sum -c -
 gh attestation verify "$VERIFY_ARCHIVE" \
-  --repo zeroclaw-labs/zeroclaw \
-  --signer-workflow zeroclaw-labs/zeroclaw/.github/workflows/release-stable-manual.yml \
+  --repo max-labs/max \
+  --signer-workflow max-labs/max/.github/workflows/release-stable-manual.yml \
   --source-digest "$SOURCE_DIGEST"
 tar -tzf "$VERIFY_ARCHIVE"
 ```

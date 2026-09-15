@@ -91,7 +91,7 @@ pub fn build_api(root: &Path) -> anyhow::Result<()> {
                 "--no-deps",
                 "--workspace",
                 "--exclude",
-                "zeroclaw-desktop",
+                "max-desktop",
                 "--target-dir",
             ])
             .arg(&target)

@@ -13,12 +13,12 @@
 # ---------------------------------------------------------------------------
 # Audacity-primary areas (runtime, agent, tools, gateway, config, memory)
 # ---------------------------------------------------------------------------
-/crates/zeroclaw-runtime/**          @Audacity88
-/crates/zeroclaw-tools/**            @Audacity88
-/crates/zeroclaw-gateway/**          @Audacity88
-/crates/zeroclaw-config/**           @Audacity88 @tidux
-/crates/zeroclaw-memory/**           @Audacity88
-/crates/zeroclaw-tool-call-parser/** @Audacity88
+/crates/max-runtime/**          @Audacity88
+/crates/max-tools/**            @Audacity88
+/crates/max-gateway/**          @Audacity88
+/crates/max-config/**           @Audacity88 @tidux
+/crates/max-memory/**           @Audacity88
+/crates/max-tool-call-parser/** @Audacity88
 /src/agent/**                        @Audacity88
 /src/gateway/**                      @Audacity88
 /src/tools/**                        @Audacity88
@@ -30,11 +30,11 @@
 # tidux-primary areas (providers, API, infra, hardware, firmware).
 # Web (/web, /dist) stays with @JordanTheJet (+ @IftekharUddin).
 # ---------------------------------------------------------------------------
-/crates/zeroclaw-providers/** @tidux @Audacity88
-/crates/zeroclaw-api/**       @tidux
-/crates/zeroclaw-infra/**     @tidux
-/crates/zeroclaw-hardware/**  @tidux
-/crates/zeroclaw-macros/**    @tidux
+/crates/max-providers/** @tidux @Audacity88
+/crates/max-api/**       @tidux
+/crates/max-infra/**     @tidux
+/crates/max-hardware/**  @tidux
+/crates/max-macros/**    @tidux
 /firmware/**                  @tidux
 /src/providers/**             @tidux @Audacity88
 /src/hardware/**              @tidux
@@ -42,9 +42,9 @@
 /dist/**                      @JordanTheJet
 /apps/**                      @tidux
 
-# Zerocode TUI: paired. Must come AFTER /apps/** (last match wins) or the
-# broad apps rule strips @Audacity88 from zerocode files.
-/apps/zerocode/**             @tidux @Audacity88
+# MaxCode TUI: paired. Must come AFTER /apps/** (last match wins) or the
+# broad apps rule strips @Audacity88 from maxcode files.
+/apps/maxcode/**             @tidux @Audacity88
 
 # ---------------------------------------------------------------------------
 # Legacy root crate and common source paths (shared maintainer triage)
@@ -105,19 +105,19 @@
 # ---------------------------------------------------------------------------
 # Channels (Audacity primary + tidux specialist)
 # ---------------------------------------------------------------------------
-/crates/zeroclaw-channels/** @Audacity88 @tidux
+/crates/max-channels/** @Audacity88 @tidux
 /src/channels/**             @Audacity88 @tidux
 
 # Git forge channel: Nillth authored the subsystem (#8609 GitHub provider,
 # #8611 Gitea/Forgejo). Narrower than the channels rules above, so it must
 # come after them (last match wins).
-/crates/zeroclaw-channels/src/git/** @Audacity88 @Nillth
+/crates/max-channels/src/git/** @Audacity88 @Nillth
 
 # ---------------------------------------------------------------------------
 # Skills, plugins (per Jordan's suggested patch on PR #6537)
 # ---------------------------------------------------------------------------
-/crates/zeroclaw-plugins/**                @JordanTheJet @Audacity88
-/crates/zeroclaw-runtime/src/skills/**     @JordanTheJet @Audacity88
+/crates/max-plugins/**                @JordanTheJet @Audacity88
+/crates/max-runtime/src/skills/**     @JordanTheJet @Audacity88
 /plugins/**                                @JordanTheJet @Audacity88
 /src/plugins/**                            @JordanTheJet @Audacity88
 /src/skills/**                             @JordanTheJet @Audacity88
@@ -133,13 +133,13 @@
 # ---------------------------------------------------------------------------
 /locales.toml                       @tidux
 /src/i18n.rs                        @tidux
-/crates/zeroclaw-runtime/locales/** @tidux
+/crates/max-runtime/locales/** @tidux
 /tools/fill-translations/**         @tidux
 /TRANSLATIONS.md                    @tidux
 
 # Explicit i18n files Audacity flagged on PR #6537. Would otherwise resolve
 # to their broader area without the i18n specialist on them.
-/crates/zeroclaw-runtime/src/i18n.rs @Audacity88 @tidux
+/crates/max-runtime/src/i18n.rs @Audacity88 @tidux
 /web/src/lib/i18n.ts                 @JordanTheJet @IftekharUddin
 
 # ---------------------------------------------------------------------------
@@ -199,7 +199,7 @@
 /SECURITY.md                             @Audacity88 @tidux @JordanTheJet
 /deny.toml                               @Audacity88 @tidux @JordanTheJet
 /src/security/**                         @Audacity88 @tidux @JordanTheJet
-/crates/zeroclaw-runtime/src/security/** @Audacity88 @tidux @JordanTheJet
+/crates/max-runtime/src/security/** @Audacity88 @tidux @JordanTheJet
 /.github/codeql/**                       @Audacity88 @tidux @JordanTheJet
 /.github/dependabot.yml                  @Audacity88 @tidux @JordanTheJet
 
@@ -230,10 +230,10 @@ Cargo.lock @JordanTheJet
 # Specific overrides (must be last)
 # ---------------------------------------------------------------------------
 # Channels-crate Cargo.toml: legacy steward + channels owners
-/crates/zeroclaw-channels/Cargo.toml @Audacity88 @tidux @JordanTheJet
+/crates/max-channels/Cargo.toml @Audacity88 @tidux @JordanTheJet
 
 # Matrix backend
-/crates/zeroclaw-channels/src/matrix.rs @tidux @Audacity88
+/crates/max-channels/src/matrix.rs @tidux @Audacity88
 
 # ACP server (per @tidux's request on PR #6537)
-/crates/zeroclaw-channels/src/orchestrator/acp_server.rs @tidux @Audacity88
+/crates/max-channels/src/orchestrator/acp_server.rs @tidux @Audacity88

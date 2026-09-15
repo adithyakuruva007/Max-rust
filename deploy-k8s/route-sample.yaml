@@ -1,15 +1,15 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: zeroclaw
-  namespace: zeroclaw
+  name: max
+  namespace: max
   labels:
-    app.kubernetes.io/name: zeroclaw
-    app.kubernetes.io/part-of: zeroclaw
+    app.kubernetes.io/name: max
+    app.kubernetes.io/part-of: max
 spec:
   to:
     kind: Service
-    name: zeroclaw
+    name: max
     weight: 100
   port:
     targetPort: gateway

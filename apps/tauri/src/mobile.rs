@@ -1,6 +1,6 @@
-//! Mobile entry point for ZeroClaw Desktop (iOS/Android).
+//! Mobile entry point for Max Desktop (iOS/Android).
 
 #[tauri::mobile_entry_point]
 fn main() {
-    zeroclaw_desktop::run();
+    max_desktop::run();
 }

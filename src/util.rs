@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::util::*;
+pub use max_runtime::util::*;

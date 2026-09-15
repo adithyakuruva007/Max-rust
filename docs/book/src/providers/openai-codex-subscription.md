@@ -2,7 +2,7 @@
 
 Run an agent on the `openai` slot, paid through a ChatGPT subscription instead
 of metered `OPENAI_API_KEY` billing. The agent is a GPT-5.x Codex model driving
-ZeroClaw's tools, authenticated by your Codex login rather than an API key.
+Max's tools, authenticated by your Codex login rather than an API key.
 Billing follows your ChatGPT plan: the usage included with your subscription is
 consumed first, and Codex usage beyond that included allowance draws on your
 account's flexible credits at OpenAI's per-model token rates. It is not a flat
@@ -18,20 +18,20 @@ see [Configuration](./configuration.md); for the one-line catalog entry see the
 Codex subscription auth lives on the `openai` slot. Set `wire_api = "responses"`
 to route through `POST /v1/responses` (the Codex backend, not the chat
 completions API) and `requires_openai_auth = true` to pull credentials from
-ZeroClaw's stored `openai-codex` auth profile instead of an `api_key` field:
+Max's stored `openai-codex` auth profile instead of an `api_key` field:
 
 ```bash
 # Reuse an existing Codex CLI login:
-zeroclaw auth login --model-provider openai-codex --import ~/.codex/auth.json
+max auth login --model-provider openai-codex --import ~/.codex/auth.json
 
-# Or start ZeroClaw's own OpenAI Codex login flow:
-zeroclaw auth login --model-provider openai-codex
+# Or start Max's own OpenAI Codex login flow:
+max auth login --model-provider openai-codex
 ```
 
 Quickstart can write the provider entry for you:
 
 ```bash
-zeroclaw quickstart --model-provider openai-codex --model gpt-5.4
+max quickstart --model-provider openai-codex --model gpt-5.4
 ```
 
 Manual config uses the same canonical OpenAI slot:
@@ -69,10 +69,10 @@ hardcoded list, including this one:
 # Field names match the live ~/.codex/auth.json (verify against the file itself;
 # the layout has shifted across Codex versions).
 AT=$(jq -r .tokens.access_token ~/.codex/auth.json)
-# account_id is OPTIONAL in auth.json; ZeroClaw falls back to the OAuth JWT when
+# account_id is OPTIONAL in auth.json; Max falls back to the OAuth JWT when
 # it is absent. `// empty` keeps jq from emitting the literal string "null", and
 # the header is sent only when the field is actually present. After an import you
-# can also read the resolved id from `zeroclaw auth status`.
+# can also read the resolved id from `max auth status`.
 ACC=$(jq -r '.tokens.account_id // empty' ~/.codex/auth.json)
 curl -s "https://chatgpt.com/backend-api/codex/models?client_version=1.0.0" \
   -H "Authorization: Bearer ${AT}" \
@@ -121,17 +121,17 @@ docs, which supersede any figure pinned here):
 The plan tiers below are therefore **usage-allowance multipliers**, not a
 guarantee of per-call zero cost.
 
-### ZeroClaw cost tracking
+### Max cost tracking
 
-ZeroClaw records this slot at `$0` per call. **That is a local accounting
-limitation, not an OpenAI billing fact:** ZeroClaw cannot see your ChatGPT plan's
+Max records this slot at `$0` per call. **That is a local accounting
+limitation, not an OpenAI billing fact:** Max cannot see your ChatGPT plan's
 included-usage meter or credit balance, so it cannot attribute per-call token
-cost to a subscription request. Read the `$0` as "not metered by ZeroClaw", and
+cost to a subscription request. Read the `$0` as "not metered by Max", and
 watch the real allowance / credit state in your OpenAI account. Keep subscription
 and metered (api-key) classes separate in accounting; see
 [Cost tracking](../ops/cost-tracking.md).
 
-| Class | ZeroClaw budget signal | Real billing |
+| Class | Max budget signal | Real billing |
 |---|---|---|
 | Subscription (`openai` slot, Codex auth) | rolling Codex usage allowance | included plan usage, then per-token flexible credits |
 | Metered (api-key providers) | running $ balance | per-token |
@@ -198,15 +198,15 @@ Import the existing Codex-CLI token non-interactively rather than starting a
 browser flow:
 
 ```bash
-zeroclaw auth login --model-provider openai-codex --import ~/.codex/auth.json
-zeroclaw auth status   # openai-codex:default kind=OAuth account=... expires=...
+max auth login --model-provider openai-codex --import ~/.codex/auth.json
+max auth status   # openai-codex:default kind=OAuth account=... expires=...
 ```
 
-(Interactive alternatives: `zeroclaw auth login` without `--import`, or
+(Interactive alternatives: `max auth login` without `--import`, or
 `--device-code`.)
 
-Run the daemon from the default config-dir (`~/.zeroclaw`). The auth profile is
-stored there natively and the `zeroclaw auth` commands default there; pointing
+Run the daemon from the default config-dir (`~/.max`). The auth profile is
+stored there natively and the `max auth` commands default there; pointing
 the daemon at a custom dir means the profile has to be placed there too, and
 because it is encrypted per-config-dir (below), that is where the pain starts.
 
@@ -223,8 +223,8 @@ If a foreign `auth-profiles.json` is already present, move it aside first or the
 import fails trying to load it:
 
 ```bash
-mv ~/.zeroclaw/auth-profiles.json ~/.zeroclaw/auth-profiles.json.foreign 2>/dev/null
-zeroclaw auth login --model-provider openai-codex --import ~/.codex/auth.json
+mv ~/.max/auth-profiles.json ~/.max/auth-profiles.json.foreign 2>/dev/null
+max auth login --model-provider openai-codex --import ~/.codex/auth.json
 ```
 
 **Refresh tokens rotate, one owner only.** Each successful refresh invalidates
@@ -265,7 +265,7 @@ encrypted channel.
 ## Verifying
 
 ```bash
-zeroclaw auth status   # present and unexpired
+max auth status   # present and unexpired
 # then drive the agent once against the local gateway
 ```
 
@@ -278,13 +278,13 @@ A healthy run returns model output with `exit_code=0`. Two failure signatures:
 ## New-host checklist
 
 1. `~/.codex/auth.json` present and current (pulled from the refresh owner).
-2. `zeroclaw auth login --model-provider openai-codex --import ~/.codex/auth.json`
+2. `max auth login --model-provider openai-codex --import ~/.codex/auth.json`
    (move aside any foreign `auth-profiles.json` first).
-3. `zeroclaw auth status` shows `openai-codex:default ... kind=OAuth ...
+3. `max auth status` shows `openai-codex:default ... kind=OAuth ...
    expires=<future>`.
 4. An `openai` entry with `wire_api = "responses"`, `requires_openai_auth =
    true`, and an exact served model ID.
-5. Daemon on `--config-dir ~/.zeroclaw` (the default).
+5. Daemon on `--config-dir ~/.max` (the default).
 6. Drive the agent once → `exit_code=0` with real output.
 7. Router maps roles to current served IDs (don't pin a version you will have
    to chase).

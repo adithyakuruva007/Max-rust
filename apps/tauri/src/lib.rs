@@ -1,4 +1,4 @@
-//! ZeroClaw Desktop — Tauri application library.
+//! Max Desktop — Tauri application library.
 
 pub mod capabilities;
 pub mod commands;
@@ -17,7 +17,7 @@ use tauri::{Emitter, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 /// port baked into [`state::AppState::default`]'s `gateway_url`.
 const GATEWAY_PORT: u16 = 42617;
 
-/// Status the splash listens for (`zeroclaw://splash-status`). Drives the
+/// Status the splash listens for (`max://splash-status`). Drives the
 /// splash copy when we're starting our own daemon or hit a problem; the happy
 /// path is covered by the splash's own health polling, so a missed event is
 /// harmless.
@@ -29,7 +29,7 @@ struct SplashStatus {
 }
 
 /// Ensure a gateway/daemon is reachable: reuse one if it already answers,
-/// otherwise launch a fresh `zeroclaw daemon`. The splash window's health
+/// otherwise launch a fresh `max daemon`. The splash window's health
 /// polling takes over once the daemon is up and opens the dashboard.
 async fn ensure_daemon(app: tauri::AppHandle, state: state::SharedState) {
     let url = {
@@ -48,21 +48,21 @@ async fn ensure_daemon(app: tauri::AppHandle, state: state::SharedState) {
     }
 
     // Nothing listening — start our own daemon.
-    match daemon::find_zeroclaw_binary() {
+    match daemon::find_max_binary() {
         Some(bin) => {
             let _ = app.emit(
-                "zeroclaw://splash-status",
+                "max://splash-status",
                 SplashStatus {
                     kind: "starting",
-                    message: "Starting the ZeroClaw daemon…".to_string(),
+                    message: "Starting the Max daemon…".to_string(),
                 },
             );
             if let Err(e) = daemon::spawn_daemon(&bin, GATEWAY_PORT) {
                 let _ = app.emit(
-                    "zeroclaw://splash-status",
+                    "max://splash-status",
                     SplashStatus {
                         kind: "error",
-                        message: format!("Couldn't start the ZeroClaw daemon: {e}"),
+                        message: format!("Couldn't start the Max daemon: {e}"),
                     },
                 );
             }
@@ -71,10 +71,10 @@ async fn ensure_daemon(app: tauri::AppHandle, state: state::SharedState) {
         }
         None => {
             let _ = app.emit(
-                "zeroclaw://splash-status",
+                "max://splash-status",
                 SplashStatus {
                     kind: "missing",
-                    message: "Couldn't find the `zeroclaw` binary. Install ZeroClaw \
+                    message: "Couldn't find the `max` binary. Install Max \
                               (or start a daemon yourself) and reopen the app."
                         .to_string(),
                 },
@@ -143,14 +143,14 @@ async fn open_dashboard(
     let parsed = tauri::Url::parse(&dashboard_url).map_err(|e| e.to_string())?;
 
     let mut builder = WebviewWindowBuilder::new(&app, "main", WebviewUrl::External(parsed))
-        .title("ZeroClaw")
+        .title("Max")
         .inner_size(1200.0, 800.0)
         .center()
         .resizable(true);
     if let Some(token) = token {
         let escaped = token.replace('\\', "\\\\").replace('\'', "\\'");
         let script = format!(
-            "try {{ localStorage.setItem('zeroclaw_token', '{escaped}'); }} catch (e) {{}}"
+            "try {{ localStorage.setItem('max_token', '{escaped}'); }} catch (e) {{}}"
         );
         builder = builder.initialization_script(script.as_str());
     }
@@ -230,7 +230,7 @@ pub fn run() {
                 let _ = splash.set_focus();
             }
 
-            // Reuse a running gateway/daemon, or start a fresh `zeroclaw daemon`
+            // Reuse a running gateway/daemon, or start a fresh `max daemon`
             // if none is listening, so the app works without a manual setup step.
             let ensure_handle = app.handle().clone();
             let ensure_state = shared.clone();

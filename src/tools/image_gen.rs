@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::image_gen::*;
+pub use max_tools::image_gen::*;

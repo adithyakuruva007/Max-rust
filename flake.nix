@@ -42,9 +42,9 @@
         };
         # >>> generated:flake-packages by `cargo generate installers` - do not edit <<<
         # Default feature set: canonical lean Dist.
-        # Override with `packages.zeroclaw.override { features = [ ... ]; }`.
-        zeroclawDefaultFeatures = [ "acp-bridge" "agent-runtime" "channel-acp-server" "channel-discord" "channel-email" "channel-filesystem" "channel-git" "channel-lark" "channel-matrix" "channel-telegram" "channel-webhook" "gateway" "observability-prometheus" "schema-export" "whatsapp-web" ];
-        buildZeroclaw = { pname, cargoPkg, features ? zeroclawDefaultFeatures }:
+        # Override with `packages.max.override { features = [ ... ]; }`.
+        maxDefaultFeatures = [ "acp-bridge" "agent-runtime" "channel-acp-server" "channel-discord" "channel-email" "channel-filesystem" "channel-git" "channel-lark" "channel-matrix" "channel-telegram" "channel-webhook" "gateway" "observability-prometheus" "schema-export" "whatsapp-web" ];
+        buildMax = { pname, cargoPkg, features ? maxDefaultFeatures }:
           (pkgs.makeRustPlatform {
             cargo = rustToolchain;
             rustc = rustToolchain;
@@ -65,11 +65,11 @@
           };
         # >>> end generated:flake-packages <<<
       in {
-        packages.zeroclaw = buildZeroclaw { pname = "zeroclaw"; cargoPkg = "zeroclaw"; };
-        packages.zerocode = buildZeroclaw { pname = "zerocode"; cargoPkg = "zerocode"; };
-        packages.default = buildZeroclaw { pname = "zeroclaw"; cargoPkg = "zeroclaw"; };
+        packages.max = buildMax { pname = "max"; cargoPkg = "max"; };
+        packages.maxcode = buildMax { pname = "maxcode"; cargoPkg = "maxcode"; };
+        packages.default = buildMax { pname = "max"; cargoPkg = "max"; };
         checks = pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-          nixos-module-eval = pkgs.writeText "zeroclaw-nixos-module-eval" (
+          nixos-module-eval = pkgs.writeText "max-nixos-module-eval" (
             builtins.toJSON nixosModuleEvalTests
           );
         };
@@ -82,7 +82,7 @@
           ];
         };
       }) // {
-      # The `services.zeroclaw` NixOS module (multi-instance; see nix/module.nix
+      # The `services.max` NixOS module (multi-instance; see nix/module.nix
       # and nix/README.md). Exposed as the default so `nixosModules.default` can
       # be imported directly into a system configuration.
       nixosModules.default = import ./nix/module.nix;

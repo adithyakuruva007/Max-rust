@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::cli_input::*;
+pub use max_runtime::cli_input::*;

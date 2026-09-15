@@ -85,7 +85,7 @@ class MdBookLinkBoundaryTest(unittest.TestCase):
 
     def test_accepts_http_target(self) -> None:
         source = "docs/book/src/maintainers/release-verification.md"
-        target = "https://github.com/zeroclaw-labs/zeroclaw"
+        target = "https://github.com/max-labs/max"
 
         self.assertFalse(mdbook_link_escapes_source(source, target))
 

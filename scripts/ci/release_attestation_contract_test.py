@@ -96,7 +96,7 @@ class ReleaseAttestationContractTest(unittest.TestCase):
             "--bundle",
             "--custom-trusted-root",
             "ATTESTATION-BUNDLES.md",
-            "zeroclaw-${TAG}-verification.tar.gz",
+            "max-${TAG}-verification.tar.gz",
             "tar -C",
         )
         for value in required:
@@ -136,7 +136,7 @@ class ReleaseAttestationContractTest(unittest.TestCase):
         subjects = {
             "attest_checksums": "subject-path: release-assets/SHA256SUMS",
             "attest_verification_archive": (
-                "subject-path: release-assets/zeroclaw-${{ needs.validate.outputs.tag }}-verification.tar.gz"
+                "subject-path: release-assets/max-${{ needs.validate.outputs.tag }}-verification.tar.gz"
             ),
         }
         for step_id, subject in subjects.items():

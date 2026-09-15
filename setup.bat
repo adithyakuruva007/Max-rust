@@ -2,15 +2,15 @@
 setlocal enabledelayedexpansion
 
 :: ============================================================================
-:: ZeroClaw Windows Setup Script
-:: Simplifies building and installing ZeroClaw on Windows.
+:: Max Windows Setup Script
+:: Simplifies building and installing Max on Windows.
 :: Usage: setup.bat [--prebuilt | --minimal | --dist | --default | --all | --dry-run | --help]
 :: ============================================================================
 
 set "VERSION=0.8.5"
 set "RUST_MIN_VERSION=1.96.0"
 set "TARGET=x86_64-pc-windows-msvc"
-set "REPO=https://github.com/zeroclaw-labs/zeroclaw"
+set "REPO=https://github.com/max-labs/max"
 
 :: Colors via ANSI (Windows 10+ Terminal)
 set "GREEN=[32m"
@@ -40,7 +40,7 @@ goto :show_help
 :start
 echo.
 echo %BOLD%%BLUE%=========================================%RESET%
-echo %BOLD%%BLUE%  ZeroClaw Windows Setup  v%VERSION%%RESET%
+echo %BOLD%%BLUE%  Max Windows Setup  v%VERSION%%RESET%
 echo %BOLD%%BLUE%=========================================%RESET%
 echo.
 
@@ -163,8 +163,8 @@ echo %BOLD%[3/5] Downloading prebuilt binary...%RESET%
 
 if "%DRY_RUN%"=="true" (
     echo   [dry-run] Would download the prebuilt Windows release archive
-    echo   [dry-run] Would install to %USERPROFILE%\.zeroclaw\bin
-    echo   [dry-run] Would add %USERPROFILE%\.zeroclaw\bin to PATH
+    echo   [dry-run] Would install to %USERPROFILE%\.max\bin
+    echo   [dry-run] Would add %USERPROFILE%\.max\bin to PATH
     goto :dry_run_done
 )
 
@@ -178,11 +178,11 @@ if %ERRORLEVEL% EQU 0 (
 
 if not defined DOWNLOAD_URL (
     :: Fallback: construct URL from known release pattern
-    set "DOWNLOAD_URL=https://github.com/zeroclaw-labs/zeroclaw/releases/latest/download/zeroclaw-%TARGET%.zip"
+    set "DOWNLOAD_URL=https://github.com/max-labs/max/releases/latest/download/max-%TARGET%.zip"
 )
 
 echo   Downloading from release...
-curl -sSfL -o "%TEMP%\zeroclaw-windows.zip" "!DOWNLOAD_URL!"
+curl -sSfL -o "%TEMP%\max-windows.zip" "!DOWNLOAD_URL!"
 if %ERRORLEVEL% NEQ 0 (
     echo   %YELLOW%Prebuilt binary not available. Falling back to source build - dist%RESET%
     goto :build_dist
@@ -190,23 +190,23 @@ if %ERRORLEVEL% NEQ 0 (
 
 :: Extract
 echo   Extracting...
-mkdir "%USERPROFILE%\.zeroclaw\bin" 2>nul
-tar -xf "%TEMP%\zeroclaw-windows.zip" -C "%USERPROFILE%\.zeroclaw\bin"
+mkdir "%USERPROFILE%\.max\bin" 2>nul
+tar -xf "%TEMP%\max-windows.zip" -C "%USERPROFILE%\.max\bin"
 if %ERRORLEVEL% NEQ 0 (
-    powershell -Command "Expand-Archive -Force '%TEMP%\zeroclaw-windows.zip' '%USERPROFILE%\.zeroclaw\bin'"
+    powershell -Command "Expand-Archive -Force '%TEMP%\max-windows.zip' '%USERPROFILE%\.max\bin'"
 )
 
 :: Add to PATH if not already there
-echo %PATH% | findstr /I /C:".zeroclaw\bin" >nul 2>&1
+echo %PATH% | findstr /I /C:".max\bin" >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    setx PATH "%PATH%;%USERPROFILE%\.zeroclaw\bin" >nul 2>&1
-    set "PATH=%PATH%;%USERPROFILE%\.zeroclaw\bin"
+    setx PATH "%PATH%;%USERPROFILE%\.max\bin" >nul 2>&1
+    set "PATH=%PATH%;%USERPROFILE%\.max\bin"
     echo   %GREEN%OK%RESET% Added to PATH
 )
 
-echo   %GREEN%OK%RESET% Binary installed to %USERPROFILE%\.zeroclaw\bin\zeroclaw.exe
-if exist "%USERPROFILE%\.zeroclaw\bin\zerocode.exe" (
-    echo   %GREEN%OK%RESET% TUI installed to %USERPROFILE%\.zeroclaw\bin\zerocode.exe
+echo   %GREEN%OK%RESET% Binary installed to %USERPROFILE%\.max\bin\max.exe
+if exist "%USERPROFILE%\.max\bin\maxcode.exe" (
+    echo   %GREEN%OK%RESET% TUI installed to %USERPROFILE%\.max\bin\maxcode.exe
 )
 goto verify
 
@@ -237,24 +237,24 @@ goto :do_build
 :do_build
 set "INSTALL_ROUTE=source"
 echo.
-echo %BOLD%[3/5] Building ZeroClaw (%BUILD_DESC%)...%RESET%
+echo %BOLD%[3/5] Building Max (%BUILD_DESC%)...%RESET%
 echo   Target: %TARGET%
 
 if "%DRY_RUN%"=="true" (
     echo   [dry-run] Would run: cargo build --release --locked %FEATURES% --target %TARGET%
-    echo   [dry-run] Would run: cargo build --release --locked -p zerocode --target %TARGET%
-    echo   [dry-run] Would install to %USERPROFILE%\.zeroclaw\bin
-    echo   [dry-run] Would build web dashboard ^(cargo web build^) and install to %LOCALAPPDATA%\zeroclaw\web\dist
-    echo   [dry-run] Would add %USERPROFILE%\.zeroclaw\bin to PATH
+    echo   [dry-run] Would run: cargo build --release --locked -p maxcode --target %TARGET%
+    echo   [dry-run] Would install to %USERPROFILE%\.max\bin
+    echo   [dry-run] Would build web dashboard ^(cargo web build^) and install to %LOCALAPPDATA%\max\web\dist
+    echo   [dry-run] Would add %USERPROFILE%\.max\bin to PATH
     goto :dry_run_done
 )
 
 :: Ensure we're in the repo root (check for Cargo.toml)
 if not exist "Cargo.toml" (
-    echo   %RED%ERROR: Cargo.toml not found. Run this script from the zeroclaw repository root.%RESET%
+    echo   %RED%ERROR: Cargo.toml not found. Run this script from the max repository root.%RESET%
     echo   Example:
     echo     git clone %REPO%
-    echo     cd zeroclaw
+    echo     cd max
     echo     setup.bat
     goto :error_exit
 )
@@ -279,12 +279,12 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo   %GREEN%OK%RESET% Build succeeded.
 
-echo   Command: cargo build --release --locked -p zerocode --target %TARGET%
-cargo build --release --locked -p zerocode --target %TARGET%
+echo   Command: cargo build --release --locked -p maxcode --target %TARGET%
+cargo build --release --locked -p maxcode --target %TARGET%
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo   %RED%ERROR: zerocode TUI build failed.%RESET%
-    echo   zerocode ships with every install; a partial install is not produced.
+    echo   %RED%ERROR: maxcode TUI build failed.%RESET%
+    echo   maxcode ships with every install; a partial install is not produced.
     echo   Fix the build error above and re-run setup.bat.
     goto :error_exit
 )
@@ -292,33 +292,33 @@ if %ERRORLEVEL% NEQ 0 (
 :: Copy binary to a convenient location
 echo.
 echo %BOLD%[4/5] Installing binary...%RESET%
-mkdir "%USERPROFILE%\.zeroclaw\bin" 2>nul
-copy /Y "target\%TARGET%\release\zeroclaw.exe" "%USERPROFILE%\.zeroclaw\bin\zeroclaw.exe" >nul
-if exist "target\%TARGET%\release\zerocode.exe" (
-    copy /Y "target\%TARGET%\release\zerocode.exe" "%USERPROFILE%\.zeroclaw\bin\zerocode.exe" >nul
-    echo   %GREEN%OK%RESET% TUI installed to %USERPROFILE%\.zeroclaw\bin\zerocode.exe
+mkdir "%USERPROFILE%\.max\bin" 2>nul
+copy /Y "target\%TARGET%\release\max.exe" "%USERPROFILE%\.max\bin\max.exe" >nul
+if exist "target\%TARGET%\release\maxcode.exe" (
+    copy /Y "target\%TARGET%\release\maxcode.exe" "%USERPROFILE%\.max\bin\maxcode.exe" >nul
+    echo   %GREEN%OK%RESET% TUI installed to %USERPROFILE%\.max\bin\maxcode.exe
 )
-set "BIN_PATH=%USERPROFILE%\.zeroclaw\bin\zeroclaw.exe"
+set "BIN_PATH=%USERPROFILE%\.max\bin\max.exe"
 for /f %%S in ('powershell -NoProfile -Command "[math]::Round(((Get-Item -LiteralPath ''%BIN_PATH%'').Length / 1MB), 2)"') do (
     set "BINARY_MB=%%S"
 )
 if defined BINARY_MB (
-    echo   %GREEN%OK%RESET% Installed to %USERPROFILE%\.zeroclaw\bin\zeroclaw.exe ^(%BINARY_MB% MB^)
+    echo   %GREEN%OK%RESET% Installed to %USERPROFILE%\.max\bin\max.exe ^(%BINARY_MB% MB^)
 ) else (
-    echo   %GREEN%OK%RESET% Installed to %USERPROFILE%\.zeroclaw\bin\zeroclaw.exe ^(size unavailable^)
+    echo   %GREEN%OK%RESET% Installed to %USERPROFILE%\.max\bin\max.exe ^(size unavailable^)
 )
 
 :: Add to PATH if not already there
-echo %PATH% | findstr /I /C:".zeroclaw\bin" >nul 2>&1
+echo %PATH% | findstr /I /C:".max\bin" >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    setx PATH "%PATH%;%USERPROFILE%\.zeroclaw\bin" >nul 2>&1
-    set "PATH=%PATH%;%USERPROFILE%\.zeroclaw\bin"
+    setx PATH "%PATH%;%USERPROFILE%\.max\bin" >nul 2>&1
+    set "PATH=%PATH%;%USERPROFILE%\.max\bin"
     echo   %GREEN%OK%RESET% Added to PATH
 )
 
 :: Build and install the web dashboard so the gateway serves it. Mirrors
 :: install.sh: assets must land where the gateway auto-detects them
-:: (%LOCALAPPDATA%\zeroclaw\web\dist) so a service-launched daemon finds
+:: (%LOCALAPPDATA%\max\web\dist) so a service-launched daemon finds
 :: them regardless of working directory.
 where npm >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
@@ -326,9 +326,9 @@ if %ERRORLEVEL% EQU 0 (
     cargo web build
     if %ERRORLEVEL% EQU 0 (
         if exist "web\dist\index.html" (
-            mkdir "%LOCALAPPDATA%\zeroclaw\web\dist" 2>nul
-            robocopy "web\dist" "%LOCALAPPDATA%\zeroclaw\web\dist" /MIR /NFL /NDL /NJH /NJS >nul
-            echo   %GREEN%OK%RESET% Web dashboard installed to %LOCALAPPDATA%\zeroclaw\web\dist
+            mkdir "%LOCALAPPDATA%\max\web\dist" 2>nul
+            robocopy "web\dist" "%LOCALAPPDATA%\max\web\dist" /MIR /NFL /NDL /NJH /NJS >nul
+            echo   %GREEN%OK%RESET% Web dashboard installed to %LOCALAPPDATA%\max\web\dist
         )
     ) else (
         echo   %YELLOW%WARNING: dashboard build failed; gateway runs in API-only mode.%RESET%
@@ -347,15 +347,15 @@ goto verify
 echo.
 echo %BOLD%[5/5] Verifying installation...%RESET%
 
-"%USERPROFILE%\.zeroclaw\bin\zeroclaw.exe" --version >nul 2>&1
+"%USERPROFILE%\.max\bin\max.exe" --version >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    for /f "tokens=*" %%v in ('"%USERPROFILE%\.zeroclaw\bin\zeroclaw.exe" --version 2^>nul') do (
+    for /f "tokens=*" %%v in ('"%USERPROFILE%\.max\bin\max.exe" --version 2^>nul') do (
         echo   %GREEN%OK%RESET% %%v
     )
 ) else (
-    zeroclaw --version >nul 2>&1
+    max --version >nul 2>&1
     if %ERRORLEVEL% EQU 0 (
-        for /f "tokens=*" %%v in ('zeroclaw --version 2^>nul') do (
+        for /f "tokens=*" %%v in ('max --version 2^>nul') do (
             echo   %GREEN%OK%RESET% %%v
         )
     ) else (
@@ -365,42 +365,42 @@ if %ERRORLEVEL% EQU 0 (
 
 echo.
 echo %BOLD%%GREEN%=========================================%RESET%
-echo %BOLD%%GREEN%  ZeroClaw setup complete!%RESET%
+echo %BOLD%%GREEN%  Max setup complete!%RESET%
 echo %BOLD%%GREEN%=========================================%RESET%
 echo.
 :: >>> generated:post-install by `cargo generate installers` - do not edit <<<
 echo   Next steps:
 if /I "%INSTALL_ROUTE%"=="prebuilt" (
 echo     1. PATH is ready in this terminal and future terminals
-echo     2. Run: zeroclaw quickstart
+echo     2. Run: max quickstart
 echo     3. Configure a model provider during Quickstart
-echo     4. Launch the TUI when installed: zerocode
+echo     4. Launch the TUI when installed: maxcode
 ) else (
 echo     1. PATH is ready in this terminal and future terminals
 if /I "%MODE%"=="minimal" (
-echo     2. Minimal build excludes quickstart ^(zeroclaw quickstart is unavailable^)
+echo     2. Minimal build excludes quickstart ^(max quickstart is unavailable^)
 echo     3. Configure model providers with the supported config surface
-echo     4. Use reduced CLI path: zeroclaw agent --message "Hello"
+echo     4. Use reduced CLI path: max agent --message "Hello"
 ) else (
-echo     2. Run: zeroclaw quickstart
+echo     2. Run: max quickstart
 echo     3. Configure a model provider during Quickstart
-echo     4. Launch the TUI when installed: zerocode
+echo     4. Launch the TUI when installed: maxcode
 )
 )
 :: >>> end generated:post-install <<<
 echo.
 echo   Alternative install via Scoop:
-echo     scoop bucket add zeroclaw https://github.com/zeroclaw-labs/scoop-zeroclaw
-echo     scoop install zeroclaw
+echo     scoop bucket add max https://github.com/max-labs/scoop-max
+echo     scoop install max
 echo.
-echo   Documentation: https://github.com/zeroclaw-labs/zeroclaw
+echo   Documentation: https://github.com/max-labs/max
 echo.
 goto :end
 
 :: ---- Help ----
 :show_help
 echo.
-echo ZeroClaw Windows Setup Script
+echo Max Windows Setup Script
 echo.
 echo Usage: setup.bat [OPTIONS]
 echo.

@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::agent::*;
+pub use max_runtime::agent::*;

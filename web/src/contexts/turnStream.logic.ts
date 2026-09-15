@@ -73,7 +73,7 @@ export function classifyCompletion(
   }
   if (!state.hadToolCall) {
     // Nothing at all on a clean completion — surface a diagnostic so the turn
-    // does not disappear. Mirrors zerocode's zc-turn-no-output (#8779).
+    // does not disappear. Mirrors maxcode's zc-turn-no-output (#8779).
     return { kind: 'diagnostic' };
   }
   // Empty content but tools ran: their cards are the record, render nothing.

@@ -172,7 +172,7 @@ export async function apiFetch<T = unknown>(
 
   if (result.status === 401) {
     clearToken();
-    window.dispatchEvent(new Event("zeroclaw-unauthorized"));
+    window.dispatchEvent(new Event("max-unauthorized"));
     throw new UnauthorizedError();
   }
 
@@ -403,7 +403,7 @@ export type VersionCheckResponse = components["schemas"]["VersionCheckResponse"]
 /**
  * GET /api/version/check — is a newer release available?
  *
- * Backed by `zeroclaw update --check --json`, cached server-side for 1h.
+ * Backed by `max update --check --json`, cached server-side for 1h.
  * Pass `force` to bypass the cache, or `version` to check a specific tag.
  */
 export function checkVersion(opts?: {
@@ -427,7 +427,7 @@ export type UpgradeAcceptedResponse =
   components["schemas"]["UpgradeAcceptedResponse"];
 
 /**
- * POST /api/version/upgrade — apply an upgrade via `zeroclaw update`.
+ * POST /api/version/upgrade — apply an upgrade via `max update`.
  *
  * Returns a `handoff_id`; poll {@link getUpgradeStatus} for progress. Requires
  * `gateway.allow_self_upgrade`. `auto_restart` is only honoured under a
@@ -513,7 +513,7 @@ export interface ListResponseEntry {
   /**
    * Alias namespace for `kind === 'alias-ref'` fields (drives the resolved
    * picker). Emitted by the schema-driven `PropKind::AliasRef` backend from
-   * zeroclaw-labs/zeroclaw#7594; absent on backends that predate it, in which
+   * max-labs/max#7594; absent on backends that predate it, in which
    * case FieldForm falls back to its per-section alias maps.
    */
   alias_source?: string;
@@ -608,7 +608,7 @@ export function listProps(prefix?: string): Promise<ListResponse> {
 export async function patchConfig(
   ops: PatchOp[],
   opts?: {
-    /** Send `X-ZeroClaw-Override-Drift: true` so the server overwrites the
+    /** Send `X-Max-Override-Drift: true` so the server overwrites the
      *  on-disk file even when it has drifted from in-memory state on a patched
      *  path (otherwise that returns 409 `config_changed_externally`). Use only
      *  after the operator has chosen to overwrite a known drift. */
@@ -619,13 +619,13 @@ export async function patchConfig(
     method: "PATCH",
     body: JSON.stringify(ops),
     ...(opts?.overrideDrift
-      ? { headers: { "X-ZeroClaw-Override-Drift": "true" } }
+      ? { headers: { "X-Max-Override-Drift": "true" } }
       : {}),
   });
   // Config structure changed: notify listeners (e.g. the ⌘K search index)
   // so they can invalidate caches. Decoupled via a browser event to avoid a
   // circular import (configSearch.ts imports from this module).
-  window.dispatchEvent(new Event("zeroclaw-config-mutated"));
+  window.dispatchEvent(new Event("max-config-mutated"));
   return result;
 }
 
@@ -767,7 +767,7 @@ export async function putPersonalityFile(
   });
   if (response.status === 401) {
     clearToken();
-    window.dispatchEvent(new Event("zeroclaw-unauthorized"));
+    window.dispatchEvent(new Event("max-unauthorized"));
     throw new UnauthorizedError();
   }
   if (response.status === 409) {
@@ -823,9 +823,9 @@ export interface SkillFrontmatter {
   version?: string | null;
   category?: string | null;
   /** Free-form skill tags. The `slash` tag opts the skill into Discord slash
-   *  commands (zeroclaw-labs/zeroclaw#7490); `open-skills` is loader-managed. */
+   *  commands (max-labs/max#7490); `open-skills` is loader-managed. */
   tags?: string[];
-  /** Typed slash-command options (zeroclaw-labs/zeroclaw#8021). Only meaningful
+  /** Typed slash-command options (max-labs/max#8021). Only meaningful
    *  with the `slash` tag; edited by the bespoke editor in SkillsBundleEditor.
    *  Omitted by the backend when empty. */
   slash_options?: SkillSlashOption[];
@@ -1278,8 +1278,8 @@ export interface MapKeyResponse {
 
 // ── Shared workspace browse ────────────────────────────────────────
 // Hard-scoped to `<install>/shared/`. The gateway adapter at
-// `crates/zeroclaw-gateway/src/api_browse.rs` defers all containment
-// checks and walking to `zeroclaw_runtime::browse::list_directory`,
+// `crates/max-gateway/src/api_browse.rs` defers all containment
+// checks and walking to `max_runtime::browse::list_directory`,
 // so the path is interpreted relative to `shared/` here too.
 
 export interface BrowseEntry {
@@ -1448,7 +1448,7 @@ export function getCatalogModels(provider: string, alias?: string): Promise<Mode
 // ── Config sections + picker (mirrors the TUI flow) ─────────────────
 
 export interface SectionInfo {
-  /** Stable section key — matches `Section::as_path_prefix` in zeroclaw-runtime. */
+  /** Stable section key — matches `Section::as_path_prefix` in max-runtime. */
   key: string;
   /** Human-readable section name. */
   label: string;
@@ -1465,7 +1465,7 @@ export interface SectionInfo {
   /** Display group for the sidebar (`Quickstart`, `Agent`, `Tools`, ...). */
   group: string;
   /** True when this section is part of the canonical Quickstart list (driven
-   *  by `zeroclaw_config::sections::QUICKSTART_SECTIONS`). */
+   *  by `max_config::sections::QUICKSTART_SECTIONS`). */
   is_quickstart: boolean;
   /** Editor shape (`direct_form` / `one_tier_alias_map` / `typed_family_map`
    *  / `backend_picker`). Server-emitted from `WizardSection::shape()` so
@@ -1543,7 +1543,7 @@ export interface ResolveAliasSourceResponse {
 /**
  * Resolve the live alias values for a schema-declared `alias_source`
  * namespace. Backs the generic `kind === 'alias-ref'` picker introduced by
- * zeroclaw-labs/zeroclaw#7594. The endpoint only exists on backends that
+ * max-labs/max#7594. The endpoint only exists on backends that
  * declare `PropKind::AliasRef`; callers must gate on `entry.alias_source`
  * being present so this is never hit on older daemons.
  */
@@ -1598,7 +1598,7 @@ export async function selectSectionItem(
   // listeners (e.g. the ⌘K search index) to invalidate their caches.
   // Decoupled via a browser event to avoid a circular import
   // (configSearch.ts imports from this module).
-  window.dispatchEvent(new Event("zeroclaw-config-mutated"));
+  window.dispatchEvent(new Event("max-config-mutated"));
   return result;
 }
 // ── Quickstart ───────────────────────────────────────────────────────
@@ -1631,7 +1631,7 @@ export interface QuickstartState {
   storage: string[];
   /**
    * Picker rows for "Create new model provider", supplied by the
-   * daemon — sourced from `zeroclaw_providers::list_model_providers()`.
+   * daemon — sourced from `max_providers::list_model_providers()`.
    * Surfaces render this list as-is and never keep their own copy.
    */
   model_provider_types: QuickstartTypeOption[];
@@ -1701,7 +1701,7 @@ export function quickstartApply(submission: unknown): Promise<QuickstartApplyRes
   });
 }
 
-/** Schema field-kind tag mirroring `zeroclaw_config::traits::PropKind`. */
+/** Schema field-kind tag mirroring `max_config::traits::PropKind`. */
 export type QuickstartFieldKind =
   | "string"
   | "bool"
@@ -1810,7 +1810,7 @@ export async function deleteMapKey(
   // An entity was removed: notify listeners (e.g. the ⌘K search index) to
   // invalidate their caches. Decoupled via a browser event to avoid a
   // circular import (configSearch.ts imports from this module).
-  window.dispatchEvent(new Event("zeroclaw-config-mutated"));
+  window.dispatchEvent(new Event("max-config-mutated"));
   return result;
 }
 
@@ -1825,7 +1825,7 @@ export async function renameMapKey(
     body: JSON.stringify({ path, from, to }),
   });
   // The alias changed: invalidate caches (⌘K search index, etc.).
-  window.dispatchEvent(new Event("zeroclaw-config-mutated"));
+  window.dispatchEvent(new Event("max-config-mutated"));
   return result;
 }
 
@@ -2217,7 +2217,7 @@ export interface BindChannelResponse {
 
 /**
  * Authorize an inbound identity on a pairing channel (telegram/wechat/line)
- * — the GUI equivalent of `zeroclaw channel bind-<type> <id> --alias <alias>`.
+ * — the GUI equivalent of `max channel bind-<type> <id> --alias <alias>`.
  * The bound user can message the bot immediately, with no `/bind` round trip.
  */
 export function bindChannelIdentity(
@@ -2230,10 +2230,10 @@ export function bindChannelIdentity(
 }
 
 // ---------------------------------------------------------------------------
-// Logs (persisted JSONL via zeroclaw-log)
+// Logs (persisted JSONL via max-log)
 // ---------------------------------------------------------------------------
 
-/** Mirrors `zeroclaw_log::event::LogEvent` (Rust is the source of truth). */
+/** Mirrors `max_log::event::LogEvent` (Rust is the source of truth). */
 export interface LogEvent {
   id: string;
   "@timestamp": string;
@@ -2243,7 +2243,7 @@ export interface LogEvent {
   service?: { name: string; version: string };
   trace_id?: string | null;
   span_id?: string | null;
-  zeroclaw: Record<string, string> & { duration_ms?: number };
+  max: Record<string, string> & { duration_ms?: number };
   message?: string;
   attributes?: Record<string, unknown>;
   schema_version?: number;
@@ -2266,13 +2266,13 @@ export interface LogsResponse {
   at_end: boolean;
   daemon_started_at: string;
   /** Canonical attribution-field names the daemon currently emits. Sourced
-   *  from `ATTRIBUTION_FIELDS` + `COMPOSITE_PREFIXES` in zeroclaw-log so
+   *  from `ATTRIBUTION_FIELDS` + `COMPOSITE_PREFIXES` in max-log so
    *  the UI never enumerates schema fields itself. */
   attribution_keys: string[];
 }
 
 /** Non-attribution top-level filters. Per-attribution exact matches live
- *  in `field_eq` — any `zeroclaw.*` key the daemon emits is valid there. */
+ *  in `field_eq` — any `max.*` key the daemon emits is valid there. */
 export interface LogsQueryParams {
   since_ts?: string;
   until_ts?: string;

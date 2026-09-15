@@ -3,8 +3,8 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
-use zeroclaw::providers::traits::{ChatMessage, TokenUsage};
-use zeroclaw::providers::{ChatRequest, ChatResponse, ModelProvider, ToolCall};
+use max::providers::traits::{ChatMessage, TokenUsage};
+use max::providers::{ChatRequest, ChatResponse, ModelProvider, ToolCall};
 
 use super::trace::{LlmTrace, TraceResponse};
 
@@ -56,11 +56,11 @@ impl ModelProvider for MockModelProvider {
         Ok(guard.remove(0))
     }
 }
-impl ::zeroclaw_api::attribution::Attributable for MockModelProvider {
-    fn role(&self) -> ::zeroclaw_api::attribution::Role {
-        ::zeroclaw_api::attribution::Role::Provider(
-            ::zeroclaw_api::attribution::ProviderKind::Model(
-                ::zeroclaw_api::attribution::ModelProviderKind::Custom,
+impl ::max_api::attribution::Attributable for MockModelProvider {
+    fn role(&self) -> ::max_api::attribution::Role {
+        ::max_api::attribution::Role::Provider(
+            ::max_api::attribution::ProviderKind::Model(
+                ::max_api::attribution::ModelProviderKind::Custom,
             ),
         )
     }
@@ -121,11 +121,11 @@ impl ModelProvider for RecordingModelProvider {
         Ok(guard.remove(0))
     }
 }
-impl ::zeroclaw_api::attribution::Attributable for RecordingModelProvider {
-    fn role(&self) -> ::zeroclaw_api::attribution::Role {
-        ::zeroclaw_api::attribution::Role::Provider(
-            ::zeroclaw_api::attribution::ProviderKind::Model(
-                ::zeroclaw_api::attribution::ModelProviderKind::Custom,
+impl ::max_api::attribution::Attributable for RecordingModelProvider {
+    fn role(&self) -> ::max_api::attribution::Role {
+        ::max_api::attribution::Role::Provider(
+            ::max_api::attribution::ProviderKind::Model(
+                ::max_api::attribution::ModelProviderKind::Custom,
             ),
         )
     }
@@ -228,11 +228,11 @@ impl ModelProvider for TraceLlmModelProvider {
         }
     }
 }
-impl ::zeroclaw_api::attribution::Attributable for TraceLlmModelProvider {
-    fn role(&self) -> ::zeroclaw_api::attribution::Role {
-        ::zeroclaw_api::attribution::Role::Provider(
-            ::zeroclaw_api::attribution::ProviderKind::Model(
-                ::zeroclaw_api::attribution::ModelProviderKind::Custom,
+impl ::max_api::attribution::Attributable for TraceLlmModelProvider {
+    fn role(&self) -> ::max_api::attribution::Role {
+        ::max_api::attribution::Role::Provider(
+            ::max_api::attribution::ProviderKind::Model(
+                ::max_api::attribution::ModelProviderKind::Custom,
             ),
         )
     }

@@ -117,7 +117,7 @@ fn discard_until_newline<R: std::io::BufRead>(reader: &mut R) -> std::io::Result
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use zeroclaw_config::api_error::{ConfigApiCode, ConfigApiError};
+use max_config::api_error::{ConfigApiCode, ConfigApiError};
 
 /// Resolve a `cli-*` Fluent key for CLI output. Routes through the runtime
 /// i18n catalogue under `agent-runtime` (default + CI/release); without that
@@ -126,7 +126,7 @@ use zeroclaw_config::api_error::{ConfigApiCode, ConfigApiError};
 fn t(key: &str, fallback: &str) -> String {
     #[cfg(feature = "agent-runtime")]
     {
-        zeroclaw_runtime::i18n::get_required_cli_string(key)
+        max_runtime::i18n::get_required_cli_string(key)
     }
     #[cfg(not(feature = "agent-runtime"))]
     {
@@ -139,7 +139,7 @@ fn t(key: &str, fallback: &str) -> String {
 fn ta(key: &str, args: &[(&str, &str)], fallback: impl Into<String>) -> String {
     #[cfg(feature = "agent-runtime")]
     {
-        zeroclaw_runtime::i18n::get_required_cli_string_with_args(key, args)
+        max_runtime::i18n::get_required_cli_string_with_args(key, args)
     }
     #[cfg(not(feature = "agent-runtime"))]
     {
@@ -175,7 +175,7 @@ fn secret_prompt(prompt_text: &str, allow_empty: bool) -> Result<String> {
 
 #[cfg(feature = "agent-runtime")]
 fn qta(key: &str, args: &[(&str, &str)]) -> String {
-    zeroclaw_runtime::i18n::get_required_cli_string_with_args(key, args)
+    max_runtime::i18n::get_required_cli_string_with_args(key, args)
 }
 
 #[cfg(feature = "agent-runtime")]
@@ -694,7 +694,7 @@ fn quickstart_action_for_pick(
 }
 
 #[cfg(feature = "agent-runtime")]
-fn quickstart_step_label(step: zeroclaw_runtime::quickstart::QuickstartStep) -> String {
+fn quickstart_step_label(step: max_runtime::quickstart::QuickstartStep) -> String {
     t(step.label_key(), step.label())
 }
 
@@ -707,7 +707,7 @@ async fn apply_comment_inline(
     path: &str,
     comment: &str,
 ) -> Result<()> {
-    zeroclaw_config::comment_writer::apply_comments(
+    max_config::comment_writer::apply_comments(
         config_path,
         &[(path.to_string(), comment.to_string())],
     )
@@ -731,13 +731,13 @@ fn json_value_to_setprop_string(
     json: bool,
 ) -> Result<String> {
     let kind = config_patch_prop_kind(config, path);
-    match zeroclaw_config::typed_value::coerce_for_set_prop(value, kind) {
+    match max_config::typed_value::coerce_for_set_prop(value, kind) {
         Ok(value_str) => Ok(value_str),
         Err(err) => {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Reject)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Reject)
+                    .with_outcome(::max_log::EventOutcome::Failure)
                     .with_attrs(::serde_json::json!({"path": path, "error": err.message.clone()})),
                 "config patch coercion rejected JSON value"
             );
@@ -813,7 +813,7 @@ fn print_no_command_help(cmd: clap::Command) -> Result<()> {
             "{}",
             crate::i18n::get_cli_string("cli-try-quickstart")
                 .as_deref()
-                .unwrap_or("Try `zeroclaw quickstart` to create your first agent.")
+                .unwrap_or("Try `max quickstart` to create your first agent.")
         );
     }
     #[cfg(not(feature = "agent-runtime"))]
@@ -823,7 +823,7 @@ fn print_no_command_help(cmd: clap::Command) -> Result<()> {
             "{}",
             t(
                 "cli-try-quickstart",
-                "Try `zeroclaw quickstart` to create your first agent."
+                "Try `max quickstart` to create your first agent."
             )
         );
     }
@@ -844,7 +844,7 @@ fn pause_after_no_command_help() {
     println!();
     print!("{}", t("cli-press-enter", "Press Enter to exit..."));
     let _ = std::io::stdout().flush();
-    // Cap the read so a piped-in flood (e.g. `dir | zeroclaw` with no
+    // Cap the read so a piped-in flood (e.g. `dir | max` with no
     // command) cannot blow up RSS in this trivial one-Enter prompt.
     // See module-level `STDIN_LINE_CAP` for rationale.
     let mut line = String::new();
@@ -874,7 +874,7 @@ mod cli_input;
 mod commands;
 #[cfg(feature = "agent-runtime")]
 mod rag {
-    pub use zeroclaw::rag::*;
+    pub use max::rag::*;
 }
 #[cfg(feature = "agent-runtime")]
 mod browse;
@@ -945,7 +945,7 @@ mod verifiable_intent;
 use config::Config;
 
 // Re-export so binary modules can use crate::<CommandEnum> while keeping a single source of truth.
-pub use zeroclaw::{
+pub use max::{
     AgentsCommands, ChannelCommands, ChannelsCommands, CronCommands, CronDeliveryArgs,
     GatewayCommands, HardwareCommands, IntegrationCommands, MigrateCommands, PeripheralCommands,
     ProvidersCommands, ServiceCommands, ServiceLogStream, SkillBundleCommands, SkillCommands,
@@ -978,9 +978,9 @@ enum EstopLevelArg {
     ToolFreeze,
 }
 
-/// `ZeroClaw` - Zero overhead. Zero compromise. 100% Rust.
+/// `Max` - Zero overhead. Zero compromise. 100% Rust.
 #[derive(Parser, Debug)]
-#[command(name = "zeroclaw")]
+#[command(name = "max")]
 #[command(author = "theonlyhennygod")]
 #[command(version)]
 // i18n-exempt: clap derive help — framework requires a compile-time literal
@@ -1030,7 +1030,7 @@ impl LogLevel {
     }
 }
 
-/// Subcommands for `zeroclaw eval`.
+/// Subcommands for `max eval`.
 #[cfg(feature = "agent-runtime")]
 #[derive(Subcommand, Debug)]
 enum EvalCommands {
@@ -1075,11 +1075,11 @@ enum Commands {
         agent: Option<String>,
     },
 
-    /// Deprecated. Use `zeroclaw quickstart`. Any flags error.
+    /// Deprecated. Use `max quickstart`. Any flags error.
     Onboard {
         /// Configure a specific section only. Omit to run the full flow.
         #[command(subcommand)]
-        section: Option<zeroclaw_config::sections::Section>,
+        section: Option<max_config::sections::Section>,
 
         /// Skip interactive prompts; read from --api-key/--model-provider/--model/--memory.
         #[arg(long, hide = true)]
@@ -1141,10 +1141,10 @@ Launches an interactive chat session with the configured AI model_provider. \
 Use --message for single-shot queries without entering interactive mode.
 
 Examples:
-  zeroclaw agent -a assistant                                          # interactive session
-  zeroclaw agent -a assistant -m \"Summarize today's logs\"              # single message
-  zeroclaw agent -a assistant -p anthropic --model claude-sonnet-4-20250514
-  zeroclaw agent -a assistant --peripheral nucleo-f401re:/dev/ttyACM0")]
+  max agent -a assistant                                          # interactive session
+  max agent -a assistant -m \"Summarize today's logs\"              # single message
+  max agent -a assistant -p anthropic --model claude-sonnet-4-20250514
+  max agent -a assistant --peripheral nucleo-f401re:/dev/ttyACM0")]
     Agent {
         /// Configured agent alias to run as (must match `[agents.<alias>]`).
         /// Required — there is no default agent.
@@ -1185,12 +1185,12 @@ Start, restart, or inspect the HTTP/WebSocket gateway that accepts \
 incoming webhook events and WebSocket connections.
 
 Examples:
-  zeroclaw gateway start              # start gateway
-  zeroclaw gateway restart            # restart gateway
-  zeroclaw gateway get-paircode       # show pairing code")]
+  max gateway start              # start gateway
+  max gateway restart            # restart gateway
+  max gateway get-paircode       # show pairing code")]
     Gateway {
         #[command(subcommand)]
-        gateway_command: Option<zeroclaw::GatewayCommands>,
+        gateway_command: Option<max::GatewayCommands>,
     },
 
     /// Start ACP (Agent Control Protocol) server over stdio
@@ -1205,8 +1205,8 @@ responses as notifications.
 Methods: initialize, session/new, session/prompt, session/stop.
 
 Examples:
-  zeroclaw acp                        # start ACP server
-  zeroclaw acp --max-sessions 5       # limit concurrent sessions")]
+  max acp                        # start ACP server
+  max acp --max-sessions 5       # limit concurrent sessions")]
     Acp {
         /// Maximum concurrent sessions (default: 10)
         #[arg(long)]
@@ -1222,18 +1222,18 @@ Examples:
     #[command(long_about = "\
 Start the long-running autonomous daemon.
 
-Launches the full ZeroClaw runtime: gateway server, all configured \
+Launches the full Max runtime: gateway server, all configured \
 channels (Telegram, Discord, Slack, etc.), heartbeat monitor, and \
-the cron scheduler. This is the recommended way to run ZeroClaw in \
+the cron scheduler. This is the recommended way to run Max in \
 production or as an always-on assistant.
 
-Use 'zeroclaw service install' to register the daemon as an OS \
+Use 'max service install' to register the daemon as an OS \
 service (systemd/launchd) for auto-start on boot.
 
 Examples:
-  zeroclaw daemon                   # use config defaults
-  zeroclaw daemon -p 9090           # gateway on port 9090
-  zeroclaw daemon --host 127.0.0.1  # localhost only")]
+  max daemon                   # use config defaults
+  max daemon -p 9090           # gateway on port 9090
+  max daemon --host 127.0.0.1  # localhost only")]
     Daemon {
         /// Port to listen on (use 0 for random available port); defaults to config gateway.port
         #[arg(short, long)]
@@ -1289,7 +1289,7 @@ Examples:
         #[command(subcommand)]
         estop_command: Option<EstopSubcommands>,
 
-        /// Level used when engaging estop from `zeroclaw estop`.
+        /// Level used when engaging estop from `max estop`.
         #[arg(long, value_enum)]
         level: Option<EstopLevelArg>,
 
@@ -1317,15 +1317,15 @@ the runtime local timezone. For user-facing schedules, pass --tz with \
 an explicit IANA timezone.
 
 Examples:
-  zeroclaw cron list
-  zeroclaw cron add '0 9 * * 1-5' 'Good morning' --agent sentinel --prompt --tz America/New_York
-  zeroclaw cron add '*/30 * * * *' 'Check system health' --agent sentinel --prompt
-  zeroclaw cron add '*/5 * * * *' 'echo ok' --agent sentinel
-  zeroclaw cron add-at 2099-01-15T14:00:00Z 'Send reminder' --agent sentinel --prompt
-  zeroclaw cron add-every 60000 'Ping heartbeat' --agent sentinel --prompt
-  zeroclaw cron once 30m 'Run backup in 30 minutes' --agent sentinel --prompt
-  zeroclaw cron pause TASK_ID
-  zeroclaw cron update TASK_ID --expression '0 8 * * *' --tz Europe/London")]
+  max cron list
+  max cron add '0 9 * * 1-5' 'Good morning' --agent sentinel --prompt --tz America/New_York
+  max cron add '*/30 * * * *' 'Check system health' --agent sentinel --prompt
+  max cron add '*/5 * * * *' 'echo ok' --agent sentinel
+  max cron add-at 2099-01-15T14:00:00Z 'Send reminder' --agent sentinel --prompt
+  max cron add-every 60000 'Ping heartbeat' --agent sentinel --prompt
+  max cron once 30m 'Run backup in 30 minutes' --agent sentinel --prompt
+  max cron pause TASK_ID
+  max cron update TASK_ID --expression '0 8 * * *' --tz Europe/London")]
     Cron {
         #[command(subcommand)]
         cron_command: CronCommands,
@@ -1347,17 +1347,17 @@ Examples:
     #[command(long_about = "\
 Manage communication channels.
 
-Add, remove, list, send, and health-check channels that connect ZeroClaw \
+Add, remove, list, send, and health-check channels that connect Max \
 to messaging platforms. Supported channel types: telegram, discord, \
 slack, whatsapp, matrix, imessage, email.
 
 Examples:
-  zeroclaw channel list
-  zeroclaw channel doctor
-  zeroclaw channel add telegram '{\"bot_token\":\"...\",\"name\":\"my-bot\"}'
-  zeroclaw channel remove my-bot
-  zeroclaw channel bind-telegram zeroclaw_user
-  zeroclaw channel send 'Alert!' --channel-id telegram --recipient 123456789")]
+  max channel list
+  max channel doctor
+  max channel add telegram '{\"bot_token\":\"...\",\"name\":\"my-bot\"}'
+  max channel remove my-bot
+  max channel bind-telegram max_user
+  max channel send 'Alert!' --channel-id telegram --recipient 123456789")]
     Channel {
         #[command(subcommand)]
         channel_command: ChannelCommands,
@@ -1397,9 +1397,9 @@ rejected. Used by the dashboard's skill-bundle directory picker and by \
 operators who want to inspect what's installed.
 
 Examples:
-  zeroclaw browse                  # list shared/ root
-  zeroclaw browse skills           # list shared/skills/
-  zeroclaw browse skills/coding    # list shared/skills/coding/")]
+  max browse                  # list shared/ root
+  max browse skills           # list shared/skills/
+  max browse skills/coding    # list shared/skills/coding/")]
     Browse {
         /// Path relative to `<install>/shared/`. Empty = root.
         #[arg(default_value = "")]
@@ -1434,12 +1434,12 @@ Enumerate connected USB devices, identify known development boards \
 probe-rs / ST-Link.
 
 Examples:
-  zeroclaw hardware discover
-  zeroclaw hardware introspect /dev/ttyACM0
-  zeroclaw hardware info --chip STM32F401RETx")]
+  max hardware discover
+  max hardware introspect /dev/ttyACM0
+  max hardware info --chip STM32F401RETx")]
     Hardware {
         #[command(subcommand)]
-        hardware_command: zeroclaw::HardwareCommands,
+        hardware_command: max::HardwareCommands,
     },
 
     /// Manage hardware peripherals (STM32, RPi GPIO, etc.)
@@ -1452,14 +1452,14 @@ to the agent (GPIO, sensors, actuators). Supported boards: \
 nucleo-f401re, rpi-gpio, esp32, arduino-uno.
 
 Examples:
-  zeroclaw peripheral list
-  zeroclaw peripheral add nucleo-f401re /dev/ttyACM0
-  zeroclaw peripheral add rpi-gpio native
-  zeroclaw peripheral flash --port /dev/cu.usbmodem12345
-  zeroclaw peripheral flash-nucleo")]
+  max peripheral list
+  max peripheral add nucleo-f401re /dev/ttyACM0
+  max peripheral add rpi-gpio native
+  max peripheral flash --port /dev/cu.usbmodem12345
+  max peripheral flash-nucleo")]
     Peripheral {
         #[command(subcommand)]
-        peripheral_command: zeroclaw::PeripheralCommands,
+        peripheral_command: max::PeripheralCommands,
     },
 
     /// Manage agent memory (list, get, stats, clear)
@@ -1472,11 +1472,11 @@ Supports filtering by category and session, pagination, and \
 batch clearing with confirmation.
 
 Examples:
-  zeroclaw memory stats
-  zeroclaw memory list
-  zeroclaw memory list --category core --limit 10
-  zeroclaw memory get KEY
-  zeroclaw memory clear --category conversation --yes")]
+  max memory stats
+  max memory list
+  max memory list --category core --limit 10
+  max memory get KEY
+  max memory clear --category conversation --yes")]
     Memory {
         #[command(subcommand)]
         memory_command: MemoryCommands,
@@ -1485,7 +1485,7 @@ Examples:
     /// Manage configuration
     // i18n-exempt: clap derive help — framework requires a compile-time literal
     #[command(long_about = "\
-Manage ZeroClaw configuration.
+Manage Max configuration.
 
 View, set, or initialize config properties by dotted path. \
 Use 'schema' to dump the full JSON Schema for the config file.
@@ -1495,19 +1495,19 @@ Secret fields (API keys, tokens) automatically use masked input.
 Enum fields offer interactive selection when value is omitted.
 
 Examples:
-  zeroclaw config list                                  # list all properties
-  zeroclaw config list --secrets                        # list only secrets
-  zeroclaw config list --filter channels.matrix         # filter by prefix
-  zeroclaw config get channels.matrix.mention-only      # get a value
-  zeroclaw config set channels.matrix.mention-only true # set a value
-  zeroclaw config set channels.matrix.access-token      # secret: masked input
-  zeroclaw config set channels.matrix.stream-mode       # enum: interactive select
-  zeroclaw config init channels.matrix                  # init section with defaults
-  zeroclaw config init risk_profiles.strict             # create a new dynamic-map alias
-  zeroclaw config schema                                # print JSON Schema to stdout
-  zeroclaw config schema > schema.json
+  max config list                                  # list all properties
+  max config list --secrets                        # list only secrets
+  max config list --filter channels.matrix         # filter by prefix
+  max config get channels.matrix.mention-only      # get a value
+  max config set channels.matrix.mention-only true # set a value
+  max config set channels.matrix.access-token      # secret: masked input
+  max config set channels.matrix.stream-mode       # enum: interactive select
+  max config init channels.matrix                  # init section with defaults
+  max config init risk_profiles.strict             # create a new dynamic-map alias
+  max config schema                                # print JSON Schema to stdout
+  max config schema > schema.json
 
-Property path tab completion is included automatically in `zeroclaw completions <shell>`.")]
+Property path tab completion is included automatically in `max completions <shell>`.")]
     Config {
         #[command(subcommand)]
         config_command: ConfigCommands,
@@ -1516,7 +1516,7 @@ Property path tab completion is included automatically in `zeroclaw completions 
     /// Check for and apply updates
     // i18n-exempt: clap derive help — framework requires a compile-time literal
     #[command(long_about = "\
-Check for and apply ZeroClaw updates.
+Check for and apply Max updates.
 
 By default, downloads and installs the latest release with a \
 6-phase pipeline: preflight, download, backup, validate, swap, \
@@ -1527,10 +1527,10 @@ Use --force to skip the confirmation prompt.
 Use --version to target a specific release instead of latest.
 
 Examples:
-  zeroclaw update                      # download and install latest
-  zeroclaw update --check              # check only, don't install
-  zeroclaw update --force              # install without confirmation
-  zeroclaw update --version 0.6.0      # install specific version")]
+  max update                      # download and install latest
+  max update --check              # check only, don't install
+  max update --force              # install without confirmation
+  max update --version 0.6.0      # install specific version")]
     Update {
         /// Only check for updates, don't install
         #[arg(long)]
@@ -1549,15 +1549,15 @@ Examples:
     /// Run diagnostic self-tests
     // i18n-exempt: clap derive help — framework requires a compile-time literal
     #[command(long_about = "\
-Run diagnostic self-tests to verify the ZeroClaw installation.
+Run diagnostic self-tests to verify the Max installation.
 
 By default, runs the full test suite including network checks \
 (gateway health, memory round-trip). Use --quick to skip network \
 checks for faster offline validation.
 
 Examples:
-  zeroclaw self-test             # full suite
-  zeroclaw self-test --quick     # quick checks only (no network)")]
+  max self-test             # full suite
+  max self-test --quick     # quick checks only (no network)")]
     SelfTest {
         /// Run quick checks only (no network)
         #[arg(long)]
@@ -1576,8 +1576,8 @@ expectations. No network calls, fully deterministic. Exits non-zero if any case 
 so it can gate CI.
 
 Examples:
-  zeroclaw eval run                                  # replay ./evals/regression
-  zeroclaw eval run --suite evals/regression --format json")]
+  max eval run                                  # replay ./evals/regression
+  max eval run --suite evals/regression --format json")]
     Eval {
         #[command(subcommand)]
         eval_command: EvalCommands,
@@ -1586,18 +1586,18 @@ Examples:
     /// Generate shell completion script to stdout
     // i18n-exempt: clap derive help — framework requires a compile-time literal
     #[command(long_about = "\
-Generate shell completion scripts for `zeroclaw`.
+Generate shell completion scripts for `max`.
 
 The script is printed to stdout so it can be sourced directly:
 
 Examples (Unix shells):
-  source <(zeroclaw completions bash)
-  zeroclaw completions zsh > ~/.zfunc/_zeroclaw
-  zeroclaw completions fish > ~/.config/fish/completions/zeroclaw.fish
+  source <(max completions bash)
+  max completions zsh > ~/.zfunc/_max
+  max completions fish > ~/.config/fish/completions/max.fish
 
 Examples (Windows PowerShell):
-  zeroclaw completions powershell | Out-String | Invoke-Expression
-  zeroclaw completions powershell > $PROFILE.CurrentUserAllHosts")]
+  max completions powershell | Out-String | Invoke-Expression
+  max completions powershell > $PROFILE.CurrentUserAllHosts")]
     Completions {
         /// Target shell
         #[arg(value_enum)]
@@ -1615,7 +1615,7 @@ Examples (Windows PowerShell):
     /// Launch the companion desktop app, or open its download page
     // i18n-exempt: clap derive help — framework requires a compile-time literal
     #[command(long_about = "\
-Launch the ZeroClaw companion desktop app.
+Launch the Max companion desktop app.
 
 The companion app is a lightweight menu bar / system tray application \
 that connects to the same gateway as the CLI. It provides quick access \
@@ -1625,15 +1625,15 @@ Use --install to open the download page for your platform. It does not \
 install anything itself.
 
 Examples:
-  zeroclaw desktop              # launch the companion app
-  zeroclaw desktop --install    # open the download page")]
+  max desktop              # launch the companion app
+  max desktop --install    # open the download page")]
     Desktop {
         /// Open the companion app's download page
         #[arg(long)]
         install: bool,
     },
 
-    /// Deprecated: use `zeroclaw config` instead
+    /// Deprecated: use `max config` instead
     #[command(hide = true)]
     Props {
         #[command(subcommand)]
@@ -1652,15 +1652,15 @@ Examples:
     #[command(long_about = "\
 Fetch translated Fluent (.ftl) catalogues for a locale from the upstream \
 repository and install them under `<config-dir>/data/ftl/<locale>/`, where the \
-runtime and zerocode loaders read them.
+runtime and maxcode loaders read them.
 
 Pass a single locale. By default every catalogue is fetched; restrict with \
---catalog (comma-separated): cli, tools, zerocode.
+--catalog (comma-separated): cli, tools, maxcode.
 
 Examples:
-  zeroclaw locales fetch ja
-  zeroclaw locales fetch fr --catalog cli,tools
-  zeroclaw locales fetch zh-CN --catalog zerocode")]
+  max locales fetch ja
+  max locales fetch fr --catalog cli,tools
+  max locales fetch zh-CN --catalog maxcode")]
     Locales {
         #[command(subcommand)]
         locales_command: LocalesCommands,
@@ -1674,7 +1674,7 @@ enum LocalesCommands {
     Fetch {
         /// Locale code to fetch (e.g. `ja`, `fr`, `zh-CN`).
         locale: String,
-        /// Comma-separated catalogues to fetch: cli, tools, zerocode.
+        /// Comma-separated catalogues to fetch: cli, tools, maxcode.
         /// Omit to fetch all of them.
         #[arg(long)]
         catalog: Option<String>,
@@ -1682,7 +1682,7 @@ enum LocalesCommands {
 }
 
 /// Stub enum that mirrors the old `props` subcommands so clap can still parse
-/// `zeroclaw props <anything>` and print a deprecation message.
+/// `max props <anything>` and print a deprecation message.
 #[derive(Subcommand, Debug)]
 enum DeprecatedPropsCommands {
     #[command(external_subcommand)]
@@ -1692,8 +1692,8 @@ enum DeprecatedPropsCommands {
 #[cfg(feature = "agent-runtime")]
 fn runtime_dir_env_is_explicit(name: &str, value: &str) -> bool {
     match name {
-        "ZEROCLAW_CONFIG_DIR" | "ZEROCLAW_DATA_DIR" => !value.trim().is_empty(),
-        "ZEROCLAW_WORKSPACE" => !value.is_empty(),
+        "MAX_CONFIG_DIR" | "MAX_DATA_DIR" => !value.trim().is_empty(),
+        "MAX_WORKSPACE" => !value.is_empty(),
         _ => false,
     }
 }
@@ -1704,9 +1704,9 @@ fn resolve_homebrew_onboard_config_dir(
     env_lookup: impl Fn(&str) -> Option<String>,
 ) -> Option<PathBuf> {
     let explicit_runtime_dir = [
-        "ZEROCLAW_CONFIG_DIR",
-        "ZEROCLAW_DATA_DIR",
-        "ZEROCLAW_WORKSPACE",
+        "MAX_CONFIG_DIR",
+        "MAX_DATA_DIR",
+        "MAX_WORKSPACE",
     ]
     .iter()
     .any(|name| env_lookup(name).is_some_and(|value| runtime_dir_env_is_explicit(name, &value)));
@@ -1715,7 +1715,7 @@ fn resolve_homebrew_onboard_config_dir(
         return None;
     }
 
-    zeroclaw_runtime::service::homebrew_var_dir_from_exe(exe)
+    max_runtime::service::homebrew_var_dir_from_exe(exe)
 }
 
 #[cfg(feature = "agent-runtime")]
@@ -1725,7 +1725,7 @@ fn apply_homebrew_onboard_config_dir_with(
     mut set_env: impl FnMut(&'static str, &Path),
 ) -> Option<PathBuf> {
     let config_dir = resolve_homebrew_onboard_config_dir(exe, env_lookup)?;
-    set_env("ZEROCLAW_CONFIG_DIR", &config_dir);
+    set_env("MAX_CONFIG_DIR", &config_dir);
     Some(config_dir)
 }
 
@@ -1748,7 +1748,7 @@ fn apply_homebrew_onboard_config_dir() {
 #[cfg(feature = "agent-runtime")]
 fn quickstart_runtime_profile_for_provider(
     provider_type: &str,
-    providers: &[zeroclaw_runtime::quickstart::QuickstartTypeOption],
+    providers: &[max_runtime::quickstart::QuickstartTypeOption],
     default_runtime_profile: &str,
 ) -> String {
     providers
@@ -1759,7 +1759,7 @@ fn quickstart_runtime_profile_for_provider(
         .to_string()
 }
 
-/// `zeroclaw quickstart` CLI entry — checklist UX, not a wizard.
+/// `max quickstart` CLI entry — checklist UX, not a wizard.
 ///
 /// Mirrors the TUI Quickstart pane's structure: a single screen
 /// listing all six selectors with `[ ]` / `[✓]` status and a one-line
@@ -1772,9 +1772,9 @@ fn quickstart_runtime_profile_for_provider(
 /// "Create new" entry).
 ///
 /// All option lists, field shapes, presets, and the apply path come
-/// directly from `zeroclaw_runtime::quickstart` — the same module the
+/// directly from `max_runtime::quickstart` — the same module the
 /// gateway and TUI surfaces consume. No RPC, no daemon: the CLI is
-/// compiled in-process with `zeroclaw-runtime` and calls
+/// compiled in-process with `max-runtime` and calls
 /// `snapshot_state` / `field_shape` / `apply_with_surface` as plain
 /// functions.
 ///
@@ -1790,11 +1790,11 @@ async fn run_quickstart_cli(
     agent: Option<String>,
 ) -> anyhow::Result<()> {
     use dialoguer::{Confirm, Editor, FuzzySelect, Input};
-    use zeroclaw_config::presets::{
+    use max_config::presets::{
         AgentIdentity, BuilderSubmission, ChannelQuickStart, MemoryChoice, ModelProviderChoice,
         RISK_PRESETS, SelectorChoice,
     };
-    use zeroclaw_runtime::quickstart::{
+    use max_runtime::quickstart::{
         FieldSection, QuickstartTypeOption, Surface, apply_with_surface, field_shape,
         snapshot_state,
     };
@@ -1808,7 +1808,7 @@ async fn run_quickstart_cli(
                 "cli-quickstart-needs-tty",
                 "Quickstart is interactive and needs a terminal on stdin and stderr. \
                  Run it from an interactive shell, or use \
-                 `zeroclaw config set <path> <value>` for headless configuration."
+                 `max config set <path> <value>` for headless configuration."
             )
         );
     }
@@ -1824,7 +1824,7 @@ async fn run_quickstart_cli(
         // `channels_visited == false` is *not* satisfied — the
         // selector still shows `[ ]`.
         channels_visited: bool,
-        peer_groups: Vec<zeroclaw_config::presets::QuickstartPeerGroup>,
+        peer_groups: Vec<max_config::presets::QuickstartPeerGroup>,
         // Mirrors `channels_visited`: peer groups are optional, so an
         // empty `peer_groups` Vec only counts as satisfied once the
         // user has actually opened the selector and left it. Until
@@ -1866,7 +1866,7 @@ async fn run_quickstart_cli(
     struct AgentChoice {
         name: String,
         system_prompt: String,
-        personality_files: Vec<zeroclaw_config::presets::QuickstartPersonalityFile>,
+        personality_files: Vec<max_config::presets::QuickstartPersonalityFile>,
     }
 
     impl Form {
@@ -1908,7 +1908,7 @@ async fn run_quickstart_cli(
     if providers.is_empty() {
         anyhow::bail!(
             "Quickstart could not enumerate model providers — \
-             zeroclaw_providers::list_model_providers() returned no entries."
+             max_providers::list_model_providers() returned no entries."
         );
     }
 
@@ -1916,7 +1916,7 @@ async fn run_quickstart_cli(
 
     if let (Some(mp), Some(m)) = (model_provider.as_deref(), model.as_deref())
         && let Some((canonical_provider, codex_auth)) =
-            zeroclaw_runtime::quickstart::resolve_model_provider_type(mp)
+            max_runtime::quickstart::resolve_model_provider_type(mp)
         && let Some(found) = providers
             .iter()
             .find(|p| p.kind.eq_ignore_ascii_case(canonical_provider))
@@ -2006,7 +2006,7 @@ async fn run_quickstart_cli(
         } else if form.channels.is_empty() {
             t(
                 "cli-quickstart-summary-channels-none",
-                "none (chat via `zeroclaw agent` only)",
+                "none (chat via `max agent` only)",
             )
         } else {
             form.channels
@@ -2259,7 +2259,7 @@ async fn run_quickstart_cli(
                     .default("default".to_string())
                     .allow_empty(false)
                     .validate_with(|input: &String| {
-                        zeroclaw_config::helpers::validate_alias_key(input)
+                        max_config::helpers::validate_alias_key(input)
                     })
                     .interact_text()
                 else {
@@ -2292,10 +2292,10 @@ async fn run_quickstart_cli(
                     let upgraded;
                     let d_used = if d.key.eq_ignore_ascii_case("model") {
                         let (models, _pricing, live) =
-                            zeroclaw_runtime::quickstart::model_catalog(&chosen.kind).await;
+                            max_runtime::quickstart::model_catalog(&chosen.kind).await;
                         if live && !models.is_empty() {
-                            upgraded = zeroclaw_runtime::quickstart::FieldDescriptor {
-                                kind: zeroclaw_config::traits::PropKind::Enum,
+                            upgraded = max_runtime::quickstart::FieldDescriptor {
+                                kind: max_config::traits::PropKind::Enum,
                                 enum_variants: Some(models),
                                 ..d.clone()
                             };
@@ -2317,7 +2317,7 @@ async fn run_quickstart_cli(
                     // its schema identifier — no cherry-picking.
                     if d.key.eq_ignore_ascii_case("model") {
                         model = value;
-                    } else if !value.is_empty() && value != zeroclaw_config::traits::UNSET_DISPLAY {
+                    } else if !value.is_empty() && value != max_config::traits::UNSET_DISPLAY {
                         field_buf.insert(d.key.clone(), value);
                     }
                 }
@@ -2475,7 +2475,7 @@ async fn run_quickstart_cli(
                                     "{}",
                                     t(
                                         "cli-quickstart-all-channels-bound",
-                                        "  Every configured channel is already bound to an agent. Free one with `zeroclaw config set agents.<alias>.channels ...` before reusing it here.",
+                                        "  Every configured channel is already bound to an agent. Free one with `max config set agents.<alias>.channels ...` before reusing it here.",
                                     )
                                 );
                                 continue;
@@ -2541,7 +2541,7 @@ async fn run_quickstart_cli(
                                 aborted = true;
                                 break;
                             };
-                            if !value.is_empty() && value != zeroclaw_config::traits::UNSET_DISPLAY
+                            if !value.is_empty() && value != max_config::traits::UNSET_DISPLAY
                             {
                                 extras.insert(d.key.clone(), value);
                             }
@@ -2657,7 +2657,7 @@ async fn run_quickstart_cli(
                             .filter(|s| !s.is_empty())
                             .collect();
                         form.peer_groups
-                            .push(zeroclaw_config::presets::QuickstartPeerGroup {
+                            .push(max_config::presets::QuickstartPeerGroup {
                                 name,
                                 channel,
                                 external_peers,
@@ -2688,7 +2688,7 @@ async fn run_quickstart_cli(
                     .with_prompt(t("cli-quickstart-agent-alias-prompt", "Agent alias"))
                     .allow_empty(false)
                     .validate_with(|input: &String| {
-                        zeroclaw_config::helpers::validate_alias_key(input)
+                        max_config::helpers::validate_alias_key(input)
                     });
                 if !default_name.is_empty() {
                     input = input.default(default_name);
@@ -2730,14 +2730,14 @@ async fn run_quickstart_cli(
                 // Pre-render the default template set once; the per-file
                 // [t] Use template option seeds the editor from this map.
                 let template_ctx =
-                    zeroclaw_runtime::agent::personality_templates::TemplateContext {
+                    max_runtime::agent::personality_templates::TemplateContext {
                         agent: trimmed_agent_name_for_templates(
                             form.agent.as_ref().map(|a| a.name.as_str()),
                         ),
                         ..Default::default()
                     };
                 let templates: std::collections::HashMap<String, String> =
-                    zeroclaw_runtime::agent::personality_templates::render_preset_default(
+                    max_runtime::agent::personality_templates::render_preset_default(
                         &template_ctx,
                     )
                     .into_iter()
@@ -2871,12 +2871,12 @@ async fn run_quickstart_cli(
                     continue;
                 }
                 // Materialize in canonical file order; only files with content.
-                let personality_files: Vec<zeroclaw_config::presets::QuickstartPersonalityFile> =
+                let personality_files: Vec<max_config::presets::QuickstartPersonalityFile> =
                     files
                         .iter()
                         .filter_map(|filename| {
                             personality_results.get(*filename).map(|content| {
-                                zeroclaw_config::presets::QuickstartPersonalityFile {
+                                max_config::presets::QuickstartPersonalityFile {
                                     filename: (*filename).to_string(),
                                     content: content.clone(),
                                 }
@@ -2992,8 +2992,8 @@ async fn run_quickstart_cli(
                     &[("alias", &applied.alias)]
                 )
             );
-            if which_zerocode_on_path() {
-                println!("  zerocode                   # launch the TUI"); // i18n-exempt: literal command/identifier example
+            if which_maxcode_on_path() {
+                println!("  maxcode                   # launch the TUI"); // i18n-exempt: literal command/identifier example
             }
             Ok(())
         }
@@ -3036,7 +3036,7 @@ fn model_path_provider_type(path: &str) -> Option<&'static str> {
         return None;
     }
     let family = parts[2];
-    zeroclaw_providers::list_model_providers()
+    max_providers::list_model_providers()
         .iter()
         .find(|p| p.name == family)
         .map(|p| p.name)
@@ -3067,7 +3067,7 @@ fn alias_target_for_path<'a>(
 ) -> Option<(&'static str, &'a str)> {
     Config::map_key_sections()
         .into_iter()
-        .filter(|section| section.kind == zeroclaw_config::traits::MapKeyKind::Map)
+        .filter(|section| section.kind == max_config::traits::MapKeyKind::Map)
         .filter(|section| !section.resource_key)
         .filter_map(|section| split(section.path, path).map(|key| (section.path, key)))
         .max_by_key(|(section_path, _)| section_path.len())
@@ -3084,7 +3084,7 @@ fn init_map_alias(config: &mut Config, section_arg: &str) -> Result<Option<Strin
     else {
         return Ok(None);
     };
-    match zeroclaw_config::alias_refs::create_map_key_checked(config, section_path, alias) {
+    match max_config::alias_refs::create_map_key_checked(config, section_path, alias) {
         Ok(true) => Ok(Some(format!("{section_path}.{alias}"))),
         Ok(false) => Ok(None),
         Err(e) => Err(anyhow::Error::msg(e.to_string())),
@@ -3136,9 +3136,9 @@ fn ensure_map_key_for_prop_path(config: &mut Config, prop_path: &str) -> Result<
     // agents.default.enabled ...` auto-create the reserved runtime-fallback
     // agent alias, which the rename guard then refuses to ever rename.
     let created =
-        match zeroclaw_config::alias_refs::create_map_key_checked(config, section_path, key) {
+        match max_config::alias_refs::create_map_key_checked(config, section_path, key) {
             Ok(created) => created,
-            Err(zeroclaw_config::alias_refs::CreateError::Reserved(_)) => return Ok(false),
+            Err(max_config::alias_refs::CreateError::Reserved(_)) => return Ok(false),
             Err(e) => return Err(anyhow::Error::msg(e.to_string())),
         };
     if created {
@@ -3170,17 +3170,17 @@ fn trimmed_agent_name_for_templates(prior_name: Option<&str>) -> String {
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| {
-            zeroclaw_runtime::agent::personality_templates::TemplateContext::default().agent
+            max_runtime::agent::personality_templates::TemplateContext::default().agent
         })
 }
 
 #[cfg(feature = "agent-runtime")]
 fn prompt_for_field(
-    desc: &zeroclaw_runtime::quickstart::FieldDescriptor,
+    desc: &max_runtime::quickstart::FieldDescriptor,
     seed: Option<&str>,
 ) -> anyhow::Result<Option<String>> {
     use dialoguer::{FuzzySelect, Input};
-    use zeroclaw_config::traits::PropKind;
+    use max_config::traits::PropKind;
     if !desc.help.is_empty() {
         println!("  {}", desc.help);
     }
@@ -3222,7 +3222,7 @@ fn prompt_for_field(
         input = input.default(s.to_string());
     } else if let Some(d) = desc.default.as_deref()
         && !d.is_empty()
-        && d != zeroclaw_config::traits::UNSET_DISPLAY
+        && d != max_config::traits::UNSET_DISPLAY
     {
         // `<unset>` is a display placeholder for an unset Option, not a
         // real default. Seeding it pre-fills the prompt so a bare Enter
@@ -3305,9 +3305,9 @@ fn pick_preset(
 }
 
 #[cfg(feature = "agent-runtime")]
-fn which_zerocode_on_path() -> bool {
+fn which_maxcode_on_path() -> bool {
     std::env::var_os("PATH")
-        .map(|paths| std::env::split_paths(&paths).any(|p| p.join("zerocode").is_file()))
+        .map(|paths| std::env::split_paths(&paths).any(|p| p.join("maxcode").is_file()))
         .unwrap_or(false)
 }
 
@@ -3349,13 +3349,13 @@ enum PluginCommands {
 #[cfg(feature = "plugins-wasm")]
 fn plugin_host_with_configured_security(
     config: &crate::config::schema::Config,
-) -> Result<zeroclaw::plugins::host::PluginHost> {
-    let mode = zeroclaw::plugins::host::PluginHost::resolve_signature_mode(
+) -> Result<max::plugins::host::PluginHost> {
+    let mode = max::plugins::host::PluginHost::resolve_signature_mode(
         &config.plugins.security.signature_mode,
     );
     let trusted = config.plugins.security.trusted_publisher_keys.clone();
     Ok(
-        zeroclaw::plugins::host::PluginHost::from_plugins_dir_with_security(
+        max::plugins::host::PluginHost::from_plugins_dir_with_security(
             &config.plugins.resolved_plugins_dir(),
             mode,
             trusted,
@@ -3365,16 +3365,16 @@ fn plugin_host_with_configured_security(
 
 #[cfg(feature = "plugins-wasm")]
 fn installed_plugin_config_entries(
-    host: &zeroclaw::plugins::host::PluginHost,
+    host: &max::plugins::host::PluginHost,
     plugin_name: &str,
-) -> Result<Vec<(zeroclaw::plugins::PluginCapability, String)>> {
+) -> Result<Vec<(max::plugins::PluginCapability, String)>> {
     let manifest = host
         .manifest(plugin_name)
         .ok_or_else(|| anyhow::Error::msg("installed plugin manifest is unavailable"))?;
     if manifest.config_schema.is_none()
         || !manifest
             .capabilities
-            .contains(&zeroclaw::plugins::PluginCapability::Tool)
+            .contains(&max::plugins::PluginCapability::Tool)
     {
         return Ok(Vec::new());
     }
@@ -3382,13 +3382,13 @@ fn installed_plugin_config_entries(
     // Tool registration currently owns the only package-name runtime binding.
     // Alias-owned channel bindings must seed their actual instance key when
     // their production construction path lands; install must not invent one.
-    let scope = zeroclaw::plugins::instance::PluginInstanceScope::for_package_binding(
+    let scope = max::plugins::instance::PluginInstanceScope::for_package_binding(
         manifest,
-        zeroclaw::plugins::PluginCapability::Tool,
+        max::plugins::PluginCapability::Tool,
         std::iter::empty(),
     )?;
     Ok(vec![(
-        zeroclaw::plugins::PluginCapability::Tool,
+        max::plugins::PluginCapability::Tool,
         scope.id().config_entry_key()?,
     )])
 }
@@ -3401,7 +3401,7 @@ fn installed_plugin_config_entries(
 #[cfg(feature = "plugins-wasm")]
 async fn seed_plugin_config_entries(
     config: &mut crate::config::schema::Config,
-    entries: &[(zeroclaw::plugins::PluginCapability, String)],
+    entries: &[(max::plugins::PluginCapability, String)],
 ) -> Result<()> {
     if entries.is_empty() {
         return Ok(());
@@ -3421,7 +3421,7 @@ async fn seed_plugin_config_entries(
                     "warning: skipped seeding the plugin config entry: the \
                      [plugins] section on disk is malformed. Repair it, add \
                      `[[plugins.entries]]` with the instance key, then set values \
-                     with `zeroclaw config set plugins.entries.<instance-key>.config.<key>`."
+                     with `max config set plugins.entries.<instance-key>.config.<key>`."
                 )
             );
         }
@@ -3449,7 +3449,7 @@ async fn seed_plugin_config_entries(
                 "cli-plugin-config-entry-seeded",
                 &[("name", instance_key)],
                 "Seeded config entry. Set plugin config values with \
-                 `zeroclaw config set plugins.entries.<instance-key>.config.<key>`."
+                 `max config set plugins.entries.<instance-key>.config.<key>`."
             )
         );
     }
@@ -3563,11 +3563,11 @@ enum SecurityCommands {
     ///
     /// Reads the per-daemon CA at `<data_dir>/tls/ca.{crt,key}` (auto-generated on
     /// first run when `[wss]` is enabled) and writes a `clientAuth` certificate +
-    /// key that zerocode (or any client) can present to the mutually-authenticated
+    /// key that maxcode (or any client) can present to the mutually-authenticated
     /// WSS plane.
     IssueClientCert {
         /// Subject/device identity stamped into the certificate (CN).
-        #[arg(long, default_value = "zerocode")]
+        #[arg(long, default_value = "maxcode")]
         name: String,
 
         /// Directory to write the certificate / key. Defaults to `<data_dir>/tls`.
@@ -3608,7 +3608,7 @@ enum SecurityCommands {
 
     /// Ask the running daemon to mint another enrollment pairing code.
     ///
-    /// This adds another browser/zerocode device without restarting the daemon.
+    /// This adds another browser/maxcode device without restarting the daemon.
     /// It is a local operator command: the request is exchanged through the
     /// daemon's data dir, not through the public enrollment route.
     EnrollPaircode {
@@ -3630,15 +3630,15 @@ enum SecurityCommands {
 
 /// Issue a WSS client certificate signed by the daemon's per-daemon mTLS CA.
 /// CA private-key at-rest protection sourced from the environment (decision:
-/// opt-in passphrase, 0600 floor; threat A4). `ZEROCLAW_CA_PASSPHRASE` (or a file
-/// referenced by `ZEROCLAW_CA_PASSPHRASE_FILE`) enables scrypt + XChaCha20-Poly1305
+/// opt-in passphrase, 0600 floor; threat A4). `MAX_CA_PASSPHRASE` (or a file
+/// referenced by `MAX_CA_PASSPHRASE_FILE`) enables scrypt + XChaCha20-Poly1305
 /// encryption of the CA key at rest; unset keeps the plaintext-0600 default so
 /// zero-config and headless bring-up are unaffected. The daemon sources it
 /// identically at CA generation (the WSS path) and at every CA read (enrollment
 /// + this CLI), so the on-disk form always matches.
 #[cfg(feature = "agent-runtime")]
-fn ca_key_protection_from_env() -> zeroclaw_tls::CaKeyProtection {
-    zeroclaw_tls::CaKeyProtection::from_env()
+fn ca_key_protection_from_env() -> max_tls::CaKeyProtection {
+    max_tls::CaKeyProtection::from_env()
 }
 
 /// Resolve the WSS mTLS policy without conflating the auto-CA and BYO-CA modes.
@@ -3647,7 +3647,7 @@ fn ca_key_protection_from_env() -> zeroclaw_tls::CaKeyProtection {
 /// CA replaces the daemon-generated CA; certificate pins apply in either mode.
 #[cfg(feature = "agent-runtime")]
 fn resolve_wss_client_auth(
-    client_auth: Option<&zeroclaw_config::schema::WssClientAuthConfig>,
+    client_auth: Option<&max_config::schema::WssClientAuthConfig>,
 ) -> Result<(Option<String>, Vec<String>)> {
     if let Some(config) = client_auth
         && !config.ca_cert_path.is_empty()
@@ -3669,7 +3669,7 @@ fn resolve_wss_client_auth(
 }
 
 #[cfg(feature = "agent-runtime")]
-fn wss_server_sans(wss_cfg: &zeroclaw_config::schema::WssConfig) -> Vec<String> {
+fn wss_server_sans(wss_cfg: &max_config::schema::WssConfig) -> Vec<String> {
     if wss_cfg.sans.is_empty() {
         return Vec::new();
     }
@@ -3691,7 +3691,7 @@ mod wss_client_auth_tests {
 
     #[test]
     fn auto_ca_honors_configured_client_certificate_pins() {
-        let auth = zeroclaw_config::schema::WssClientAuthConfig {
+        let auth = max_config::schema::WssClientAuthConfig {
             pinned_certs: vec!["a".repeat(64)],
             ..Default::default()
         };
@@ -3706,8 +3706,8 @@ mod wss_client_auth_tests {
 
     #[test]
     fn disabled_byo_ca_is_rejected_before_listener_startup() {
-        let auth = zeroclaw_config::schema::WssClientAuthConfig {
-            ca_cert_path: "/etc/zeroclaw/client-ca.pem".into(),
+        let auth = max_config::schema::WssClientAuthConfig {
+            ca_cert_path: "/etc/max/client-ca.pem".into(),
             ..Default::default()
         };
 
@@ -3718,7 +3718,7 @@ mod wss_client_auth_tests {
 
     #[test]
     fn wss_server_sans_adds_local_and_configured_sans() {
-        let cfg = zeroclaw_config::schema::WssConfig {
+        let cfg = max_config::schema::WssConfig {
             sans: vec!["relay.example.test".into(), " ".into()],
             ..Default::default()
         };
@@ -3731,7 +3731,7 @@ mod wss_client_auth_tests {
                 "relay.example.test".to_string(),
             ]
         );
-        assert!(wss_server_sans(&zeroclaw_config::schema::WssConfig::default()).is_empty());
+        assert!(wss_server_sans(&max_config::schema::WssConfig::default()).is_empty());
     }
 }
 
@@ -3780,8 +3780,8 @@ fn issue_wss_client_cert(
     let ca_cert_pem = std::fs::read_to_string(&ca_cert)?;
     // Read the CA key honoring any at-rest passphrase, so an encrypted CA still
     // signs from the CLI (the key never leaves this process).
-    let ca_key_pem = zeroclaw_tls::load_ca_key_pem(&ca_key, &ca_key_protection_from_env())?;
-    let issued = zeroclaw_tls::issue_client_cert(&ca_cert_pem, &ca_key_pem, name)?;
+    let ca_key_pem = max_tls::load_ca_key_pem(&ca_key, &ca_key_protection_from_env())?;
+    let issued = max_tls::issue_client_cert(&ca_cert_pem, &ca_key_pem, name)?;
 
     // Directory 0700, private key written 0600 atomically (no world-readable window).
     if let Some(parent) = key_path.parent() {
@@ -3794,7 +3794,7 @@ fn issue_wss_client_cert(
     }
     std::fs::write(&cert_tmp_path, issued.cert_pem.as_bytes())
         .with_context(|| format!("write staged certificate {}", cert_tmp_path.display()))?;
-    if let Err(e) = zeroclaw_tls::certgen::write_private_pem(&key_tmp_path, &issued.key_pem) {
+    if let Err(e) = max_tls::certgen::write_private_pem(&key_tmp_path, &issued.key_pem) {
         let _ = std::fs::remove_file(&cert_tmp_path);
         return Err(e)
             .with_context(|| format!("write staged private key {}", key_tmp_path.display()));
@@ -3808,11 +3808,11 @@ fn issue_wss_client_cert(
     // over-recorded credential is recoverable where an unrecorded one is not
     // (see CertLedger::record_issued). The row is therefore active-but-
     // undelivered until the renames below succeed.
-    use zeroclaw_runtime::security::cert_ledger::{
+    use max_runtime::security::cert_ledger::{
         CertLedger, CertStatus, IssuanceActor, LedgerEntry,
     };
     let ledger_result = (|| -> Result<(CertLedger, String)> {
-        let fingerprint = zeroclaw_tls::single_cert_pem_sha256_fingerprint(&issued.cert_pem)
+        let fingerprint = max_tls::single_cert_pem_sha256_fingerprint(&issued.cert_pem)
             .context("parse staged issued certificate")?;
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -3887,7 +3887,7 @@ fn issue_wss_client_cert(
     })?;
 
     // When issuing into a separate out-dir, also lay it out as a drop-in client
-    // `tls/` directory (ca.crt + client.crt + client.key). zerocode looks for
+    // `tls/` directory (ca.crt + client.crt + client.key). maxcode looks for
     // exactly these names under its <config-dir>/tls, so a client that copies this
     // directory needs no --tls-* flags at all.
     if has_out_dir {
@@ -3909,7 +3909,7 @@ fn issue_wss_client_cert(
                 dest.display()
             )
         })?;
-        zeroclaw_tls::certgen::write_private_pem(&dest.join("client.key"), &issued.key_pem)
+        max_tls::certgen::write_private_pem(&dest.join("client.key"), &issued.key_pem)
             .with_context(|| {
                 format!(
                     "write client.key into {}; the primary credentials were issued but \
@@ -3956,7 +3956,7 @@ fn issue_wss_client_cert(
     // the guidance rather than requiring the operator to have pinned it.
     let relay_ready = relay.enabled && !relay.url.is_empty();
     let relay_node = if relay_ready {
-        zeroclaw_runtime::relay::ensure_node_id(&config.data_dir, &relay.node_id)
+        max_runtime::relay::ensure_node_id(&config.data_dir, &relay.node_id)
             .unwrap_or_else(|_| relay.node_id.clone())
     } else {
         relay.node_id.clone()
@@ -3986,15 +3986,15 @@ fn issue_wss_client_cert(
         }
         println!("{}", t("cli-mtls-relay-connect-header", "relay connect"));
         if has_out_dir {
-            // i18n-exempt: literal zerocode command line; the flags are not translatable
+            // i18n-exempt: literal maxcode command line; the flags are not translatable
             println!(
-                "  zerocode --config-dir <dir-with-the-tls-folder> --relay {} --relay-node {}{}",
+                "  maxcode --config-dir <dir-with-the-tls-folder> --relay {} --relay-node {}{}",
                 relay.url, relay_node, relay_flags
             );
         } else {
-            // i18n-exempt: literal zerocode command line; the flags are not translatable
+            // i18n-exempt: literal maxcode command line; the flags are not translatable
             println!(
-                "  zerocode --relay {} --relay-node {}{} --tls-ca-cert {} --tls-client-cert {} --tls-client-key {}",
+                "  maxcode --relay {} --relay-node {}{} --tls-ca-cert {} --tls-client-cert {} --tls-client-key {}",
                 relay.url,
                 relay_node,
                 relay_flags,
@@ -4007,9 +4007,9 @@ fn issue_wss_client_cert(
         println!("{}", t("cli-mtls-relay-ca-note-2", "daemon CA note"));
     } else {
         println!("{}", t("cli-mtls-direct-connect-header", "direct connect"));
-        // i18n-exempt: literal zerocode command line; the flags are not translatable
+        // i18n-exempt: literal maxcode command line; the flags are not translatable
         println!(
-            "  zerocode --connect wss://<host>:<port> --tls-ca-cert {} --tls-client-cert {} --tls-client-key {}",
+            "  maxcode --connect wss://<host>:<port> --tls-ca-cert {} --tls-client-cert {} --tls-client-key {}",
             ca_cert.display(),
             cert_path.display(),
             key_path.display()
@@ -4028,7 +4028,7 @@ fn revoke_wss_client_cert(
     fingerprint: Option<String>,
     device: Option<String>,
 ) -> Result<()> {
-    use zeroclaw_runtime::security::cert_ledger::CertLedger;
+    use max_runtime::security::cert_ledger::CertLedger;
     // `operator` matches the issuance actor `issue-client-cert` records.
     const ACTOR: &str = "operator";
     let ledger = CertLedger::open_at(&config.data_dir, None, effective_crl_path(config))?;
@@ -4096,7 +4096,7 @@ fn revoke_wss_client_cert(
 /// enforced.
 #[cfg(feature = "agent-runtime")]
 fn effective_crl_path(config: &Config) -> std::path::PathBuf {
-    zeroclaw_runtime::security::cert_ledger::effective_revoked_list_path(
+    max_runtime::security::cert_ledger::effective_revoked_list_path(
         &config.data_dir,
         config.wss.client_auth.as_ref().map(|c| c.crl_path.as_str()),
     )
@@ -4107,7 +4107,7 @@ fn effective_crl_path(config: &Config) -> std::path::PathBuf {
 /// live certificate.
 #[cfg(feature = "agent-runtime")]
 fn list_wss_client_certs(config: &Config, json: bool) -> Result<()> {
-    use zeroclaw_runtime::security::cert_ledger::CertLedger;
+    use max_runtime::security::cert_ledger::CertLedger;
     let ledger = CertLedger::open_at(&config.data_dir, None, effective_crl_path(config))?;
     let active = ledger.list_active()?;
     if json {
@@ -4447,7 +4447,7 @@ fn validated_locale(locale: &str) -> Result<String> {
     if !ok_shape {
         bail!("invalid locale code '{locale}'");
     }
-    let known = zeroclaw_runtime::i18n::available_locales();
+    let known = max_runtime::i18n::available_locales();
     if !known.iter().any(|o| o.code == locale) {
         let codes: Vec<&str> = known.iter().map(|o| o.code.as_str()).collect();
         bail!(
@@ -4463,7 +4463,7 @@ async fn fetch_locales(locale: &str, catalog: Option<&str>) -> Result<()> {
     let locale = validated_locale(locale)?;
 
     let selected: Vec<&(&str, &str, &str)> = match catalog {
-        None => zeroclaw_config::schema::FTL_CATALOGS.iter().collect(),
+        None => max_config::schema::FTL_CATALOGS.iter().collect(),
         Some(list) => {
             let names: Vec<&str> = list
                 .split(',')
@@ -4472,13 +4472,13 @@ async fn fetch_locales(locale: &str, catalog: Option<&str>) -> Result<()> {
                 .collect();
             let mut out = Vec::new();
             for name in &names {
-                match zeroclaw_config::schema::FTL_CATALOGS
+                match max_config::schema::FTL_CATALOGS
                     .iter()
                     .find(|(n, _, _)| n == name)
                 {
                     Some(entry) => out.push(entry),
                     None => {
-                        let valid = zeroclaw_config::schema::FTL_CATALOGS
+                        let valid = max_config::schema::FTL_CATALOGS
                             .iter()
                             .map(|(n, _, _)| *n)
                             .collect::<Vec<_>>()
@@ -4491,7 +4491,7 @@ async fn fetch_locales(locale: &str, catalog: Option<&str>) -> Result<()> {
         }
     };
 
-    let dest = zeroclaw_config::schema::ftl_locale_dir(&locale)?;
+    let dest = max_config::schema::ftl_locale_dir(&locale)?;
     std::fs::create_dir_all(&dest).with_context(|| format!("creating {}", dest.display()))?;
     // Confinement check: the resolved dest must live under the data-dir FTL root.
     let ftl_root = dest
@@ -4515,7 +4515,7 @@ async fn fetch_locales(locale: &str, catalog: Option<&str>) -> Result<()> {
         let mut body: Option<String> = None;
         for git_ref in &refs {
             let url = format!(
-                "https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/{git_ref}/{repo_path}"
+                "https://raw.githubusercontent.com/max-labs/max/{git_ref}/{repo_path}"
             );
             let resp = client.get(&url).send().await?;
             if resp.status().is_success() {
@@ -4584,7 +4584,7 @@ fn main() -> Result<()> {
     {
         // SAFETY: this synchronous bootstrap runs before the Tokio runtime (and
         // therefore its worker threads) is constructed.
-        unsafe { std::env::set_var("ZEROCLAW_CONFIG_DIR", config_dir) };
+        unsafe { std::env::set_var("MAX_CONFIG_DIR", config_dir) };
     }
 
     async_main(command)
@@ -4604,15 +4604,15 @@ fn async_main(command: clap::Command) -> Result<()> {
         .block_on(async_main_inner(command))
 }
 
-/// True when a desktop entry's `Name` deliberately identifies ZeroClaw: it is
-/// exactly "ZeroClaw" or "ZeroClaw" followed by a separator (e.g. "ZeroClaw
+/// True when a desktop entry's `Name` deliberately identifies Max: it is
+/// exactly "Max" or "Max" followed by a separator (e.g. "Max
 /// Companion"), case-insensitively. Matching the visible application name — not
-/// any field that merely contains the substring "zeroclaw" — is what stops an
-/// unrelated entry (or a lookalike like `not-zeroclaw-helper`) from qualifying.
+/// any field that merely contains the substring "max" — is what stops an
+/// unrelated entry (or a lookalike like `not-max-helper`) from qualifying.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
-fn is_zeroclaw_name(name: &str) -> bool {
+fn is_max_name(name: &str) -> bool {
     let lower = name.trim().to_ascii_lowercase();
-    match lower.strip_prefix("zeroclaw") {
+    match lower.strip_prefix("max") {
         Some("") => true,
         Some(rest) => rest.starts_with([' ', '-', '_']),
         None => false,
@@ -4741,7 +4741,7 @@ fn tokenize_exec_line(line: &str) -> Option<Vec<(String, bool)>> {
 /// Validate the field codes carried by a single tokenized `Exec` argument per the
 /// Desktop Entry Specification. Inside a token, the only permitted `%` is the
 /// escaped literal `%%`; a bare, embedded, or unknown field code (`%U`, `%Z`,
-/// `ZeroClaw-%Z.AppImage`, `--flag=%U`) invalidates the command line. The one
+/// `Max-%Z.AppImage`, `--flag=%U`) invalidates the command line. The one
 /// exception is that an *argument* (never the program) that was *not* quoted may
 /// be exactly one known standalone field code such as `%U`. A field code inside a
 /// quoted argument is always rejected.
@@ -4778,7 +4778,7 @@ fn parse_exec_program(exec: &str) -> Option<String> {
     let (program, program_quoted) = tokens.next()?;
     // The executable may not be empty, carry an `=`, or contain any field code
     // (bare or embedded — only an escaped `%%` literal is allowed). This rejects
-    // a program like `ZeroClaw-%Z.AppImage` whose basename would otherwise pass
+    // a program like `Max-%Z.AppImage` whose basename would otherwise pass
     // the AppImage-name check.
     if program.is_empty()
         || program.contains('=')
@@ -4797,52 +4797,52 @@ fn parse_exec_program(exec: &str) -> Option<String> {
     Some(program)
 }
 
-/// The published companion-app binary name (the `Exec` of `ZeroClaw.desktop` in
+/// The published companion-app binary name (the `Exec` of `Max.desktop` in
 /// the v0.8.3 Debian package). This is the single source of truth for the
 /// supported non-AppImage executable, so discovery cannot select a lookalike
-/// such as `zeroclaw-helper` or `zeroclaw-evil`.
+/// such as `max-helper` or `max-evil`.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
-const ZEROCLAW_DESKTOP_BIN: &str = "zeroclaw-desktop";
+const MAX_DESKTOP_BIN: &str = "max-desktop";
 
-/// True when a desktop entry's resolved `Exec` program is a supported ZeroClaw
-/// executable: either the exact published binary `zeroclaw-desktop`, or a
-/// ZeroClaw AppImage in the published `ZeroClaw-*.AppImage` form. It is bound to
-/// those forms — not to any `zeroclaw*` basename — so a deliberate ZeroClaw
-/// `Name` cannot be paired with a lookalike (`zeroclaw-helper`, `zeroclaw-evil`)
+/// True when a desktop entry's resolved `Exec` program is a supported Max
+/// executable: either the exact published binary `max-desktop`, or a
+/// Max AppImage in the published `Max-*.AppImage` form. It is bound to
+/// those forms — not to any `max*` basename — so a deliberate Max
+/// `Name` cannot be paired with a lookalike (`max-helper`, `max-evil`)
 /// to preempt the real app.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
-fn is_zeroclaw_program(program: &str) -> bool {
+fn is_max_program(program: &str) -> bool {
     let Some(name) = Path::new(program).file_name().and_then(|n| n.to_str()) else {
         return false;
     };
     let lower = name.to_ascii_lowercase();
-    lower == ZEROCLAW_DESKTOP_BIN || is_zeroclaw_appimage_name(name)
+    lower == MAX_DESKTOP_BIN || is_max_appimage_name(name)
 }
 
-/// True when a bare file name is a supported ZeroClaw AppImage in the published
-/// `ZeroClaw-*.AppImage` form: it begins with "zeroclaw-" (the separator is
+/// True when a bare file name is a supported Max AppImage in the published
+/// `Max-*.AppImage` form: it begins with "max-" (the separator is
 /// required) and ends with ".appimage", case-insensitively. Requiring the
-/// separator rejects lookalikes with no boundary such as `ZeroClawevil.AppImage`
-/// as well as `not-zeroclaw-helper.AppImage`.
+/// separator rejects lookalikes with no boundary such as `Maxevil.AppImage`
+/// as well as `not-max-helper.AppImage`.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
-fn is_zeroclaw_appimage_name(file_name: &str) -> bool {
+fn is_max_appimage_name(file_name: &str) -> bool {
     let lower = file_name.to_ascii_lowercase();
-    lower.starts_with("zeroclaw-") && lower.ends_with(".appimage")
+    lower.starts_with("max-") && lower.ends_with(".appimage")
 }
 
 /// Read the `Exec` target from a desktop entry, but only when the entry is a
-/// ZeroClaw application, so an unrelated `.desktop` file is never launched.
+/// Max application, so an unrelated `.desktop` file is never launched.
 /// Identity is a bounded combination, not a display name alone: the entry must
-/// be `Type=Application`, its `Name` must deliberately identify ZeroClaw (see
-/// [`is_zeroclaw_name`]), and its resolved `Exec` program must be a ZeroClaw
-/// executable (see [`is_zeroclaw_program`]). Only the `[Desktop Entry]` group is
+/// be `Type=Application`, its `Name` must deliberately identify Max (see
+/// [`is_max_name`]), and its resolved `Exec` program must be a Max
+/// executable (see [`is_max_program`]). Only the `[Desktop Entry]` group is
 /// consulted, a `Hidden=true` ("masked") entry is ignored, and the `Exec` value
 /// is parsed with the desktop-entry quoting grammar (see [`parse_exec_program`]).
 ///
 /// Gated with the `desktop` command's `which` dependency (`agent-runtime`) on
 /// Linux, matching its sole caller and the desktop-entry tests.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
-fn zeroclaw_desktop_exec(contents: &str) -> Option<String> {
+fn max_desktop_exec(contents: &str) -> Option<String> {
     let mut in_entry = false;
     let mut name: Option<String> = None;
     let mut exec: Option<String> = None;
@@ -4873,7 +4873,7 @@ fn zeroclaw_desktop_exec(contents: &str) -> Option<String> {
         return None;
     }
     // A launchable app entry only: `Type` must be `Application`, per the
-    // published `ZeroClaw.desktop` contract. A non-`Application` entry (e.g.
+    // published `Max.desktop` contract. A non-`Application` entry (e.g.
     // `Link`/`Directory`) never resolves.
     if !entry_type
         .as_deref()
@@ -4881,11 +4881,11 @@ fn zeroclaw_desktop_exec(contents: &str) -> Option<String> {
     {
         return None;
     }
-    if !is_zeroclaw_name(&name?) {
+    if !is_max_name(&name?) {
         return None;
     }
     let program = parse_exec_program(&exec?)?;
-    if !is_zeroclaw_program(&program) {
+    if !is_max_program(&program) {
         return None;
     }
     Some(program)
@@ -4909,9 +4909,9 @@ fn resolve_executable(command: &str) -> Option<PathBuf> {
     if candidate.is_absolute() {
         return is_executable(candidate).then(|| candidate.to_path_buf());
     }
-    // A relative value containing a path separator (e.g. `./zeroclaw-helper`) would be
+    // A relative value containing a path separator (e.g. `./max-helper`) would be
     // resolved by `which` against the current working directory, letting a desktop entry
-    // launch a binary from wherever `zeroclaw desktop` happened to run. Per the Desktop
+    // launch a binary from wherever `max desktop` happened to run. Per the Desktop
     // Entry spec `Exec` must be an absolute path or a bare executable name resolved on
     // `PATH`, so reject any relative value that carries a separator.
     if command.contains('/') {
@@ -4922,7 +4922,7 @@ fn resolve_executable(command: &str) -> Option<PathBuf> {
 
 /// Maximum accepted size of one XDG desktop entry. Desktop files are small
 /// metadata documents; bounding ambient entries prevents one unrelated file
-/// from consuming unbounded memory before a valid ZeroClaw entry is reached.
+/// from consuming unbounded memory before a valid Max entry is reached.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
 const DESKTOP_ENTRY_MAX_BYTES: u64 = 256 * 1024;
 
@@ -4996,7 +4996,7 @@ fn collect_desktop_entries(
 }
 
 /// Scan `applications` subdirectories of the given XDG base dirs (already in
-/// precedence order) for a ZeroClaw desktop entry and return its executable
+/// precedence order) for a Max desktop entry and return its executable
 /// `Exec` target. The first occurrence of a desktop-file ID wins and shadows the
 /// same ID in later (lower-precedence) directories, matching XDG masking.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -5016,7 +5016,7 @@ fn discover_desktop_app(data_dirs: &[PathBuf]) -> Option<PathBuf> {
                 continue;
             };
             if let Some(target) =
-                zeroclaw_desktop_exec(&contents).and_then(|cmd| resolve_executable(&cmd))
+                max_desktop_exec(&contents).and_then(|cmd| resolve_executable(&cmd))
             {
                 return Some(target);
             }
@@ -5027,7 +5027,7 @@ fn discover_desktop_app(data_dirs: &[PathBuf]) -> Option<PathBuf> {
 
 /// Discover an installed companion app on Linux that is not on `PATH`, such as
 /// an AppImage registered in the application menu. Reads the `Exec` target from
-/// a ZeroClaw XDG desktop entry (honouring `$XDG_DATA_HOME`/`$XDG_DATA_DIRS`
+/// a Max XDG desktop entry (honouring `$XDG_DATA_HOME`/`$XDG_DATA_DIRS`
 /// precedence), then falls back to scanning common AppImage install locations.
 /// Returns the launchable binary/AppImage path.
 #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -5066,11 +5066,11 @@ fn find_linux_desktop_app() -> Option<PathBuf> {
         return Some(target);
     }
 
-    // Fall back to scanning common AppImage locations for a ZeroClaw image that
+    // Fall back to scanning common AppImage locations for a Max image that
     // was made executable but never registered on PATH. `read_dir` order is
     // unspecified, so collect every match and pick deterministically: within
     // a directory the lexicographically greatest file name (so a higher version
-    // like `ZeroClaw-2...` is preferred over `ZeroClaw-1...`); earlier
+    // like `Max-2...` is preferred over `Max-1...`); earlier
     // directories in the list keep priority.
     if let Some(home) = &home {
         for dir in [home.join("Applications"), home.join(".local/bin")] {
@@ -5085,7 +5085,7 @@ fn find_linux_desktop_app() -> Option<PathBuf> {
                         .file_name()
                         .and_then(|n| n.to_str())
                         .unwrap_or_default();
-                    is_zeroclaw_appimage_name(name) && is_executable(path)
+                    is_max_appimage_name(name) && is_executable(path)
                 })
                 .collect();
             if !matches.is_empty() {
@@ -5152,12 +5152,12 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 let schema = schemars::schema_for!(config::Config);
                 print!(
                     "{}",
-                    zeroclaw_config::schema_markdown::generate(&schema.to_value())
+                    max_config::schema_markdown::generate(&schema.to_value())
                 );
                 return Ok(());
             }
             #[cfg(not(feature = "schema-export"))]
-            anyhow::bail!("zeroclaw was built without the 'schema-export' feature");
+            anyhow::bail!("max was built without the 'schema-export' feature");
         }
         _ => {}
     }
@@ -5182,7 +5182,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
     let default_filter =
         format!("{default_floor},matrix_sdk=warn,matrix_sdk_base=warn,matrix_sdk_crypto=warn");
 
-    zeroclaw_log::install_global_subscriber(
+    max_log::install_global_subscriber(
         recording_filter.as_deref(),
         &default_filter,
         cli.verbose,
@@ -5223,8 +5223,8 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             || *tunnel_only;
         if any_legacy_flag {
             eprintln!(
-                "error: `zeroclaw onboard` is deprecated and its flags no longer apply. \
-                 Use `zeroclaw quickstart` to create a new agent, or `zeroclaw config set <path>=<value>` \
+                "error: `max onboard` is deprecated and its flags no longer apply. \
+                 Use `max quickstart` to create a new agent, or `max config set <path>=<value>` \
                  for headless updates."
             );
             std::process::exit(2);
@@ -5233,7 +5233,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             "{}",
             t(
                 "cli-onboard-deprecated",
-                "`zeroclaw onboard` is deprecated — use `zeroclaw quickstart`."
+                "`max onboard` is deprecated — use `max quickstart`."
             )
         );
         return Ok(());
@@ -5340,7 +5340,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 "{}",
                 t(
                     "cli-otp-initialized",
-                    "Initialized OTP secret for ZeroClaw."
+                    "Initialized OTP secret for Max."
                 )
             );
             println!(
@@ -5364,7 +5364,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             } => {
                 if config.agent(&agent_alias).is_none() {
                     anyhow::bail!(
-                        "`zeroclaw agent --agent {agent_alias}` is not configured (no [agents.{agent_alias}] entry)"
+                        "`max agent --agent {agent_alias}` is not configured (no [agents.{agent_alias}] entry)"
                     );
                 }
                 let agent_entry = config.model_provider_for_agent(&agent_alias);
@@ -5379,19 +5379,19 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         .models
                         .ensure(type_key, alias_key)
                         .ok_or_else(|| {
-                            ::zeroclaw_log::record!(
+                            ::max_log::record!(
                                 WARN,
-                                ::zeroclaw_log::Event::new(
+                                ::max_log::Event::new(
                                     module_path!(),
-                                    ::zeroclaw_log::Action::Reject
+                                    ::max_log::Action::Reject
                                 )
-                                .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                                .with_outcome(::max_log::EventOutcome::Failure)
                                 .with_attrs(::serde_json::json!({"family": type_key})),
                                 "ask CLI refused: --model-provider names an unknown family"
                             );
                             anyhow::Error::msg(format!(
                                 "Unknown model_provider family: {type_key}. \
-                             Configure a provider via `zeroclaw quickstart` or the /config editor."
+                             Configure a provider via `max quickstart` or the /config editor."
                             ))
                         })?;
                     if let Some(m) = &model {
@@ -5405,7 +5405,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 } else if config.model_provider_for_agent(&agent_alias).is_none() {
                     anyhow::bail!(
                         "No model model_provider configured for agent {agent_alias}. \
-                         Pass --model-provider <type> or run `zeroclaw quickstart` to configure one."
+                         Pass --model-provider <type> or run `max quickstart` to configure one."
                     );
                 }
 
@@ -5413,7 +5413,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     .resolved_model_provider_for_agent(&agent_alias)
                     .map(|(ty, _alias, entry)| (ty, Some(entry)))
                     .unwrap_or(("openai", None));
-                let model_provider = zeroclaw::providers::create_model_provider(
+                let model_provider = max::providers::create_model_provider(
                     provider_name,
                     resolved_entry.and_then(|e| e.api_key.as_deref()),
                 )?;
@@ -5423,7 +5423,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 match message {
                     Some(msg) => {
                         let response =
-                            zeroclaw_providers::ProviderDispatch::from_ref(&*model_provider)
+                            max_providers::ProviderDispatch::from_ref(&*model_provider)
                                 .simple_chat(&msg, model_name, Some(final_temperature))
                                 .await?;
                         println!("{response}");
@@ -5452,7 +5452,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 }
                             };
                             let response =
-                                zeroclaw_providers::ProviderDispatch::from_ref(&*model_provider)
+                                max_providers::ProviderDispatch::from_ref(&*model_provider)
                                     .simple_chat(line.trim(), model_name, Some(final_temperature))
                                     .await?;
                             println!("{response}");
@@ -5474,10 +5474,10 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
 
     #[cfg(feature = "agent-runtime")]
     {
-        zeroclaw_runtime::cron::scheduler::register_delivery_fn(Box::new(
+        max_runtime::cron::scheduler::register_delivery_fn(Box::new(
             |config, channel, target, thread_id, output| {
                 Box::pin(async move {
-                    zeroclaw_channels::orchestrator::deliver_announcement(
+                    max_channels::orchestrator::deliver_announcement(
                         &config, &channel, &target, thread_id, &output,
                     )
                     .await
@@ -5525,28 +5525,28 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             // catches typos before any subsystem spins up.
             if config.agent(&agent_alias).is_none() {
                 anyhow::bail!(
-                    "`zeroclaw agent --agent {agent_alias}` is not configured (no [agents.{agent_alias}] entry)"
+                    "`max agent --agent {agent_alias}` is not configured (no [agents.{agent_alias}] entry)"
                 );
             }
 
             // Wire CLI channel for interactive mode
-            zeroclaw_runtime::agent::loop_::register_cli_channel_fn(Box::new(|| {
-                Box::new(zeroclaw_channels::cli::CliChannel::new("cli"))
+            max_runtime::agent::loop_::register_cli_channel_fn(Box::new(|| {
+                Box::new(max_channels::cli::CliChannel::new("cli"))
             }));
 
-            // Wire peripheral tools (gpio_read/gpio_write etc.) for `zeroclaw agent`.
+            // Wire peripheral tools (gpio_read/gpio_write etc.) for `max agent`.
             // Mirrors the registration done for the daemon command.
             #[cfg(feature = "hardware")]
-            zeroclaw_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
+            max_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
                 Box::pin(async move {
-                    zeroclaw_hardware::peripherals::create_peripheral_tools(&config).await
+                    max_hardware::peripherals::create_peripheral_tools(&config).await
                 })
             }));
 
             // Register channel map factory for late-bound tool handle population.
-            zeroclaw_runtime::agent::loop_::register_channel_map_fn(Box::new({
+            max_runtime::agent::loop_::register_channel_map_fn(Box::new({
                 let config_clone = config.clone();
-                move || zeroclaw_channels::orchestrator::build_channel_map(&config_clone)
+                move || max_channels::orchestrator::build_channel_map(&config_clone)
             }));
 
             Box::pin(agent::run(
@@ -5560,8 +5560,8 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 true,
                 session_state_file,
                 None,
-                zeroclaw_api::ingress::TurnOrigin::Interactive,
-                zeroclaw_runtime::agent::loop_::AgentRunOverrides::default(),
+                max_api::ingress::TurnOrigin::Interactive,
+                max_runtime::agent::loop_::AgentRunOverrides::default(),
             ))
             .await
             .map(|_| ())
@@ -5584,16 +5584,16 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     acp_config.session_timeout_secs = timeout;
                 }
                 let store =
-                    zeroclaw_infra::acp_session_store::AcpSessionStore::new(&config.data_dir)
+                    max_infra::acp_session_store::AcpSessionStore::new(&config.data_dir)
                         .map(std::sync::Arc::new)
                         .inspect_err(|e| {
-                            ::zeroclaw_log::record!(
+                            ::max_log::record!(
                                 WARN,
-                                ::zeroclaw_log::Event::new(
+                                ::max_log::Event::new(
                                     module_path!(),
-                                    ::zeroclaw_log::Action::Note
+                                    ::max_log::Action::Note
                                 )
-                                .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                                .with_outcome(::max_log::EventOutcome::Unknown)
                                 .with_attrs(::serde_json::json!({"error": e.to_string()})),
                                 "Failed to open ACP session store"
                             );
@@ -5617,7 +5617,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
 
         Commands::Gateway { gateway_command } => {
             match gateway_command {
-                Some(zeroclaw::GatewayCommands::Restart {
+                Some(max::GatewayCommands::Restart {
                     port,
                     host,
                     allow_degraded_security,
@@ -5625,22 +5625,22 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     let _nag = gate_security_posture(&config, allow_degraded_security)?;
                     let (port, host) = resolve_gateway_addr(&config, port, host);
                     let addr = format!("{host}:{port}");
-                    ::zeroclaw_log::record!(
+                    ::max_log::record!(
                         INFO,
-                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                             .with_attrs(::serde_json::json!({"addr": addr})),
-                        "🔄 Restarting ZeroClaw Gateway on"
+                        "🔄 Restarting Max Gateway on"
                     );
 
                     // Try to gracefully shutdown existing gateway via admin endpoint
                     match shutdown_gateway(&host, port, config.gateway.path_prefix.as_deref()).await
                     {
                         Ok(()) => {
-                            ::zeroclaw_log::record!(
+                            ::max_log::record!(
                                 INFO,
-                                ::zeroclaw_log::Event::new(
+                                ::max_log::Event::new(
                                     module_path!(),
-                                    ::zeroclaw_log::Action::Note
+                                    ::max_log::Action::Note
                                 )
                                 .with_attrs(::serde_json::json!({"addr": addr})),
                                 "✓ Existing gateway on shut down gracefully"
@@ -5652,13 +5652,13 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 match tokio::net::TcpStream::connect(&addr).await {
                                     Err(_) => break, // port is free
                                     Ok(_) if tokio::time::Instant::now() >= deadline => {
-                                        ::zeroclaw_log::record!(
+                                        ::max_log::record!(
                                             WARN,
-                                            ::zeroclaw_log::Event::new(
+                                            ::max_log::Event::new(
                                                 module_path!(),
-                                                ::zeroclaw_log::Action::Note
+                                                ::max_log::Action::Note
                                             )
-                                            .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                                            .with_outcome(::max_log::EventOutcome::Unknown)
                                             .with_attrs(::serde_json::json!({"port": port})),
                                             "Timed out waiting for port to be released"
                                         );
@@ -5672,11 +5672,11 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             }
                         }
                         Err(e) => {
-                            ::zeroclaw_log::record!(
+                            ::max_log::record!(
                                 INFO,
-                                ::zeroclaw_log::Event::new(
+                                ::max_log::Event::new(
                                     module_path!(),
-                                    ::zeroclaw_log::Action::Note
+                                    ::max_log::Action::Note
                                 )
                                 .with_attrs(::serde_json::json!({"error": format!("{}", e)})),
                                 "   No existing gateway to shut down"
@@ -5687,7 +5687,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     log_gateway_start(&host, port);
                     Box::pin(run_gateway_if_enabled(&host, port, config, None)).await
                 }
-                Some(zeroclaw::GatewayCommands::GetPaircode {
+                Some(max::GatewayCommands::GetPaircode {
                     new,
                     rotate,
                     rotate_device,
@@ -5785,12 +5785,12 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                     "   Is the gateway running? Start it with:"
                                 )
                             );
-                            println!("     zeroclaw gateway start"); // i18n-exempt: literal command/identifier example
+                            println!("     max gateway start"); // i18n-exempt: literal command/identifier example
                         }
                     }
                     Ok(())
                 }
-                Some(zeroclaw::GatewayCommands::Start {
+                Some(max::GatewayCommands::Start {
                     port,
                     host,
                     allow_degraded_security,
@@ -5801,7 +5801,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     Box::pin(run_gateway_if_enabled(&host, port, config, None)).await
                 }
                 None => {
-                    // Bare `zeroclaw gateway` has no flag, so degraded security
+                    // Bare `max gateway` has no flag, so degraded security
                     // is never auto-allowed here — fail closed.
                     let _nag = gate_security_posture(&config, false)?;
                     let port = config.gateway.port;
@@ -5831,16 +5831,16 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     .is_some_and(|home| exe.starts_with(&home));
                 if under_home {
                     let install_hint = if cfg!(windows) {
-                        "Consider installing to a system-wide location (e.g. C:\\Program Files\\ZeroClaw) for service use."
+                        "Consider installing to a system-wide location (e.g. C:\\Program Files\\Max) for service use."
                     } else if cfg!(target_os = "macos") {
                         "Consider installing to /usr/local/bin or /opt/homebrew/bin for system-wide service."
                     } else {
                         "Consider installing to /usr/local/bin for system-wide service."
                     };
-                    ::zeroclaw_log::record!(
+                    ::max_log::record!(
                         WARN,
-                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                            .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                        ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                            .with_outcome(::max_log::EventOutcome::Unknown),
                         &format!(
                             "Daemon running from user home directory: {}. {install_hint}",
                             exe.display()
@@ -5851,24 +5851,24 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             let port = port.unwrap_or(config.gateway.port);
             let host = host.unwrap_or_else(|| config.gateway.host.clone());
             if port == 0 {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     INFO,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                         .with_attrs(::serde_json::json!({"host": host})),
-                    "🧠 Starting ZeroClaw Daemon on (random port)"
+                    "🧠 Starting Max Daemon on (random port)"
                 );
             } else {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     INFO,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                         .with_attrs(::serde_json::json!({"host": host, "port": port})),
-                    "🧠 Starting ZeroClaw Daemon on"
+                    "🧠 Starting Max Daemon on"
                 );
             }
 
             #[cfg(target_os = "linux")]
             {
-                use zeroclaw_config::schema::SandboxBackend;
+                use max_config::schema::SandboxBackend;
                 // Any enabled agent whose risk_profile uses the docker
                 // sandbox triggers the warning — we just need to know
                 // *some* agent is using it.
@@ -5879,14 +5879,14 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     .filter_map(|(alias, _)| config.risk_profile_for_agent(alias))
                     .any(|p| matches!(p.sandbox_config().backend, SandboxBackend::Docker));
                 let runtime_docker_mem = config.runtime.kind
-                    == zeroclaw_config::schema::RuntimeKind::Docker
+                    == max_config::schema::RuntimeKind::Docker
                     && config
                         .runtime
                         .docker
                         .memory_limit_mb
                         .is_some_and(|mb| mb > 0);
                 if (sandbox_docker || runtime_docker_mem)
-                    && !zeroclaw_runtime::security::linux_memcg_available()
+                    && !max_runtime::security::linux_memcg_available()
                 {
                     let which = match (sandbox_docker, runtime_docker_mem) {
                         (true, true) => {
@@ -5895,10 +5895,10 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         (true, false) => "security.sandbox.backend = \"docker\"",
                         _ => "runtime.kind = \"docker\"",
                     };
-                    ::zeroclaw_log::record!(
+                    ::max_log::record!(
                         WARN,
-                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                            .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                        ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                            .with_outcome(::max_log::EventOutcome::Unknown)
                             .with_attrs(::serde_json::json!({"which": which})),
                         "Docker memory limits are configured but the Linux kernel has no memcg support. Affected config: . Consequence: --memory limits are silently ignored; agents can OOM the host. Fix: add 'cgroup_memory=1 cgroup_enable=memory' to /boot/firmware/cmdline.txt (Raspberry Pi) or enable CONFIG_MEMCG in your kernel, then reboot."
                     );
@@ -5907,29 +5907,29 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
 
             // Wire CLI channel for interactive mode
             #[cfg(feature = "agent-runtime")]
-            zeroclaw_runtime::agent::loop_::register_cli_channel_fn(Box::new(|| {
-                Box::new(zeroclaw_channels::cli::CliChannel::new("cli"))
+            max_runtime::agent::loop_::register_cli_channel_fn(Box::new(|| {
+                Box::new(max_channels::cli::CliChannel::new("cli"))
             }));
 
-            // Wire peripheral tools from zeroclaw-hardware
+            // Wire peripheral tools from max-hardware
             #[cfg(feature = "hardware")]
-            zeroclaw_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
+            max_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
                 Box::pin(async move {
-                    zeroclaw_hardware::peripherals::create_peripheral_tools(&config).await
+                    max_hardware::peripherals::create_peripheral_tools(&config).await
                 })
             }));
 
             // Cron delivery is registered earlier (before the command match)
             // so it works for both `daemon` and `gateway start`.
 
-            let canvas_store = zeroclaw_runtime::tools::CanvasStore::new();
+            let canvas_store = max_runtime::tools::CanvasStore::new();
             let canvas_store_for_gateway = canvas_store.clone();
             let canvas_store_for_channels = canvas_store.clone();
 
             // Capture the launch command now, before any in-app upgrade can
             // swap the binary on disk (after which `current_exe()` resolves to a
             // "(deleted)" path on Linux). Used by the post-loop self-respawn.
-            zeroclaw_runtime::restart::record_launch();
+            max_runtime::restart::record_launch();
 
             // Reload loop. `daemon::run` returns DaemonExit::Shutdown on
             // SIGINT/SIGTERM (loop ends) or DaemonExit::Reload after a
@@ -5956,23 +5956,23 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 let canvas_store_for_channels = canvas_store_for_channels.clone();
                 let mut registry = daemon::DaemonRegistry::new();
                 #[cfg(feature = "gateway")]
-                let plugin_webhooks = Arc::new(zeroclaw_api::webhook::PluginWebhookRegistry::new());
+                let plugin_webhooks = Arc::new(max_api::webhook::PluginWebhookRegistry::new());
                 #[cfg(feature = "gateway")]
                 let channel_plugin_webhooks = Some(Arc::clone(&plugin_webhooks));
                 #[cfg(not(feature = "gateway"))]
                 let channel_plugin_webhooks: Option<
-                    Arc<zeroclaw_api::webhook::PluginWebhookRegistry>,
+                    Arc<max_api::webhook::PluginWebhookRegistry>,
                 > = None;
 
                 // SOP loading is gated on `runtime_enabled()`: `sops_dir` is unset
                 // (or empty) by default, so SOP runtime behavior is off until an
                 // operator opts in by setting a directory.
                 let (sop_engine, sop_audit) = if current_config.sop.runtime_enabled() {
-                    let mem: Arc<dyn zeroclaw_memory::Memory> = Arc::from(
-                        zeroclaw_memory::create_memory_from_config(&current_config, None)?,
+                    let mem: Arc<dyn max_memory::Memory> = Arc::from(
+                        max_memory::create_memory_from_config(&current_config, None)?,
                     );
                     let sop_adapters = build_sop_adapters(&current_config);
-                    let (engine, audit) = zeroclaw_runtime::sop::build_sop_engine(
+                    let (engine, audit) = max_runtime::sop::build_sop_engine(
                         current_config.sop.clone(),
                         &current_config.data_dir,
                         &current_config.install_root_dir(),
@@ -6003,7 +6003,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         let sop_audit = sop_a.clone();
                         let plugin_webhooks = Arc::clone(&plugin_webhooks);
                         Box::pin(async move {
-                            Box::pin(zeroclaw_gateway::run_gateway_with_plugin_webhooks(
+                            Box::pin(max_gateway::run_gateway_with_plugin_webhooks(
                                 &host,
                                 port,
                                 config,
@@ -6013,7 +6013,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 Some(canvas_store),
                                 sop_engine,
                                 sop_audit,
-                                zeroclaw_gateway::GatewaySupervision::new(
+                                max_gateway::GatewaySupervision::new(
                                     ready_tx,
                                     plugin_webhooks,
                                 ),
@@ -6033,7 +6033,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         let sop_audit = sop_a.clone();
                         let plugin_webhooks = plugin_webhooks.clone();
                         Box::pin(async move {
-                            let channels = zeroclaw_channels::orchestrator::start_channels_with_plugin_webhooks(
+                            let channels = max_channels::orchestrator::start_channels_with_plugin_webhooks(
                                 config,
                                 Some(canvas_store),
                                 cancel,
@@ -6055,7 +6055,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         let audit = audit.clone();
                         Box::pin(async move {
                             if let (Some(engine), Some(audit)) = (engine, audit) {
-                                zeroclaw_channels::orchestrator::mqtt::run_mqtt_sop_listener(
+                                max_channels::orchestrator::mqtt::run_mqtt_sop_listener(
                                     &mqtt_config,
                                     engine,
                                     audit,
@@ -6065,11 +6065,11 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 // No SOPs directory configured — this is a valid
                                 // user state, not a misconfiguration. Skip the
                                 // listener gracefully.
-                                ::zeroclaw_log::record!(
+                                ::max_log::record!(
                                     INFO,
-                                    ::zeroclaw_log::Event::new(
+                                    ::max_log::Event::new(
                                         module_path!(),
-                                        ::zeroclaw_log::Action::Skip
+                                        ::max_log::Action::Skip
                                     ),
                                     "MQTT SOP listener skipped — no SOPs directory configured"
                                 );
@@ -6081,7 +6081,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
 
                 registry.register_socket(Box::new(|ctx, cancel, client_count, ready_tx| {
                     Box::pin(async move {
-                        zeroclaw_runtime::rpc::local::run_local_listener(
+                        max_runtime::rpc::local::run_local_listener(
                             ctx,
                             cancel,
                             client_count,
@@ -6133,7 +6133,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 // enrollment endpoint uses the same resolver so both
                                 // TLS surfaces present matching daemon identities.
                                 let server_sans = wss_server_sans(&wss_cfg);
-                                let mats = zeroclaw_tls::ensure_server_materials_protected(
+                                let mats = max_tls::ensure_server_materials_protected(
                                     &data_dir.join("tls"),
                                     &server_sans,
                                     &ca_key_protection_from_env(),
@@ -6158,7 +6158,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         // the default file - revocation must never be split or
                         // disabled by an accepted configuration spelling.
                         let crl_path =
-                            zeroclaw_runtime::security::cert_ledger::effective_revoked_list_path(
+                            max_runtime::security::cert_ledger::effective_revoked_list_path(
                                 &data_dir,
                                 wss_cfg.client_auth.as_ref().map(|c| c.crl_path.as_str()),
                             )
@@ -6171,7 +6171,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         // one, so a revoked cert kept authenticating.
                         {
                             let ledger =
-                                zeroclaw_runtime::security::cert_ledger::CertLedger::open_at(
+                                max_runtime::security::cert_ledger::CertLedger::open_at(
                                     &data_dir,
                                     None,
                                     std::path::PathBuf::from(&crl_path),
@@ -6183,7 +6183,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 "materialize cert revocations before starting WSS listener",
                             )?;
                         }
-                        let tls_acceptor = zeroclaw_runtime::rpc::wss::build_tls_acceptor(
+                        let tls_acceptor = max_runtime::rpc::wss::build_tls_acceptor(
                             &cert_path,
                             &key_path,
                             &ca_cert_path,
@@ -6192,7 +6192,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         )?;
                         let bind_addr: std::net::SocketAddr =
                             format!("{}:{}", wss_cfg.bind, wss_cfg.port).parse()?;
-                        let wss_limits = zeroclaw_runtime::rpc::wss::WssLimits {
+                        let wss_limits = max_runtime::rpc::wss::WssLimits {
                             max_pending_handshakes: wss_cfg.max_pending_handshakes,
                             handshake_timeout: std::time::Duration::from_secs(
                                 wss_cfg.handshake_timeout_secs,
@@ -6203,7 +6203,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 wss_cfg.incomplete_message_timeout_secs,
                             ),
                         };
-                        zeroclaw_runtime::rpc::wss::run_wss_listener(
+                        max_runtime::rpc::wss::run_wss_listener(
                             ctx,
                             cancel,
                             client_count,
@@ -6221,7 +6221,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 // relay-routed rather than direct (finding: relay enrollment
                 // collapsed every client to the bridge's loopback identity, so
                 // one hostile client's failures locked out all relay enrollees).
-                let enroll_bridge_ports: zeroclaw_runtime::enroll::BridgePortSet =
+                let enroll_bridge_ports: max_runtime::enroll::BridgePortSet =
                     std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashSet::new()));
                 let enroll_bridge_ports_for_bridge = enroll_bridge_ports.clone();
                 let enroll_bridge_ports_for_endpoint = enroll_bridge_ports.clone();
@@ -6259,18 +6259,18 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         }
                         // Persistent Ed25519 identity the relay binds the node-id to.
                         let signing_key_pkcs8 =
-                            zeroclaw_runtime::relay::ensure_signing_key(&data_dir)?;
+                            max_runtime::relay::ensure_signing_key(&data_dir)?;
                         // node_id is an unguessable 128-bit capability: auto-minted +
                         // persisted unless the operator pinned one in [relay].node_id.
-                        let node_id = zeroclaw_runtime::relay::ensure_node_id(
+                        let node_id = max_runtime::relay::ensure_node_id(
                             &data_dir,
                             &relay_cfg.node_id,
                         )?;
-                        ::zeroclaw_log::record!(
+                        ::max_log::record!(
                             INFO,
-                            ::zeroclaw_log::Event::new(
+                            ::max_log::Event::new(
                                 module_path!(),
-                                ::zeroclaw_log::Action::Note,
+                                ::max_log::Action::Note,
                             )
                             .with_attrs(::serde_json::json!({
                                 "node_id": node_id,
@@ -6292,7 +6292,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         // pinned [relay].node_id is fixed).
                         let rotation_allowed = relay_cfg.node_id.trim().is_empty();
                         let node_id_rotation_days = relay_cfg.node_id_rotation_days;
-                        let bridge_cfg = zeroclaw_runtime::relay::RelayBridgeConfig {
+                        let bridge_cfg = max_runtime::relay::RelayBridgeConfig {
                             relay_addr: relay_cfg.url,
                             relay_host,
                             node_id,
@@ -6321,7 +6321,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             node_id_rotation_days,
                             rotation_allowed,
                         };
-                        zeroclaw_runtime::relay::run_relay_bridge(bridge_cfg, cancel).await
+                        max_runtime::relay::run_relay_bridge(bridge_cfg, cancel).await
                     })
                 }));
 
@@ -6375,11 +6375,11 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             .map(|c| !c.ca_cert_path.is_empty())
                             .unwrap_or(false);
                         if byo_ca {
-                            ::zeroclaw_log::record!(
+                            ::max_log::record!(
                                 WARN,
-                                ::zeroclaw_log::Event::new(
+                                ::max_log::Event::new(
                                     module_path!(),
-                                    ::zeroclaw_log::Action::Note,
+                                    ::max_log::Action::Note,
                                 ),
                                 "enrollment endpoint disabled: a bring-your-own CA has no signing \
                                  key; provision client certs out of band"
@@ -6397,16 +6397,16 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             tls_dir.join("ca.crt").exists() && tls_dir.join("ca.key").exists();
                         let protection = ca_key_protection_from_env();
                         let server_sans = wss_server_sans(&wss_cfg);
-                        let mats = zeroclaw_tls::ensure_server_materials_protected(
+                        let mats = max_tls::ensure_server_materials_protected(
                             &tls_dir,
                             &server_sans,
                             &protection,
                         )?;
-                        ::zeroclaw_log::record!(
+                        ::max_log::record!(
                             INFO,
-                            ::zeroclaw_log::Event::new(
+                            ::max_log::Event::new(
                                 module_path!(),
-                                ::zeroclaw_log::Action::Note,
+                                ::max_log::Action::Note,
                             ),
                             if ca_provided {
                                 "enrollment signing against an operator-provided CA \
@@ -6417,17 +6417,17 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         );
                         let ca_cert_pem = std::fs::read_to_string(&mats.ca_cert_path)?;
                         let ca_key_pem =
-                            zeroclaw_tls::load_ca_key_pem(&mats.ca_key_path, &protection)?;
+                            max_tls::load_ca_key_pem(&mats.ca_key_path, &protection)?;
                         let ca_fingerprint = {
                             let ders =
-                                zeroclaw_tls::load_certs(&mats.ca_cert_path.to_string_lossy())?;
-                            zeroclaw_tls::cert_sha256_fingerprint(ders[0].as_ref())
+                                max_tls::load_certs(&mats.ca_cert_path.to_string_lossy())?;
+                            max_tls::cert_sha256_fingerprint(ders[0].as_ref())
                         };
 
                         // Server-authentication-only TLS (no client cert; this is
                         // the bootstrap surface, explicitly not the mTLS plane).
                         let acceptor =
-                            zeroclaw_tls::build_tls_acceptor(&zeroclaw_tls::ServerConfigParams {
+                            max_tls::build_tls_acceptor(&max_tls::ServerConfigParams {
                                 cert_path: mats.server_cert_path.to_string_lossy().into_owned(),
                                 key_path: mats.server_key_path.to_string_lossy().into_owned(),
                                 client_auth: None,
@@ -6437,18 +6437,18 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         // with the renew path). The pin (relay LEAF sha256) is
                         // sourced from the relay bridge's pin store when present.
                         let relay_profile =
-                            zeroclaw_runtime::enroll::relay_profile(&data_dir, &relay_cfg);
+                            max_runtime::enroll::relay_profile(&data_dir, &relay_cfg);
 
                         // One-time pairing code gates enrollment. Print it AND the
                         // CA-bound short-auth-string so the operator reads both to
                         // the client out of band (no blind trust-on-first-use).
-                        let pairing = std::sync::Arc::new(zeroclaw_config::pairing::PairingGuard::new(
+                        let pairing = std::sync::Arc::new(max_config::pairing::PairingGuard::new(
                             true,
                             &[],
                             startup_pairing_code_policy,
                         ));
                         if let Some(code) = pairing.pairing_code() {
-                            let sas = zeroclaw_tls::enrollment_sas(&code, &ca_fingerprint);
+                            let sas = max_tls::enrollment_sas(&code, &ca_fingerprint);
                             let enroll_bind = enroll_cfg.bind.to_string();
                             let enroll_port = enroll_cfg.port.to_string();
                             println!();
@@ -6513,10 +6513,10 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                         // reading an unchanged operator-managed file: revoked in
                         // SQLite, still accepted at the handshake.
                         let ledger = std::sync::Arc::new(
-                            zeroclaw_runtime::security::cert_ledger::CertLedger::open_at(
+                            max_runtime::security::cert_ledger::CertLedger::open_at(
                                 &data_dir,
                                 Some(audit),
-                                zeroclaw_runtime::security::cert_ledger::effective_revoked_list_path(
+                                max_runtime::security::cert_ledger::effective_revoked_list_path(
                                     &data_dir,
                                     wss_cfg.client_auth.as_ref().map(|c| c.crl_path.as_str()),
                                 ),
@@ -6525,7 +6525,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
 
                         let bind_addr: std::net::SocketAddr =
                             format!("{}:{}", enroll_cfg.bind, enroll_cfg.port).parse()?;
-                        let server = std::sync::Arc::new(zeroclaw_runtime::enroll::EnrollServer {
+                        let server = std::sync::Arc::new(max_runtime::enroll::EnrollServer {
                             bind_addr,
                             acceptor,
                             ca_cert_pem,
@@ -6545,10 +6545,10 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             relay_profile,
                             bridge_ports: Some(enroll_bridge_ports.clone()),
                             relay_attempt_bucket:
-                                zeroclaw_runtime::enroll::RelayAttemptBucket::default(),
+                                max_runtime::enroll::RelayAttemptBucket::default(),
                             paircode_admin_data_dir: Some(data_dir.clone()),
                         });
-                        zeroclaw_runtime::enroll::serve(server, cancel).await
+                        max_runtime::enroll::serve(server, cancel).await
                     })
                 }));
 
@@ -6572,11 +6572,11 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                 match exit {
                     daemon::DaemonExit::Shutdown => break,
                     daemon::DaemonExit::Reload => {
-                        ::zeroclaw_log::record!(
+                        ::max_log::record!(
                             INFO,
-                            ::zeroclaw_log::Event::new(
+                            ::max_log::Event::new(
                                 module_path!(),
-                                ::zeroclaw_log::Action::Note
+                                ::max_log::Action::Note
                             ),
                             "🔄 Daemon reload — re-reading config from disk"
                         );
@@ -6607,7 +6607,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             // gateway listener is released), so launch the upgraded binary as a
             // detached child before we exit. No-op unless an in-app upgrade
             // requested a self-respawn.
-            zeroclaw_runtime::restart::respawn_if_requested();
+            max_runtime::restart::respawn_if_requested();
             Ok(())
         }
 
@@ -6635,7 +6635,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                     }
                 }
             }
-            println!("{}", t("cli-status-title", "🦀 ZeroClaw Status"));
+            println!("{}", t("cli-status-title", "🦀 Max Status"));
             println!();
             println!(
                 "{}",
@@ -6785,8 +6785,8 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
             }
             #[cfg(feature = "gateway")]
             {
-                match zeroclaw_gateway::resolve_web_dashboard_availability(&config) {
-                    Some(zeroclaw_gateway::WebDashboardAvailability::Embedded) => {
+                match max_gateway::resolve_web_dashboard_availability(&config) {
+                    Some(max_gateway::WebDashboardAvailability::Embedded) => {
                         let path = "embedded";
                         let fallback = format!("🌐 Web UI:        FOUND ({path})");
                         println!(
@@ -6794,7 +6794,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                             ta("cli-status-web-ui-found", &[("path", path)], &fallback)
                         );
                     }
-                    Some(zeroclaw_gateway::WebDashboardAvailability::Filesystem(web_dist_dir)) => {
+                    Some(max_gateway::WebDashboardAvailability::Filesystem(web_dist_dir)) => {
                         let path = web_dist_dir.display().to_string();
                         let fallback = format!("🌐 Web UI:        FOUND ({path})");
                         println!(
@@ -7001,7 +7001,7 @@ async fn async_main_inner(command: clap::Command) -> Result<()> {
                                 }
                             };
                             let unpriced =
-                                zeroclaw_runtime::agent::cost::unpriced_models_in_summary(
+                                max_runtime::agent::cost::unpriced_models_in_summary(
                                     &month_by_model,
                                 );
                             if !unpriced.is_empty() {
@@ -7075,7 +7075,7 @@ Add pricing to the active provider profile or supply a catalog entry."
             println!();
             println!("{}", t("cli-status-channels", "Channels:"));
             println!("{}", t("cli-status-cli-always", "  CLI:      ✅ always"));
-            for entry in zeroclaw_channels::listing::compiled_channels(&config.channels) {
+            for entry in max_channels::listing::compiled_channels(&config.channels) {
                 let channel_status = if entry.configured {
                     t("cli-status-word-configured", "configured")
                 } else {
@@ -7097,7 +7097,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 println!("  {:9} {}", entry.name, status);
             }
             let uncompiled =
-                zeroclaw_channels::listing::configured_uncompiled_channels(&config.channels);
+                max_channels::listing::configured_uncompiled_channels(&config.channels);
             if !uncompiled.is_empty() {
                 println!(
                     "{}",
@@ -7174,7 +7174,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 if !new {
                     anyhow::bail!("pass --new to mint a fresh enrollment pairing code");
                 }
-                let generated = zeroclaw_runtime::enroll::request_new_paircode(
+                let generated = max_runtime::enroll::request_new_paircode(
                     &config.data_dir,
                     std::time::Duration::from_secs(timeout_secs),
                 )
@@ -7200,7 +7200,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                          Clear it to auto-mint (and enable rotation)."
                     );
                 }
-                zeroclaw_runtime::relay::request_node_id_rotation(&config.data_dir)?;
+                max_runtime::relay::request_node_id_rotation(&config.data_dir)?;
                 let rotate_secs = 15.to_string();
                 println!(
                     "{}",
@@ -7249,7 +7249,7 @@ Add pricing to the active provider profile or supply a catalog entry."
         Commands::Providers {
             providers_command: None,
         } => {
-            let model_providers = zeroclaw_providers::list_model_providers();
+            let model_providers = max_providers::list_model_providers();
             let configured_types: std::collections::HashSet<&str> = config
                 .providers
                 .models
@@ -7262,7 +7262,7 @@ Add pricing to the active provider profile or supply a catalog entry."
             );
             println!("  ID (use in config)  DESCRIPTION"); // i18n-exempt: literal command/identifier example
             println!("  ─────────────────── ───────────");
-            for category in zeroclaw_providers::ModelProviderCategory::all() {
+            for category in max_providers::ModelProviderCategory::all() {
                 let in_category: Vec<_> = model_providers
                     .iter()
                     .filter(|p| p.category == *category)
@@ -7334,18 +7334,18 @@ Add pricing to the active provider profile or supply a catalog entry."
         Commands::Channel { channel_command } => match channel_command {
             ChannelCommands::Start => {
                 #[cfg(feature = "hardware")]
-                zeroclaw_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
+                max_runtime::agent::loop_::register_peripheral_tools_fn(Box::new(|config| {
                     Box::pin(async move {
-                        zeroclaw_hardware::peripherals::create_peripheral_tools(&config).await
+                        max_hardware::peripherals::create_peripheral_tools(&config).await
                     })
                 }));
 
                 let cancel = tokio_util::sync::CancellationToken::new();
                 let (sop_engine, sop_audit) = if config.sop.runtime_enabled() {
-                    let mem: Arc<dyn zeroclaw_memory::Memory> =
-                        Arc::from(zeroclaw_memory::create_memory_from_config(&config, None)?);
+                    let mem: Arc<dyn max_memory::Memory> =
+                        Arc::from(max_memory::create_memory_from_config(&config, None)?);
                     let sop_adapters = build_sop_adapters(&config);
-                    let (engine, audit) = zeroclaw_runtime::sop::build_sop_engine(
+                    let (engine, audit) = max_runtime::sop::build_sop_engine(
                         config.sop.clone(),
                         &config.data_dir,
                         &config.install_root_dir(),
@@ -7428,14 +7428,14 @@ Add pricing to the active provider profile or supply a catalog entry."
             // The marketing download page is not live; point at the GitHub
             // releases page, which hosts the desktop download assets (.deb /
             // .AppImage / .dmg) for the latest release.
-            let download_url = "https://github.com/zeroclaw-labs/zeroclaw/releases/latest";
+            let download_url = "https://github.com/max-labs/max/releases/latest";
 
             if do_install {
                 println!(
                     "{}",
                     t(
                         "cli-desktop-download",
-                        "Opening the ZeroClaw companion app download page:"
+                        "Opening the Max companion app download page:"
                     )
                 );
                 println!();
@@ -7450,7 +7450,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             "Or install via Homebrew (coming soon):"
                         )
                     );
-                    println!("  brew install --cask zeroclaw"); // i18n-exempt: literal command/identifier example
+                    println!("  brew install --cask max"); // i18n-exempt: literal command/identifier example
                 }
                 #[cfg(target_os = "linux")]
                 {
@@ -7488,13 +7488,13 @@ Add pricing to the active provider profile or supply a catalog entry."
             let desktop_bin = {
                 let mut found = None;
 
-                // 1. macOS: check /Applications/ZeroClaw.app
+                // 1. macOS: check /Applications/Max.app
                 #[cfg(target_os = "macos")]
                 {
                     let app_paths = [
-                        PathBuf::from("/Applications/ZeroClaw.app/Contents/MacOS/ZeroClaw"),
+                        PathBuf::from("/Applications/Max.app/Contents/MacOS/Max"),
                         PathBuf::from(std::env::var("HOME").unwrap_or_default())
-                            .join("Applications/ZeroClaw.app/Contents/MacOS/ZeroClaw"),
+                            .join("Applications/Max.app/Contents/MacOS/Max"),
                     ];
                     for app in &app_paths {
                         if app.is_file() {
@@ -7508,7 +7508,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 if found.is_none()
                     && let Ok(exe) = std::env::current_exe()
                 {
-                    let sibling = exe.with_file_name("zeroclaw-desktop");
+                    let sibling = exe.with_file_name("max-desktop");
                     if sibling.is_file() {
                         found = Some(sibling);
                     }
@@ -7523,9 +7523,9 @@ Add pricing to the active provider profile or supply a catalog entry."
                         directories::UserDirs::new().map(|u| u.home_dir().to_path_buf())
                 {
                     let bin_names: &[&str] = if cfg!(windows) {
-                        &["zeroclaw-desktop.exe", "zeroclaw-desktop"]
+                        &["max-desktop.exe", "max-desktop"]
                     } else {
-                        &["zeroclaw-desktop"]
+                        &["max-desktop"]
                     };
                     // .cargo/bin works the same on Windows; .local/bin is XDG (Unix only).
                     let dirs: &[&str] = if cfg!(windows) {
@@ -7546,7 +7546,7 @@ Add pricing to the active provider profile or supply a catalog entry."
 
                 // 4. Fallback to PATH lookup
                 if found.is_none()
-                    && let Ok(path) = which::which("zeroclaw-desktop")
+                    && let Ok(path) = which::which("max-desktop")
                 {
                     found = Some(path);
                 }
@@ -7568,7 +7568,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                         "{}",
                         t(
                             "cli-desktop-launching",
-                            "Launching ZeroClaw companion app..."
+                            "Launching Max companion app..."
                         )
                     );
                     let _child = std::process::Command::new(&bin)
@@ -7581,7 +7581,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                         "{}",
                         t(
                             "cli-desktop-not-installed",
-                            "ZeroClaw companion app is not installed."
+                            "Max companion app is not installed."
                         )
                     );
                     println!();
@@ -7593,7 +7593,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             "Download it at"
                         )
                     );
-                    println!("  Or run: zeroclaw desktop --install"); // i18n-exempt: literal command
+                    println!("  Or run: max desktop --install"); // i18n-exempt: literal command
                     println!();
                     println!(
                         "{}",
@@ -7691,7 +7691,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 format,
             } => {
                 let suite_dir = suite.unwrap_or_else(|| config.eval.suite_dir.clone());
-                let mode: zeroclaw_eval::Mode =
+                let mode: max_eval::Mode =
                     mode.unwrap_or_else(|| config.eval.mode.clone()).parse()?;
                 let report = commands::eval::run(std::path::PathBuf::from(suite_dir), mode).await?;
                 commands::eval::print_report(&report, format);
@@ -7718,7 +7718,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             let mut out = full;
                             if let serde_json::Value::Object(ref mut map) = out {
                                 map.insert(
-                                    "x-zeroclaw-requested-path".into(),
+                                    "x-max-requested-path".into(),
                                     serde_json::Value::String(prop_path.into()),
                                 );
                             }
@@ -7731,7 +7731,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 #[cfg(not(feature = "schema-export"))]
                 {
                     let _ = path;
-                    anyhow::bail!("zeroclaw was built without the 'schema-export' feature")
+                    anyhow::bail!("max was built without the 'schema-export' feature")
                 }
             }
             ConfigCommands::List { filter, secrets } => {
@@ -7777,7 +7777,7 @@ Add pricing to the active provider profile or supply a catalog entry."
             ConfigCommands::Get { path, json } => {
                 let known_paths: Vec<String> =
                     config.prop_fields().into_iter().map(|f| f.name).collect();
-                let path = zeroclaw_config::helpers::resolve_field_path(&known_paths, &path);
+                let path = max_config::helpers::resolve_field_path(&known_paths, &path);
                 if Config::prop_is_secret(&path) {
                     let entries = config.prop_fields();
                     let populated = entries
@@ -7833,7 +7833,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             // Same single-source-of-truth helper the gateway
                             // uses; never hardcode a code at the call site.
                             let api_err =
-                                zeroclaw_config::api_error::ConfigApiError::from_validation(
+                                max_config::api_error::ConfigApiError::from_validation(
                                     anyhow::Error::msg(e.to_string()),
                                 )
                                 .with_path(&path);
@@ -7857,23 +7857,23 @@ Add pricing to the active provider profile or supply a catalog entry."
                 crate::config::migration::ensure_disk_at_current_version(&config.config_path)?;
                 let known_paths: Vec<String> =
                     config.prop_fields().into_iter().map(|f| f.name).collect();
-                let mut path = zeroclaw_config::helpers::resolve_field_path(&known_paths, &path);
+                let mut path = max_config::helpers::resolve_field_path(&known_paths, &path);
                 if ensure_map_key_for_prop_path(&mut config, &path)? {
                     let known_paths: Vec<String> =
                         config.prop_fields().into_iter().map(|f| f.name).collect();
-                    path = zeroclaw_config::helpers::resolve_field_path(&known_paths, &path);
+                    path = max_config::helpers::resolve_field_path(&known_paths, &path);
                 }
                 if no_interactive {
                     let val = value.ok_or_else(|| {
-                        ::zeroclaw_log::record!(
+                        ::max_log::record!(
                             WARN,
-                            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Reject)
-                                .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                            ::max_log::Event::new(module_path!(), ::max_log::Action::Reject)
+                                .with_outcome(::max_log::EventOutcome::Failure)
                                 .with_attrs(::serde_json::json!({"path": path})),
                             "config set --no-interactive refused: positional value missing"
                         );
                         anyhow::Error::msg(format!(
-                            "Value required in --no-interactive mode. Usage: zeroclaw config set --no-interactive {path} <value>"
+                            "Value required in --no-interactive mode. Usage: max config set --no-interactive {path} <value>"
                         ))
                     })?;
                     config.set_prop_persistent(&path, &val)?;
@@ -7903,7 +7903,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                         .map(|alias| format!("{provider_type}.{alias}"));
                     let catalog_selector = provider_ref.as_deref().unwrap_or(provider_type);
                     let (models, _pricing, live) =
-                        zeroclaw_runtime::quickstart::model_catalog_with_config(
+                        max_runtime::quickstart::model_catalog_with_config(
                             Some(&config),
                             catalog_selector,
                         )
@@ -7987,7 +7987,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             .join(", ");
                         config.set_prop_persistent(&path, &val)?;
                     } else {
-                        anyhow::bail!("Value required. Usage: zeroclaw config set {path} <value>");
+                        anyhow::bail!("Value required. Usage: max config set {path} <value>");
                     }
                 }
                 Box::pin(config.save_dirty()).await?;
@@ -8057,7 +8057,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                         "\n{}",
                         t(
                             "cli-config-review-hint",
-                            "Run `zeroclaw config list` to review, then set required fields."
+                            "Run `max config list` to review, then set required fields."
                         )
                     );
                 }
@@ -8287,13 +8287,13 @@ Add pricing to the active provider profile or supply a catalog entry."
                             let value = match op.get("value") {
                                 Some(value) => value,
                                 None => {
-                                    ::zeroclaw_log::record!(
+                                    ::max_log::record!(
                                         WARN,
-                                        ::zeroclaw_log::Event::new(
+                                        ::max_log::Event::new(
                                             module_path!(),
-                                            ::zeroclaw_log::Action::Reject
+                                            ::max_log::Action::Reject
                                         )
-                                        .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                                        .with_outcome(::max_log::EventOutcome::Failure)
                                         .with_attrs(
                                             ::serde_json::json!({
                                                 "op": op_name,
@@ -8402,7 +8402,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                                     config_patch_fail_json_or_human(json, api_err, human)?
                                 }
                             };
-                            let want_str = match zeroclaw_config::typed_value::coerce_for_set_prop(
+                            let want_str = match max_config::typed_value::coerce_for_set_prop(
                                 want,
                                 config_patch_prop_kind(&config, &path),
                             ) {
@@ -8534,7 +8534,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 if !daemon_running {
                     eprintln!(
                         "Note: gateway does not appear to be running at {host}:{port}. \
-                         Start it with `zeroclaw service start` (background) or `zeroclaw daemon` (foreground) to load the explorer."
+                         Start it with `max service start` (background) or `max daemon` (foreground) to load the explorer."
                     );
                 }
                 Ok(())
@@ -8550,13 +8550,13 @@ Add pricing to the active provider profile or supply a catalog entry."
             }
             ConfigCommands::Generate { version, encrypt } => {
                 let target = version.unwrap_or(crate::config::migration::CURRENT_SCHEMA_VERSION);
-                let zeroclaw_dir = config
+                let max_dir = config
                     .config_path
                     .parent()
                     .map(std::path::Path::to_path_buf);
                 let opts = crate::config::migration::GenerateOptions {
                     encrypt_secrets: encrypt,
-                    secret_store_dir: zeroclaw_dir.as_deref(),
+                    secret_store_dir: max_dir.as_deref(),
                 };
                 let toml_out = crate::config::migration::generate(target, &opts)?;
                 print!("{toml_out}");
@@ -8566,7 +8566,7 @@ Add pricing to the active provider profile or supply a catalog entry."
 
         Commands::Props { .. } => {
             anyhow::bail!(
-                "`zeroclaw props` has been renamed to `zeroclaw config`. \
+                "`max props` has been renamed to `max config`. \
                  Replace `props` with `config` in your command and try again."
             );
         }
@@ -8584,7 +8584,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                             "cli-plugin-legacy-detected",
                             &[("path", &legacy.display().to_string()), ("target", &target)],
                             "Note: plugins in a legacy location are not loaded by the agent — \
-                             run `zeroclaw plugin migrate` to move them.",
+                             run `max plugin migrate` to move them.",
                         )
                     );
                 }
@@ -8593,7 +8593,7 @@ Add pricing to the active provider profile or supply a catalog entry."
             PluginCommands::Search { query, registry } => {
                 let registry_url = plugin_registry::registry_url(registry.as_deref());
                 let index = plugin_registry::fetch_registry_index(&registry_url).await?;
-                zeroclaw::plugins::registry::write_cached_registry_index(
+                max::plugins::registry::write_cached_registry_index(
                     &config.data_dir,
                     &registry_url,
                     &index,
@@ -8645,7 +8645,7 @@ Add pricing to the active provider profile or supply a catalog entry."
             PluginCommands::Install { source, registry } => {
                 if plugin_registry::looks_like_url(&source) {
                     bail!(
-                        "`zeroclaw plugin install <url>` is not supported; use `--registry <url>` with a plugin name, or install a local plugin path"
+                        "`max plugin install <url>` is not supported; use `--registry <url>` with a plugin name, or install a local plugin path"
                     );
                 }
                 let mut host = plugin_host_with_configured_security(&config)?;
@@ -8781,7 +8781,7 @@ Add pricing to the active provider profile or supply a catalog entry."
                 let legacy_dirs = crate::config::schema::legacy_plugin_dirs_with_entries(&config);
                 let mut total = 0usize;
                 for legacy in &legacy_dirs {
-                    let moved = zeroclaw::plugins::host::migrate_plugins_dir(legacy, &target)?;
+                    let moved = max::plugins::host::migrate_plugins_dir(legacy, &target)?;
                     if moved > 0 {
                         println!(
                             "{}",
@@ -8860,7 +8860,7 @@ fn handle_estop_command(
                         "{}",
                         t(
                             "cli-otp-initialized",
-                            "Initialized OTP secret for ZeroClaw."
+                            "Initialized OTP secret for Max."
                         )
                     );
                     println!(
@@ -9020,22 +9020,22 @@ fn write_shell_completion<W: Write>(shell: CompletionShell, writer: &mut W) -> R
     match shell {
         CompletionShell::Bash => {
             generate(shells::Bash, &mut cmd, bin_name.clone(), writer);
-            // Wrap clap's _zeroclaw to inject dynamic config path completion
+            // Wrap clap's _max to inject dynamic config path completion
             writeln!(
                 writer,
                 r#"
-# Dynamic completion for zeroclaw config get/set paths
-if type _zeroclaw &>/dev/null; then
+# Dynamic completion for max config get/set paths
+if type _max &>/dev/null; then
     # Capture the original clap-generated function body so the wrapper
     # can fall back to it without entering an infinite recursion loop.
-    eval "$(declare -f _zeroclaw | sed '1s/_zeroclaw/_zeroclaw_clap_orig/')"
-    _zeroclaw() {{
+    eval "$(declare -f _max | sed '1s/_max/_max_clap_orig/')"
+    _max() {{
         local cur="${{COMP_WORDS[COMP_CWORD]}}"
         if [[ "${{COMP_WORDS[*]}}" =~ "config "(get|set)" " ]]; then
-            COMPREPLY=($(compgen -W "$(zeroclaw config complete "$cur" 2>/dev/null)" -- "$cur"))
+            COMPREPLY=($(compgen -W "$(max config complete "$cur" 2>/dev/null)" -- "$cur"))
             return
         fi
-        _zeroclaw_clap_orig "$@"
+        _max_clap_orig "$@"
     }}
 fi"#
             )?;
@@ -9045,28 +9045,28 @@ fi"#
             writeln!(
                 writer,
                 r#"
-# Dynamic completion for zeroclaw config get/set paths
-complete -c zeroclaw -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from get set' \
-    -a '(zeroclaw config complete (commandline -ct) 2>/dev/null)' -f"#
+# Dynamic completion for max config get/set paths
+complete -c max -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from get set' \
+    -a '(max config complete (commandline -ct) 2>/dev/null)' -f"#
             )?;
         }
         CompletionShell::Zsh => {
             generate(shells::Zsh, &mut cmd, bin_name.clone(), writer);
-            // Wrap clap's _zeroclaw to inject dynamic config path completion
+            // Wrap clap's _max to inject dynamic config path completion
             writeln!(
                 writer,
                 r#"
-# Dynamic completion for zeroclaw config get/set paths
-if (( $+functions[_zeroclaw] )); then
-    functions[_zeroclaw_clap_orig]=$functions[_zeroclaw]
-    _zeroclaw() {{
+# Dynamic completion for max config get/set paths
+if (( $+functions[_max] )); then
+    functions[_max_clap_orig]=$functions[_max]
+    _max() {{
         if [[ "${{words[*]}}" == *"config "(get|set)* ]] && (( CURRENT > 3 )); then
             local -a props
-            props=(${{(f)"$(zeroclaw config complete "$words[CURRENT]" 2>/dev/null)"}})
+            props=(${{(f)"$(max config complete "$words[CURRENT]" 2>/dev/null)"}})
             compadd -a props
             return
         fi
-        _zeroclaw_clap_orig "$@"
+        _max_clap_orig "$@"
     }}
 fi"#
             )?;
@@ -9093,18 +9093,18 @@ fn resolve_gateway_addr(config: &Config, port: Option<u16>, host: Option<String>
 /// Log gateway startup message.
 fn log_gateway_start(host: &str, port: u16) {
     if port == 0 {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             INFO,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                 .with_attrs(::serde_json::json!({"host": host})),
-            "🚀 Starting ZeroClaw Gateway on (random port)"
+            "🚀 Starting Max Gateway on (random port)"
         );
     } else {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             INFO,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                 .with_attrs(::serde_json::json!({"host": host, "port": port})),
-            "🚀 Starting ZeroClaw Gateway on"
+            "🚀 Starting Max Gateway on"
         );
     }
 }
@@ -9124,10 +9124,10 @@ async fn shutdown_gateway(host: &str, port: u16, path_prefix: Option<&str>) -> R
         Ok(response) if response.status().is_success() => Ok(()),
         Ok(response) => {
             let status = response.status();
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Fail)
+                    .with_outcome(::max_log::EventOutcome::Failure)
                     .with_attrs(::serde_json::json!({"endpoint": url, "status": status.as_u16()})),
                 "gateway admin shutdown returned non-success status"
             );
@@ -9136,10 +9136,10 @@ async fn shutdown_gateway(host: &str, port: u16, path_prefix: Option<&str>) -> R
             )))
         }
         Err(e) => {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Fail)
+                    .with_outcome(::max_log::EventOutcome::Failure)
                     .with_attrs(::serde_json::json!({"endpoint": url, "error": format!("{}", e)})),
                 "gateway admin shutdown: connect failed"
             );
@@ -9162,7 +9162,7 @@ async fn sop_admin_dispatch(cmd: SopCommands, config: &crate::config::Config) ->
     {
         let _ = (cmd, config);
         anyhow::bail!(
-            "`zeroclaw sop approve/deny/pending` requires the agent-runtime build (the gateway client)"
+            "`max sop approve/deny/pending` requires the agent-runtime build (the gateway client)"
         )
     }
 }
@@ -9372,10 +9372,10 @@ async fn fetch_paircode(
     };
 
     let response = response.map_err(|e| {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             WARN,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Fail)
+                .with_outcome(::max_log::EventOutcome::Failure)
                 .with_attrs(::serde_json::json!({"error": format!("{}", e)})),
             "gateway paircode fetch: connect failed"
         );
@@ -9384,10 +9384,10 @@ async fn fetch_paircode(
 
     let status = response.status();
     let json: serde_json::Value = response.json().await.map_err(|e| {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             WARN,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Fail)
+                .with_outcome(::max_log::EventOutcome::Failure)
                 .with_attrs(
                     ::serde_json::json!({"error": format!("{}", e), "status": status.as_u16()})
                 ),
@@ -9403,10 +9403,10 @@ async fn fetch_paircode(
 
     if json.get("success").and_then(|v| v.as_bool()) != Some(true) {
         if !status.is_success() {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Fail)
+                    .with_outcome(::max_log::EventOutcome::Failure)
                     .with_attrs(::serde_json::json!({"status": status.as_u16()})),
                 "gateway paircode fetch returned non-success status"
             );
@@ -9469,7 +9469,7 @@ fn paircode_no_code_message(
         PaircodeAction::Show => {
             lines.push(t(
                 "cli-pairing-show-only",
-                "`zeroclaw gateway get-paircode` only displays an existing active code; it does not mint a new one.",
+                "`max gateway get-paircode` only displays an existing active code; it does not mint a new one.",
             ));
             lines.push(t(
                 "cli-pairing-pair-another",
@@ -9548,7 +9548,7 @@ fn paircode_command(
     default_port: u16,
     flag: Option<&str>,
 ) -> String {
-    let mut command = "    zeroclaw gateway get-paircode".to_string();
+    let mut command = "    max gateway get-paircode".to_string();
     if let Some(flag) = flag {
         command.push(' ');
         command.push_str(flag);
@@ -9579,7 +9579,7 @@ fn indent_paircode_lines(lines: Vec<String>) -> String {
 
 // Interactive CLI input helpers used by `auth paste-token` /
 // `auth setup-token` / `auth paste-redirect`. The dialoguer dep belongs
-// to the binary; auth/mod.rs in zeroclaw-providers shouldn't pull it in,
+// to the binary; auth/mod.rs in max-providers shouldn't pull it in,
 // so reads live here and trait flows accept the resulting string.
 
 #[cfg(feature = "agent-runtime")]
@@ -9684,7 +9684,7 @@ async fn run_inline_provider_auth(auth: InlineProviderAuth, config: &mut Config)
             },
             t(
                 "cli-quickstart-auth-codex-skip-hint",
-                "  Finish later with: zeroclaw auth login --model-provider openai-codex",
+                "  Finish later with: max auth login --model-provider openai-codex",
             ),
         ),
         InlineProviderAuth::AnthropicSetupToken { alias } => (
@@ -9927,7 +9927,7 @@ async fn handle_auth_command(auth_command: AuthCommands, config: &Config) -> Res
                 }
                 auth::RefreshStatus::NoProfile => {
                     bail!(
-                        "No auth profile found. Run `zeroclaw auth login --model-provider <provider>` first.",
+                        "No auth profile found. Run `max auth login --model-provider <provider>` first.",
                     )
                 }
             }
@@ -10093,22 +10093,22 @@ fn warn_verifiable_intent_withheld(config: &Config) {
     if !config.verifiable_intent.enabled {
         return;
     }
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         WARN,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-            .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+            .with_outcome(::max_log::EventOutcome::Unknown)
             // Operator-facing posture notice, not runtime bookkeeping. An event
             // with no category stores as `internal`, and the dashboard Logs view
             // hides that category by default, so an uncategorised notice is
             // absent from the history an operator actually reads.
-            .with_category(::zeroclaw_log::EventCategory::System)
+            .with_category(::max_log::EventCategory::System)
             // The config surface reports this same fact as a structured
             // warning. Carrying its code and path here is what lets an operator
             // correlate the two rather than read them as separate problems;
             // `with_attrs` persists them to the trace and serves them from the
             // logs API, which the ephemeral variant would not.
             .with_attrs(::serde_json::json!({
-                "code": ::zeroclaw_config::validation_warnings::VERIFIABLE_INTENT_TOOL_WITHHELD,
+                "code": ::max_config::validation_warnings::VERIFIABLE_INTENT_TOOL_WITHHELD,
                 "path": "verifiable_intent.enabled",
             })),
         "verifiable_intent: vi_verify is not registered as a model-callable tool because no credential chain verifier exists yet (see #9328)"
@@ -10118,10 +10118,10 @@ fn warn_verifiable_intent_withheld(config: &Config) {
 fn running_executable_for_remediation() -> Option<std::path::PathBuf> {
     #[cfg(feature = "agent-runtime")]
     {
-        if let Some(executable) = zeroclaw_runtime::restart::recorded_launch_executable() {
+        if let Some(executable) = max_runtime::restart::recorded_launch_executable() {
             return Some(executable.to_path_buf());
         }
-        if zeroclaw_runtime::restart::launch_command_recorded() {
+        if max_runtime::restart::launch_command_recorded() {
             return None;
         }
         std::env::current_exe().ok()
@@ -10134,7 +10134,7 @@ fn running_executable_for_remediation() -> Option<std::path::PathBuf> {
 }
 
 fn gate_security_posture(
-    config: &zeroclaw::config::Config,
+    config: &max::config::Config,
     allow_degraded: bool,
 ) -> anyhow::Result<Option<tokio::task::JoinHandle<()>>> {
     if config.degraded_security.is_empty() {
@@ -10168,14 +10168,14 @@ fn gate_security_posture(
         );
     }
     let config_path = config.config_path.display().to_string();
-    let handle = ::zeroclaw_spawn::spawn!(async move {
+    let handle = ::max_spawn::spawn!(async move {
         let mut ticker = tokio::time::interval(std::time::Duration::from_secs(30));
         loop {
             ticker.tick().await;
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown)
                     .with_attrs(::serde_json::json!({ "degraded_security": sections })),
                 &format!(
                     "Running with DEGRADED security: sections ({sections}) were reset to \
@@ -10208,24 +10208,24 @@ fn gate_security_posture(
 /// `Handle::current()` so the sync, under-the-engine-lock adapter calls can bridge
 /// to the async channel/provider calls.
 #[cfg(feature = "agent-runtime")]
-fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapters {
+fn build_sop_adapters(config: &Config) -> max_runtime::sop::SopEngineAdapters {
     // `llm.generate` runs on the DEFAULT agent's resolved model provider — the
     // daemon-level model of record. No resolvable provider = fail-closed.
-    let llm: Option<std::sync::Arc<dyn zeroclaw_runtime::sop::capability::LlmGenerateAdapter>> =
+    let llm: Option<std::sync::Arc<dyn max_runtime::sop::capability::LlmGenerateAdapter>> =
         config
             .resolved_model_provider_for_agent("default")
             .and_then(|(provider_type, alias, entry)| {
                 // Alias-aware factory WITH the alias's runtime options: the options
-                // carry zeroclaw_dir (auth-profile store) and per-alias runtime
+                // carry max_dir (auth-profile store) and per-alias runtime
                 // knobs — without them, OAuth/subscription providers (codex,
                 // opencode) sit unauthenticated and never answer. This mirrors the
                 // delegate tool's provider construction.
-                let options = zeroclaw::providers::provider_runtime_options_for_alias(
+                let options = max::providers::provider_runtime_options_for_alias(
                     config,
                     provider_type,
                     alias,
                 );
-                let provider = match zeroclaw::providers::create_model_provider_for_alias(
+                let provider = match max::providers::create_model_provider_for_alias(
                     config,
                     provider_type,
                     alias,
@@ -10234,13 +10234,13 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
                 ) {
                     Ok(p) => p,
                     Err(e) => {
-                        ::zeroclaw_log::record!(
+                        ::max_log::record!(
                             WARN,
-                            ::zeroclaw_log::Event::new(
+                            ::max_log::Event::new(
                                 module_path!(),
-                                ::zeroclaw_log::Action::Note
+                                ::max_log::Action::Note
                             )
-                            .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                            .with_outcome(::max_log::EventOutcome::Failure)
                             .with_attrs(::serde_json::json!({"error": e.to_string()})),
                             "SOP llm.generate adapter unavailable: default model provider failed to build"
                         );
@@ -10249,14 +10249,14 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
                 };
                 let model = entry.model.clone().unwrap_or_else(|| "default".to_string());
                 Some(std::sync::Arc::new(
-                    zeroclaw_runtime::sop::capability::ProviderLlmAdapter::new(
+                    max_runtime::sop::capability::ProviderLlmAdapter::new(
                         std::sync::Arc::from(provider),
                         model,
                     ),
                 ) as _)
             });
 
-    let channels = zeroclaw_channels::orchestrator::build_channel_map(config);
+    let channels = max_channels::orchestrator::build_channel_map(config);
     // Startup validation: this send-only adapter's channel map omits channels that
     // need runtime SOP handles (e.g. AMQP SOP-dispatch channels). Surface at BOOT any
     // configured approval route whose channel is absent here, so a `request_route` /
@@ -10272,20 +10272,20 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
         .filter(|(_, ch)| ch.supports_outbound_send())
         .map(|(key, _)| key.clone())
         .collect();
-    for issue in zeroclaw_runtime::sop::approval::unresolvable_approval_routes(
+    for issue in max_runtime::sop::approval::unresolvable_approval_routes(
         &config.sop.approval,
         &deliverable_keys,
     ) {
         match issue {
-            zeroclaw_runtime::sop::approval::ApprovalRouteIssue::Malformed {
+            max_runtime::sop::approval::ApprovalRouteIssue::Malformed {
                 policy,
                 route_kind,
                 route,
             } => {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     WARN,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                        .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                        .with_outcome(::max_log::EventOutcome::Failure)
                         .with_attrs(::serde_json::json!({
                             "policy": policy,
                             "route_kind": route_kind,
@@ -10294,16 +10294,16 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
                     "SOP approval route is malformed; use the required channel:recipient format"
                 );
             }
-            zeroclaw_runtime::sop::approval::ApprovalRouteIssue::UndeliverableChannel {
+            max_runtime::sop::approval::ApprovalRouteIssue::UndeliverableChannel {
                 policy,
                 route_kind,
                 route,
                 channel_key,
             } => {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     WARN,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                        .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                        .with_outcome(::max_log::EventOutcome::Failure)
                         .with_attrs(::serde_json::json!({
                             "policy": policy,
                             "route_kind": route_kind,
@@ -10318,27 +10318,27 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
         }
     }
     if channels.is_empty() {
-        return zeroclaw_runtime::sop::SopEngineAdapters {
+        return max_runtime::sop::SopEngineAdapters {
             llm,
             ..Default::default()
         };
     }
     let handle = tokio::runtime::Handle::current();
-    let route: std::sync::Arc<dyn zeroclaw_runtime::sop::approval::ApprovalRouteAdapter> =
-        std::sync::Arc::new(zeroclaw_runtime::sop::approval::ChannelRouteAdapter::new(
+    let route: std::sync::Arc<dyn max_runtime::sop::approval::ApprovalRouteAdapter> =
+        std::sync::Arc::new(max_runtime::sop::approval::ChannelRouteAdapter::new(
             channels.clone(),
             handle.clone(),
         ));
     // Only offer the forge adapter when a git channel actually exists, so
     // `forge.comment` stays fail-closed on daemons without a forge.
     let has_git = channels.keys().any(|k| k == "git" || k.starts_with("git."));
-    let forge: Option<std::sync::Arc<dyn zeroclaw_runtime::sop::capability::ForgeCommentAdapter>> =
+    let forge: Option<std::sync::Arc<dyn max_runtime::sop::capability::ForgeCommentAdapter>> =
         has_git.then(|| {
-            std::sync::Arc::new(zeroclaw_runtime::sop::capability::ChannelForgeAdapter::new(
+            std::sync::Arc::new(max_runtime::sop::capability::ChannelForgeAdapter::new(
                 channels,
             )) as _
         });
-    zeroclaw_runtime::sop::SopEngineAdapters {
+    max_runtime::sop::SopEngineAdapters {
         route: Some(route),
         forge,
         llm,
@@ -10355,8 +10355,8 @@ fn build_sop_adapters(config: &Config) -> zeroclaw_runtime::sop::SopEngineAdapte
 /// `approval_timeout_action` (default `escalate`, fail-closed).
 #[cfg(feature = "agent-runtime")]
 fn spawn_sop_maintenance(
-    sop_engine: Option<&std::sync::Arc<std::sync::Mutex<zeroclaw_runtime::sop::SopEngine>>>,
-    sop_audit: Option<&std::sync::Arc<zeroclaw_runtime::sop::SopAuditLogger>>,
+    sop_engine: Option<&std::sync::Arc<std::sync::Mutex<max_runtime::sop::SopEngine>>>,
+    sop_audit: Option<&std::sync::Arc<max_runtime::sop::SopAuditLogger>>,
     interval_secs: u64,
 ) -> Option<tokio::task::JoinHandle<()>> {
     if interval_secs == 0 {
@@ -10366,8 +10366,8 @@ fn spawn_sop_maintenance(
     let audit = sop_audit.cloned();
     let cron_cache = audit
         .as_ref()
-        .map(|_| zeroclaw_runtime::sop::dispatch::SopCronCache::from_engine(&engine));
-    Some(::zeroclaw_spawn::spawn!(async move {
+        .map(|_| max_runtime::sop::dispatch::SopCronCache::from_engine(&engine));
+    Some(::max_spawn::spawn!(async move {
         let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         let mut last_cron_check = chrono::Utc::now();
@@ -10384,9 +10384,9 @@ fn spawn_sop_maintenance(
                 continue;
             };
             if !report.is_empty() {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     INFO,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                         .with_attrs(::serde_json::json!({
                             "timed_out": report.maintenance.timed_out,
                             "reaped_claims": report.maintenance.reaped_claims,
@@ -10405,7 +10405,7 @@ fn spawn_sop_maintenance(
 #[cfg(feature = "agent-runtime")]
 #[derive(Default)]
 struct SopMaintenanceTickReport {
-    maintenance: zeroclaw_runtime::sop::MaintenanceSummary,
+    maintenance: max_runtime::sop::MaintenanceSummary,
     cron_started: usize,
     cron_skipped: usize,
     cron_blocked_unsafe: usize,
@@ -10425,18 +10425,18 @@ impl SopMaintenanceTickReport {
 
 #[cfg(feature = "agent-runtime")]
 async fn run_sop_maintenance_tick(
-    engine: &std::sync::Arc<std::sync::Mutex<zeroclaw_runtime::sop::SopEngine>>,
-    audit: Option<&std::sync::Arc<zeroclaw_runtime::sop::SopAuditLogger>>,
-    cron_cache: Option<&zeroclaw_runtime::sop::dispatch::SopCronCache>,
+    engine: &std::sync::Arc<std::sync::Mutex<max_runtime::sop::SopEngine>>,
+    audit: Option<&std::sync::Arc<max_runtime::sop::SopAuditLogger>>,
+    cron_cache: Option<&max_runtime::sop::dispatch::SopCronCache>,
     last_cron_check: &mut chrono::DateTime<chrono::Utc>,
 ) -> Option<SopMaintenanceTickReport> {
     let maintenance = match engine.lock() {
         Ok(mut e) => e.run_maintenance_tick(),
         Err(_) => {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown),
                 "SOP maintenance tick: engine lock poisoned; skipping this pass"
             );
             return None;
@@ -10449,7 +10449,7 @@ async fn run_sop_maintenance_tick(
     };
 
     if let (Some(audit), Some(cache)) = (audit, cron_cache) {
-        let results = zeroclaw_runtime::sop::dispatch::check_sop_cron_triggers(
+        let results = max_runtime::sop::dispatch::check_sop_cron_triggers(
             engine,
             audit,
             cache,
@@ -10458,26 +10458,26 @@ async fn run_sop_maintenance_tick(
         .await;
         for result in &results {
             match result {
-                zeroclaw_runtime::sop::dispatch::DispatchResult::Started { .. } => {
+                max_runtime::sop::dispatch::DispatchResult::Started { .. } => {
                     report.cron_started += 1;
                 }
-                zeroclaw_runtime::sop::dispatch::DispatchResult::Skipped { .. }
-                | zeroclaw_runtime::sop::dispatch::DispatchResult::Deferred { .. }
-                | zeroclaw_runtime::sop::dispatch::DispatchResult::Coalesced { .. } => {
+                max_runtime::sop::dispatch::DispatchResult::Skipped { .. }
+                | max_runtime::sop::dispatch::DispatchResult::Deferred { .. }
+                | max_runtime::sop::dispatch::DispatchResult::Coalesced { .. } => {
                     // A2: deferred (backpressure) / coalesced triggers did not start a
                     // run this tick; the cron schedule re-fires them next pass. The
                     // precise outcome is logged by process_headless_results below.
                     report.cron_skipped += 1;
                 }
-                zeroclaw_runtime::sop::dispatch::DispatchResult::BlockedUnsafe { .. } => {
+                max_runtime::sop::dispatch::DispatchResult::BlockedUnsafe { .. } => {
                     report.cron_blocked_unsafe += 1;
                 }
-                zeroclaw_runtime::sop::dispatch::DispatchResult::NoMatch => {
+                max_runtime::sop::dispatch::DispatchResult::NoMatch => {
                     report.cron_no_match += 1;
                 }
             }
         }
-        zeroclaw_runtime::sop::dispatch::process_headless_results(&results);
+        max_runtime::sop::dispatch::process_headless_results(&results);
     }
 
     Some(report)
@@ -10487,7 +10487,7 @@ async fn run_sop_maintenance_tick(
 async fn run_gateway_if_enabled(
     host: &str,
     port: u16,
-    config: zeroclaw::config::Config,
+    config: max::config::Config,
     tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>,
 ) -> anyhow::Result<()> {
     let default_host = config.gateway.host.clone();
@@ -10495,7 +10495,7 @@ async fn run_gateway_if_enabled(
     // Capture the launch command before the gateway starts so in-app upgrade
     // can self-respawn after the listener is released. Must mirror the same
     // call in the Daemon branch.
-    zeroclaw_runtime::restart::record_launch();
+    max_runtime::restart::record_launch();
     // Standalone gateway (no daemon supervisor): pass None for reload_tx so
     // /admin/reload returns 503 with a clear "no supervisor; restart
     // manually" message, None for tui_registry (no TUI socket), and None
@@ -10507,7 +10507,7 @@ async fn run_gateway_if_enabled(
     // Self-respawn after the listener is released, if an in-app upgrade
     // requested it. No-op when no respawn was requested or on supervised
     // restart modes.
-    zeroclaw_runtime::restart::respawn_if_requested();
+    max_runtime::restart::respawn_if_requested();
     match result {
         Err(err) if is_addr_in_use_error(&err) => {
             let restart_port = available_gateway_restart_hint_port(host, port);
@@ -10525,7 +10525,7 @@ async fn run_gateway_if_enabled(
 async fn run_gateway_if_enabled(
     _host: &str,
     _port: u16,
-    _config: zeroclaw::config::Config,
+    _config: max::config::Config,
     _tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>,
 ) -> anyhow::Result<()> {
     anyhow::bail!("Gateway feature is not enabled. Rebuild with --features gateway")
@@ -10561,7 +10561,7 @@ fn gateway_addr_in_use_message(
     let mut lines = vec![
         format!("Port {port} is already in use, so the gateway could not start."),
         String::new(),
-        "A ZeroClaw daemon or another service may already be running on this port.".to_string(),
+        "A Max daemon or another service may already be running on this port.".to_string(),
         "Try one of:".to_string(),
         String::new(),
     ];
@@ -10595,7 +10595,7 @@ fn gateway_addr_in_use_message(
 }
 
 fn gateway_restart_recovery_command(host: &str, port: u16, default_host: &str) -> String {
-    let mut command = format!("    zeroclaw gateway start --port {port}");
+    let mut command = format!("    max gateway start --port {port}");
     if host != default_host {
         write!(command, " --host {host}").expect("writing to String cannot fail");
     }
@@ -10609,10 +10609,10 @@ fn gateway_paircode_recovery_command(
     default_port: u16,
 ) -> String {
     if host == default_host && port == default_port {
-        return "    zeroclaw gateway get-paircode".to_string();
+        return "    max gateway get-paircode".to_string();
     }
 
-    let mut command = format!("    zeroclaw gateway get-paircode --port {port}");
+    let mut command = format!("    max gateway get-paircode --port {port}");
     if host != default_host {
         write!(command, " --host {host}").expect("writing to String cannot fail");
     }
@@ -10626,7 +10626,7 @@ fn available_gateway_restart_hint_port(host: &str, port: u16) -> Option<u16> {
         let Some(candidate) = port.checked_add(offset) else {
             break;
         };
-        if std::net::TcpListener::bind(zeroclaw_infra::effective_gateway_bind_socket_addr(
+        if std::net::TcpListener::bind(max_infra::effective_gateway_bind_socket_addr(
             host, candidate,
         ))
         .is_ok()
@@ -10650,7 +10650,7 @@ async fn handle_models_set(config: &mut Config, model: &str) -> Result<()> {
             .find(|(_, _, entry)| entry.model.as_ref().map_or(false, |m| !m.trim().is_empty()))
             .ok_or_else(|| {
                 anyhow::Error::msg(
-                    "No model provider configured. Run `zeroclaw config init` first.",
+                    "No model provider configured. Run `max config init` first.",
                 )
             })?;
         (entry.0, entry.1.to_string())
@@ -11259,23 +11259,23 @@ mod tests {
         let locales: [(&str, &str); 5] = [
             (
                 "en",
-                include_str!("../crates/zeroclaw-runtime/locales/en/cli.ftl"),
+                include_str!("../crates/max-runtime/locales/en/cli.ftl"),
             ),
             (
                 "es",
-                include_str!("../crates/zeroclaw-runtime/locales/es/cli.ftl"),
+                include_str!("../crates/max-runtime/locales/es/cli.ftl"),
             ),
             (
                 "fr",
-                include_str!("../crates/zeroclaw-runtime/locales/fr/cli.ftl"),
+                include_str!("../crates/max-runtime/locales/fr/cli.ftl"),
             ),
             (
                 "ja",
-                include_str!("../crates/zeroclaw-runtime/locales/ja/cli.ftl"),
+                include_str!("../crates/max-runtime/locales/ja/cli.ftl"),
             ),
             (
                 "zh-CN",
-                include_str!("../crates/zeroclaw-runtime/locales/zh-CN/cli.ftl"),
+                include_str!("../crates/max-runtime/locales/zh-CN/cli.ftl"),
             ),
         ];
 
@@ -11325,7 +11325,7 @@ mod tests {
         // 1 and every label fitted to ".". Both must now be rejected before
         // any interaction can start.
         let rows = quickstart_checklist_rows_for_locale(include_str!(
-            "../crates/zeroclaw-runtime/locales/en/cli.ftl"
+            "../crates/max-runtime/locales/en/cli.ftl"
         ));
 
         for width in [0usize, 1, 2, 3, 4, 5, 10, 19] {
@@ -11568,88 +11568,88 @@ mod tests {
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_reads_appimage_from_entry() {
+    fn max_desktop_exec_reads_appimage_from_entry() {
         let entry = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=/home/user/Applications/ZeroClaw-x86_64.AppImage %U\n\
-             Icon=zeroclaw\n\
+             Name=Max\n\
+             Exec=/home/user/Applications/Max-x86_64.AppImage %U\n\
+             Icon=max\n\
              Type=Application\n";
         assert_eq!(
-            zeroclaw_desktop_exec(entry).as_deref(),
-            Some("/home/user/Applications/ZeroClaw-x86_64.AppImage")
+            max_desktop_exec(entry).as_deref(),
+            Some("/home/user/Applications/Max-x86_64.AppImage")
         );
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_ignores_unrelated_entry() {
+    fn max_desktop_exec_ignores_unrelated_entry() {
         let entry = "[Desktop Entry]\n\
              Name=Some Other App\n\
              Exec=/usr/bin/other %F\n\
              Type=Application\n";
-        assert_eq!(zeroclaw_desktop_exec(entry), None);
+        assert_eq!(max_desktop_exec(entry), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_rejects_substring_lookalike() {
-        // Identity is the visible Name, not any field containing "zeroclaw":
+    fn max_desktop_exec_rejects_substring_lookalike() {
+        // Identity is the visible Name, not any field containing "max":
         // an unrelated entry whose Exec merely mentions the substring must not
         // qualify, otherwise it could preempt the real companion app.
         let entry = "[Desktop Entry]\n\
              Name=Unrelated App\n\
-             Exec=/tmp/not-zeroclaw-helper %U\n\
+             Exec=/tmp/not-max-helper %U\n\
              Type=Application\n";
-        assert_eq!(zeroclaw_desktop_exec(entry), None);
+        assert_eq!(max_desktop_exec(entry), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_keeps_quoted_path_with_spaces() {
+    fn max_desktop_exec_keeps_quoted_path_with_spaces() {
         let entry = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=\"/home/user/My Applications/ZeroClaw-x86_64.AppImage\" %U\n\
+             Name=Max\n\
+             Exec=\"/home/user/My Applications/Max-x86_64.AppImage\" %U\n\
              Type=Application\n";
         assert_eq!(
-            zeroclaw_desktop_exec(entry).as_deref(),
-            Some("/home/user/My Applications/ZeroClaw-x86_64.AppImage")
+            max_desktop_exec(entry).as_deref(),
+            Some("/home/user/My Applications/Max-x86_64.AppImage")
         );
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_rejects_unquoted_reserved_and_escaped_space() {
+    fn max_desktop_exec_rejects_unquoted_reserved_and_escaped_space() {
         // Per the Desktop Entry spec a space (a reserved character) must be
         // quoted; a backslash-escaped space outside quotes is malformed. The
         // parser fails closed rather than launching a partially interpreted path.
         let escaped_space = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=/home/user/My\\ Apps/zeroclaw-desktop %U\n\
+             Name=Max\n\
+             Exec=/home/user/My\\ Apps/max-desktop %U\n\
              Type=Application\n";
-        assert_eq!(zeroclaw_desktop_exec(escaped_space), None);
+        assert_eq!(max_desktop_exec(escaped_space), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_decodes_quoted_literal_dollar_and_backslash() {
+    fn max_desktop_exec_decodes_quoted_literal_dollar_and_backslash() {
         // A literal `$` in a quoted path is written `\\$` (general unescape
         // `\\`->`\`, then the Exec layer unescapes `\$`->`$`); a literal
         // backslash is written `\\\\`.
         let dollar = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=\"/opt/\\\\$dir/zeroclaw-desktop\" %U\n\
+             Name=Max\n\
+             Exec=\"/opt/\\\\$dir/max-desktop\" %U\n\
              Type=Application\n";
         assert_eq!(
-            zeroclaw_desktop_exec(dollar).as_deref(),
-            Some("/opt/$dir/zeroclaw-desktop")
+            max_desktop_exec(dollar).as_deref(),
+            Some("/opt/$dir/max-desktop")
         );
         let backslash = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=\"/opt/a\\\\\\\\b/zeroclaw-desktop\"\n\
+             Name=Max\n\
+             Exec=\"/opt/a\\\\\\\\b/max-desktop\"\n\
              Type=Application\n";
         assert_eq!(
-            zeroclaw_desktop_exec(backslash).as_deref(),
-            Some("/opt/a\\b/zeroclaw-desktop")
+            max_desktop_exec(backslash).as_deref(),
+            Some("/opt/a\\b/max-desktop")
         );
     }
 
@@ -11657,108 +11657,108 @@ mod tests {
     #[test]
     fn parse_exec_program_fails_closed_on_malformed_input() {
         // Unterminated quote.
-        assert_eq!(parse_exec_program("\"/opt/zeroclaw-desktop"), None);
+        assert_eq!(parse_exec_program("\"/opt/max-desktop"), None);
         // Dangling escape inside a quote.
-        assert_eq!(parse_exec_program("\"/opt/zeroclaw\\"), None);
+        assert_eq!(parse_exec_program("\"/opt/max\\"), None);
         // Dangling escape outside quotes (invalid general escape).
-        assert_eq!(parse_exec_program("/opt/zeroclaw\\"), None);
+        assert_eq!(parse_exec_program("/opt/max\\"), None);
         // A forbidden `=` in the executable token.
-        assert_eq!(parse_exec_program("/opt/a=b/zeroclaw-desktop"), None);
+        assert_eq!(parse_exec_program("/opt/a=b/max-desktop"), None);
         // Unquoted reserved character.
-        assert_eq!(parse_exec_program("/opt/$HOME/zeroclaw-desktop"), None);
+        assert_eq!(parse_exec_program("/opt/$HOME/max-desktop"), None);
         // A valid bare token still parses.
         assert_eq!(
-            parse_exec_program("zeroclaw-desktop %U").as_deref(),
-            Some("zeroclaw-desktop")
+            parse_exec_program("max-desktop %U").as_deref(),
+            Some("max-desktop")
         );
         // The WHOLE line is validated, not just the first token:
         // an unknown field code invalidates it.
-        assert_eq!(parse_exec_program("zeroclaw-desktop %Z"), None);
+        assert_eq!(parse_exec_program("max-desktop %Z"), None);
         // Text directly adjacent to a closing quote is malformed.
-        assert_eq!(parse_exec_program("\"/opt/zeroclaw-desktop\"junk"), None);
+        assert_eq!(parse_exec_program("\"/opt/max-desktop\"junk"), None);
         // A raw (unescaped) reserved character inside quotes is malformed.
-        assert_eq!(parse_exec_program("\"/opt/$HOME/zeroclaw-desktop\""), None);
-        assert_eq!(parse_exec_program("\"/opt/`x`/zeroclaw-desktop\""), None);
+        assert_eq!(parse_exec_program("\"/opt/$HOME/max-desktop\""), None);
+        assert_eq!(parse_exec_program("\"/opt/`x`/max-desktop\""), None);
         // Known field codes and extra plain args are accepted.
         assert_eq!(
-            parse_exec_program("zeroclaw-desktop %U --flag").as_deref(),
-            Some("zeroclaw-desktop")
+            parse_exec_program("max-desktop %U --flag").as_deref(),
+            Some("max-desktop")
         );
         assert_eq!(
-            parse_exec_program("zeroclaw-desktop %%").as_deref(),
-            Some("zeroclaw-desktop")
+            parse_exec_program("max-desktop %%").as_deref(),
+            Some("max-desktop")
         );
         // A field code embedded in the PROGRAM token (not just a leading `%`)
         // invalidates it, even though the basename would pass the AppImage-name
         // check — both an unknown (`%Z`) and a known (`%U`) code are rejected.
-        assert_eq!(parse_exec_program("/tmp/ZeroClaw-%Z.AppImage"), None);
-        assert_eq!(parse_exec_program("/tmp/ZeroClaw-%U.AppImage"), None);
+        assert_eq!(parse_exec_program("/tmp/Max-%Z.AppImage"), None);
+        assert_eq!(parse_exec_program("/tmp/Max-%U.AppImage"), None);
         // A field code embedded in an ARGUMENT token (must stand alone) is
         // rejected for both unknown and known codes.
-        assert_eq!(parse_exec_program("zeroclaw-desktop --flag=%Z"), None);
-        assert_eq!(parse_exec_program("zeroclaw-desktop --flag=%U"), None);
+        assert_eq!(parse_exec_program("max-desktop --flag=%Z"), None);
+        assert_eq!(parse_exec_program("max-desktop --flag=%U"), None);
         // A field code inside a quoted argument is rejected — the quote context
         // is retained so `"%U"` cannot masquerade as a standalone field code.
-        assert_eq!(parse_exec_program("zeroclaw-desktop \"%U\""), None);
+        assert_eq!(parse_exec_program("max-desktop \"%U\""), None);
         // An escaped literal percent embedded in a path stays valid.
         assert_eq!(
-            parse_exec_program("/opt/zeroclaw-desktop 100%%done").as_deref(),
-            Some("/opt/zeroclaw-desktop")
+            parse_exec_program("/opt/max-desktop 100%%done").as_deref(),
+            Some("/opt/max-desktop")
         );
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_strips_field_codes_and_quotes() {
+    fn max_desktop_exec_strips_field_codes_and_quotes() {
         let entry = "[Desktop Entry]\n\
-             Name=ZeroClaw Companion\n\
-             Exec=\"/opt/zeroclaw/zeroclaw-desktop\" %u\n\
+             Name=Max Companion\n\
+             Exec=\"/opt/max/max-desktop\" %u\n\
              Type=Application\n";
         assert_eq!(
-            zeroclaw_desktop_exec(entry).as_deref(),
-            Some("/opt/zeroclaw/zeroclaw-desktop")
+            max_desktop_exec(entry).as_deref(),
+            Some("/opt/max/max-desktop")
         );
         // A bare field code with no real command must not resolve.
-        let bad = "[Desktop Entry]\nName=ZeroClaw\nExec=%U\nType=Application\n";
-        assert_eq!(zeroclaw_desktop_exec(bad), None);
+        let bad = "[Desktop Entry]\nName=Max\nExec=%U\nType=Application\n";
+        assert_eq!(max_desktop_exec(bad), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_honours_hidden_and_group_scope() {
-        // Otherwise a fully valid ZeroClaw Application entry — it resolves only
+    fn max_desktop_exec_honours_hidden_and_group_scope() {
+        // Otherwise a fully valid Max Application entry — it resolves only
         // because `Hidden=true` masks it, so the fixture actually exercises the
         // Hidden rule rather than passing on some other missing field.
         let masked = "[Desktop Entry]\n\
              Type=Application\n\
-             Name=ZeroClaw\n\
-             Exec=/opt/zeroclaw/zeroclaw-desktop\n\
+             Name=Max\n\
+             Exec=/opt/max/max-desktop\n\
              Hidden=true\n";
-        assert_eq!(zeroclaw_desktop_exec(masked), None);
+        assert_eq!(max_desktop_exec(masked), None);
 
         // Only the [Desktop Entry] group is consulted. The main group is an
-        // otherwise valid ZeroClaw Application with no Name of its own, so it
-        // resolves iff a `Name=ZeroClaw` from the Desktop Action group leaks in.
+        // otherwise valid Max Application with no Name of its own, so it
+        // resolves iff a `Name=Max` from the Desktop Action group leaks in.
         // It must not.
         let action_only = "[Desktop Entry]\n\
              Type=Application\n\
-             Exec=/opt/zeroclaw/zeroclaw-desktop\n\
+             Exec=/opt/max/max-desktop\n\
              [Desktop Action foo]\n\
-             Name=ZeroClaw\n\
+             Name=Max\n\
              Exec=/tmp/evil\n";
-        assert_eq!(zeroclaw_desktop_exec(action_only), None);
+        assert_eq!(max_desktop_exec(action_only), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn is_zeroclaw_name_matches_deliberate_identity() {
-        assert!(is_zeroclaw_name("ZeroClaw"));
-        assert!(is_zeroclaw_name("zeroclaw"));
-        assert!(is_zeroclaw_name("ZeroClaw Companion"));
-        assert!(is_zeroclaw_name("ZeroClaw-desktop"));
-        assert!(!is_zeroclaw_name("ZeroClawesome"));
-        assert!(!is_zeroclaw_name("Not ZeroClaw"));
-        assert!(!is_zeroclaw_name("Some Other App"));
+    fn is_max_name_matches_deliberate_identity() {
+        assert!(is_max_name("Max"));
+        assert!(is_max_name("max"));
+        assert!(is_max_name("Max Companion"));
+        assert!(is_max_name("Max-desktop"));
+        assert!(!is_max_name("Maxesome"));
+        assert!(!is_max_name("Not Max"));
+        assert!(!is_max_name("Some Other App"));
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -11778,7 +11778,7 @@ mod tests {
             std::fs::write(
                 apps.join(id),
                 format!(
-                    "[Desktop Entry]\nName=ZeroClaw\nExec={}\nType=Application\n",
+                    "[Desktop Entry]\nName=Max\nExec={}\nType=Application\n",
                     exec.display()
                 ),
             )
@@ -11788,15 +11788,15 @@ mod tests {
         let high = tempfile::tempdir().unwrap();
         let low = tempfile::tempdir().unwrap();
 
-        // Both are the supported `zeroclaw-desktop` binary, in separate dirs.
-        let high_bin = high.path().join("zeroclaw-desktop");
-        let low_bin = low.path().join("zeroclaw-desktop");
+        // Both are the supported `max-desktop` binary, in separate dirs.
+        let high_bin = high.path().join("max-desktop");
+        let low_bin = low.path().join("max-desktop");
         write_exec(&high_bin);
         write_exec(&low_bin);
 
         // Same desktop-file ID in both dirs: the higher-precedence one wins.
-        write_entry(high.path(), "ZeroClaw.desktop", &high_bin);
-        write_entry(low.path(), "ZeroClaw.desktop", &low_bin);
+        write_entry(high.path(), "Max.desktop", &high_bin);
+        write_entry(low.path(), "Max.desktop", &low_bin);
 
         let dirs = [high.path().to_path_buf(), low.path().to_path_buf()];
         assert_eq!(
@@ -11806,9 +11806,9 @@ mod tests {
 
         // A non-executable Exec target is skipped rather than returned.
         let broken = tempfile::tempdir().unwrap();
-        let non_exec = broken.path().join("zeroclaw-desktop");
+        let non_exec = broken.path().join("max-desktop");
         std::fs::write(&non_exec, "not executable").unwrap();
-        write_entry(broken.path(), "ZeroClaw.desktop", &non_exec);
+        write_entry(broken.path(), "Max.desktop", &non_exec);
         assert_eq!(discover_desktop_app(&[broken.path().to_path_buf()]), None);
     }
 
@@ -11828,16 +11828,16 @@ mod tests {
             std::fs::set_permissions(path, perms).unwrap();
         }
 
-        // A lexically earlier entry (`000...`) with a ZeroClaw Name but a
+        // A lexically earlier entry (`000...`) with a Max Name but a
         // lookalike executable must not preempt the real companion app.
-        let lookalike = dir.path().join("zeroclaw-helper");
-        let real = dir.path().join("zeroclaw-desktop");
+        let lookalike = dir.path().join("max-helper");
+        let real = dir.path().join("max-desktop");
         write_exec(&lookalike);
         write_exec(&real);
         std::fs::write(
             apps.join("000-lookalike.desktop"),
             format!(
-                "[Desktop Entry]\nType=Application\nName=ZeroClaw\nExec={}\n",
+                "[Desktop Entry]\nType=Application\nName=Max\nExec={}\n",
                 lookalike.display()
             ),
         )
@@ -11845,7 +11845,7 @@ mod tests {
         std::fs::write(
             apps.join("zzz-real.desktop"),
             format!(
-                "[Desktop Entry]\nType=Application\nName=ZeroClaw\nExec={}\n",
+                "[Desktop Entry]\nType=Application\nName=Max\nExec={}\n",
                 real.display()
             ),
         )
@@ -11871,24 +11871,24 @@ mod tests {
         fn write_entry(dir: &Path, body: &str) {
             let apps = dir.join("applications");
             std::fs::create_dir_all(&apps).unwrap();
-            std::fs::write(apps.join("ZeroClaw.desktop"), body).unwrap();
+            std::fs::write(apps.join("Max.desktop"), body).unwrap();
         }
 
         let high = tempfile::tempdir().unwrap();
         let low = tempfile::tempdir().unwrap();
-        let low_bin = low.path().join("zeroclaw-desktop");
+        let low_bin = low.path().join("max-desktop");
         write_exec(&low_bin);
 
         // A higher-precedence Hidden=true entry masks the same desktop-file ID in
         // the lower directory, so the lower (valid) entry must not be launched.
         write_entry(
             high.path(),
-            "[Desktop Entry]\nType=Application\nName=ZeroClaw\nExec=/opt/zeroclaw/zeroclaw-desktop\nHidden=true\n",
+            "[Desktop Entry]\nType=Application\nName=Max\nExec=/opt/max/max-desktop\nHidden=true\n",
         );
         write_entry(
             low.path(),
             &format!(
-                "[Desktop Entry]\nType=Application\nName=ZeroClaw\nExec={}\n",
+                "[Desktop Entry]\nType=Application\nName=Max\nExec={}\n",
                 low_bin.display()
             ),
         );
@@ -11902,9 +11902,9 @@ mod tests {
     fn resolve_executable_rejects_relative_path_with_separator() {
         // A relative Exec value with a separator would be resolved by `which` against the
         // current working directory, so it must be rejected rather than launched.
-        assert_eq!(resolve_executable("./zeroclaw-helper"), None);
-        assert_eq!(resolve_executable("../bin/zeroclaw-helper"), None);
-        assert_eq!(resolve_executable("sub/dir/zeroclaw-helper"), None);
+        assert_eq!(resolve_executable("./max-helper"), None);
+        assert_eq!(resolve_executable("../bin/max-helper"), None);
+        assert_eq!(resolve_executable("sub/dir/max-helper"), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -11914,8 +11914,8 @@ mod tests {
         let apps = dir.path().join("applications");
         std::fs::create_dir_all(&apps).unwrap();
         std::fs::write(
-            apps.join("ZeroClaw.desktop"),
-            "[Desktop Entry]\nName=ZeroClaw\nExec=/usr/bin/zeroclaw\nType=Application\n",
+            apps.join("Max.desktop"),
+            "[Desktop Entry]\nName=Max\nExec=/usr/bin/max\nType=Application\n",
         )
         .unwrap();
         // A directory symlink pointing back at its own parent would recurse forever if
@@ -11928,7 +11928,7 @@ mod tests {
 
         // Terminates (no infinite loop) and collects only the real entry.
         assert_eq!(out.len(), 1);
-        assert_eq!(out[0].0, "ZeroClaw.desktop");
+        assert_eq!(out[0].0, "Max.desktop");
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -11958,7 +11958,7 @@ mod tests {
         std::fs::write(&oversized, vec![b'x'; oversized_len]).unwrap();
         assert_eq!(read_desktop_entry(&oversized), None);
 
-        let real = dir.path().join("zeroclaw-desktop");
+        let real = dir.path().join("max-desktop");
         std::fs::write(&real, "#!/bin/sh\nexit 0\n").unwrap();
         let mut permissions = std::fs::metadata(&real).unwrap().permissions();
         permissions.set_mode(0o755);
@@ -11966,7 +11966,7 @@ mod tests {
         std::fs::write(
             apps.join("zzz-real.desktop"),
             format!(
-                "[Desktop Entry]\nType=Application\nName=ZeroClaw\nExec={}\n",
+                "[Desktop Entry]\nType=Application\nName=Max\nExec={}\n",
                 real.display()
             ),
         )
@@ -11980,63 +11980,63 @@ mod tests {
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_rejects_zeroclaw_name_with_unrelated_exec() {
-        // A ZeroClaw display name paired with an unrelated executable must not
-        // resolve: identity is Type + Name + a ZeroClaw-shaped Exec target, not
+    fn max_desktop_exec_rejects_max_name_with_unrelated_exec() {
+        // A Max display name paired with an unrelated executable must not
+        // resolve: identity is Type + Name + a Max-shaped Exec target, not
         // the display name alone. A lexically earlier entry like this must not
         // preempt the real app.
         let entry = "[Desktop Entry]\n\
-             Name=ZeroClaw Helper\n\
+             Name=Max Helper\n\
              Exec=/tmp/unrelated %U\n\
              Type=Application\n";
-        assert_eq!(zeroclaw_desktop_exec(entry), None);
+        assert_eq!(max_desktop_exec(entry), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn zeroclaw_desktop_exec_requires_application_type() {
-        // A non-Application entry never resolves, even with a ZeroClaw Name and
-        // a ZeroClaw executable.
+    fn max_desktop_exec_requires_application_type() {
+        // A non-Application entry never resolves, even with a Max Name and
+        // a Max executable.
         let link = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=/opt/zeroclaw/zeroclaw-desktop\n\
+             Name=Max\n\
+             Exec=/opt/max/max-desktop\n\
              Type=Link\n";
-        assert_eq!(zeroclaw_desktop_exec(link), None);
+        assert_eq!(max_desktop_exec(link), None);
 
         // Missing Type is also rejected (the published entry always sets it).
         let no_type = "[Desktop Entry]\n\
-             Name=ZeroClaw\n\
-             Exec=/opt/zeroclaw/zeroclaw-desktop\n";
-        assert_eq!(zeroclaw_desktop_exec(no_type), None);
+             Name=Max\n\
+             Exec=/opt/max/max-desktop\n";
+        assert_eq!(max_desktop_exec(no_type), None);
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn is_zeroclaw_appimage_name_anchors_identity() {
-        // The published `ZeroClaw-*.AppImage` form (separator required).
-        assert!(is_zeroclaw_appimage_name("ZeroClaw-x86_64.AppImage"));
-        assert!(is_zeroclaw_appimage_name("zeroclaw-aarch64.appimage"));
+    fn is_max_appimage_name_anchors_identity() {
+        // The published `Max-*.AppImage` form (separator required).
+        assert!(is_max_appimage_name("Max-x86_64.AppImage"));
+        assert!(is_max_appimage_name("max-aarch64.appimage"));
         // A no-boundary lookalike must not qualify.
-        assert!(!is_zeroclaw_appimage_name("ZeroClawevil.AppImage"));
+        assert!(!is_max_appimage_name("Maxevil.AppImage"));
         // Missing the separator (not a published form).
-        assert!(!is_zeroclaw_appimage_name("zeroclaw.appimage"));
+        assert!(!is_max_appimage_name("max.appimage"));
         // A lookalike whose name merely contains the substring must not qualify.
-        assert!(!is_zeroclaw_appimage_name("not-zeroclaw-helper.AppImage"));
-        assert!(!is_zeroclaw_appimage_name("ZeroClaw.txt"));
+        assert!(!is_max_appimage_name("not-max-helper.AppImage"));
+        assert!(!is_max_appimage_name("Max.txt"));
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
     #[test]
-    fn is_zeroclaw_program_binds_to_supported_names() {
+    fn is_max_program_binds_to_supported_names() {
         // Exact published binary, or a published-form AppImage.
-        assert!(is_zeroclaw_program("/usr/bin/zeroclaw-desktop"));
-        assert!(is_zeroclaw_program(
-            "/home/user/Applications/ZeroClaw-x86_64.AppImage"
+        assert!(is_max_program("/usr/bin/max-desktop"));
+        assert!(is_max_program(
+            "/home/user/Applications/Max-x86_64.AppImage"
         ));
         // Lookalikes sharing the prefix are rejected.
-        assert!(!is_zeroclaw_program("/tmp/zeroclaw-helper"));
-        assert!(!is_zeroclaw_program("/tmp/zeroclaw-evil"));
-        assert!(!is_zeroclaw_program("/usr/bin/zeroclaw"));
+        assert!(!is_max_program("/tmp/max-helper"));
+        assert!(!is_max_program("/tmp/max-evil"));
+        assert!(!is_max_program("/usr/bin/max"));
     }
 
     #[cfg(all(feature = "agent-runtime", target_os = "linux"))]
@@ -12056,7 +12056,7 @@ mod tests {
             std::fs::write(
                 full,
                 format!(
-                    "[Desktop Entry]\nName=ZeroClaw\nExec={}\nType=Application\n",
+                    "[Desktop Entry]\nName=Max\nExec={}\nType=Application\n",
                     exec.display()
                 ),
             )
@@ -12065,17 +12065,17 @@ mod tests {
 
         let high = tempfile::tempdir().unwrap();
         let low = tempfile::tempdir().unwrap();
-        let high_bin = high.path().join("zeroclaw-desktop");
-        let low_bin = low.path().join("zeroclaw-desktop");
+        let high_bin = high.path().join("max-desktop");
+        let low_bin = low.path().join("max-desktop");
         write_exec(&high_bin);
         write_exec(&low_bin);
 
-        // Same nested desktop-file ID (`vendor/ZeroClaw.desktop` -> ID
-        // `vendor-ZeroClaw.desktop`) in both dirs: the higher-precedence entry
+        // Same nested desktop-file ID (`vendor/Max.desktop` -> ID
+        // `vendor-Max.desktop`) in both dirs: the higher-precedence entry
         // must mask the lower one, which only works if IDs are derived
         // recursively rather than from top-level basenames.
-        write_nested_entry(high.path(), "vendor/ZeroClaw.desktop", &high_bin);
-        write_nested_entry(low.path(), "vendor/ZeroClaw.desktop", &low_bin);
+        write_nested_entry(high.path(), "vendor/Max.desktop", &high_bin);
+        write_nested_entry(low.path(), "vendor/Max.desktop", &low_bin);
 
         let dirs = [high.path().to_path_buf(), low.path().to_path_buf()];
         assert_eq!(
@@ -12091,7 +12091,7 @@ mod tests {
             ("stdout", ServiceLogStream::Stdout),
             ("stderr", ServiceLogStream::Stderr),
         ] {
-            let cli = Cli::try_parse_from(["zeroclaw", "service", "run-openrc-log-writer", value])
+            let cli = Cli::try_parse_from(["max", "service", "run-openrc-log-writer", value])
                 .expect("internal OpenRC logger should parse");
             assert!(matches!(
                 cli.command,
@@ -12103,7 +12103,7 @@ mod tests {
         }
         assert!(
             Cli::try_parse_from([
-                "zeroclaw",
+                "max",
                 "service",
                 "run-openrc-log-writer",
                 "/tmp/arbitrary.log"
@@ -12127,25 +12127,25 @@ mod tests {
         // argv[0] is consumed by clap as the binary name.
         // Space form.
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "--config-dir", "/x"])),
+            probe_config_dir(&command, argv(&["max", "--config-dir", "/x"])),
             Some("/x".to_string())
         );
         // Equals form.
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "--config-dir=/y"])),
+            probe_config_dir(&command, argv(&["max", "--config-dir=/y"])),
             Some("/y".to_string())
         );
         // Global arg: may appear *after* a subcommand.
         assert_eq!(
             probe_config_dir(
                 &command,
-                argv(&["zeroclaw", "status", "--config-dir", "/z"])
+                argv(&["max", "status", "--config-dir", "/z"])
             ),
             Some("/z".to_string())
         );
         // Absent.
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "status"])),
+            probe_config_dir(&command, argv(&["max", "status"])),
             None
         );
         // `--` ends option parsing; later values must never redirect config.
@@ -12153,7 +12153,7 @@ mod tests {
             probe_config_dir(
                 &command,
                 argv(&[
-                    "zeroclaw",
+                    "max",
                     "config",
                     "set",
                     "locale",
@@ -12165,7 +12165,7 @@ mod tests {
         );
         // Present but empty — returned verbatim for clap's validation path.
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "--config-dir", ""])),
+            probe_config_dir(&command, argv(&["max", "--config-dir", ""])),
             Some(String::new())
         );
     }
@@ -12182,7 +12182,7 @@ mod tests {
 
         let command = Cli::command();
         let external_payload = [
-            "zeroclaw",
+            "max",
             "props",
             "legacy-command",
             "--config-dir=/unintended",
@@ -12197,20 +12197,20 @@ mod tests {
 
         // Option-looking and terminating tokens cannot satisfy the spaced
         // form's required value.
-        assert!(Cli::try_parse_from(["zeroclaw", "--config-dir", "--help"]).is_err());
+        assert!(Cli::try_parse_from(["max", "--config-dir", "--help"]).is_err());
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "--config-dir", "--help"])),
+            probe_config_dir(&command, argv(&["max", "--config-dir", "--help"])),
             None
         );
         assert_eq!(
-            probe_config_dir(&command, argv(&["zeroclaw", "--config-dir", "--"])),
+            probe_config_dir(&command, argv(&["max", "--config-dir", "--"])),
             None
         );
     }
 
     #[test]
     fn cli_quickstart_uses_advertised_local_provider_runtime_default() {
-        let providers = vec![zeroclaw_runtime::quickstart::QuickstartTypeOption {
+        let providers = vec![max_runtime::quickstart::QuickstartTypeOption {
             kind: "lmstudio".into(),
             display_name: "LM Studio".into(),
             local: true,
@@ -12225,7 +12225,7 @@ mod tests {
 
     #[test]
     fn cli_quickstart_uses_advertised_remote_provider_runtime_default() {
-        let providers = vec![zeroclaw_runtime::quickstart::QuickstartTypeOption {
+        let providers = vec![max_runtime::quickstart::QuickstartTypeOption {
             kind: "anthropic".into(),
             display_name: "Anthropic".into(),
             local: false,
@@ -12240,7 +12240,7 @@ mod tests {
 
     #[test]
     fn cli_quickstart_uses_state_fallback_when_provider_has_no_override() {
-        let providers = vec![zeroclaw_runtime::quickstart::QuickstartTypeOption {
+        let providers = vec![max_runtime::quickstart::QuickstartTypeOption {
             kind: "ollama".into(),
             display_name: "Ollama".into(),
             local: true,
@@ -12383,8 +12383,8 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn gateway_admin_url_prepends_configured_path_prefix() {
         assert_eq!(
-            gateway_admin_url("localhost", 42617, Some("/zeroclaw"), "/admin/paircode/new"),
-            "http://localhost:42617/zeroclaw/admin/paircode/new"
+            gateway_admin_url("localhost", 42617, Some("/max"), "/admin/paircode/new"),
+            "http://localhost:42617/max/admin/paircode/new"
         );
     }
 
@@ -12392,7 +12392,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_accepts_model_provider_and_api_key_in_quick_mode() {
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "onboard",
             "--model-provider",
             "openrouter",
@@ -12426,7 +12426,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn completions_cli_parses_supported_shells() {
         for shell in ["bash", "fish", "zsh", "powershell", "elvish"] {
-            let cli = Cli::try_parse_from(["zeroclaw", "completions", shell])
+            let cli = Cli::try_parse_from(["max", "completions", shell])
                 .expect("completions invocation should parse");
             match cli.command {
                 Commands::Completions { .. } => {}
@@ -12443,7 +12443,7 @@ mod tests {
             .expect("completion generation should succeed");
         let script = String::from_utf8(output).expect("completion output should be valid utf-8");
         assert!(
-            script.contains("zeroclaw"),
+            script.contains("max"),
             "completion script should reference binary name"
         );
     }
@@ -12456,22 +12456,22 @@ mod tests {
             .expect("completion generation should succeed");
         let script = String::from_utf8(output).expect("completion output should be valid utf-8");
         // The wrapper must capture the original clap-generated function body
-        // (via declare -f) rather than calling _zeroclaw by name, which would
-        // create an infinite recursion loop after _zeroclaw is redefined.
+        // (via declare -f) rather than calling _max by name, which would
+        // create an infinite recursion loop after _max is redefined.
         assert!(
-            script.contains("declare -f _zeroclaw"),
-            "bash completion should use declare -f to capture the original _zeroclaw function body"
+            script.contains("declare -f _max"),
+            "bash completion should use declare -f to capture the original _max function body"
         );
         assert!(
-            !script.contains("_zeroclaw_clap_orig() { _zeroclaw \"$@\"; }"),
-            "bash completion must not define _zeroclaw_clap_orig as a simple forwarder to _zeroclaw"
+            !script.contains("_max_clap_orig() { _max \"$@\"; }"),
+            "bash completion must not define _max_clap_orig as a simple forwarder to _max"
         );
     }
 
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_accepts_force_flag() {
-        let cli = Cli::try_parse_from(["zeroclaw", "onboard", "--force"])
+        let cli = Cli::try_parse_from(["max", "onboard", "--force"])
             .expect("onboard --force should parse");
 
         match cli.command {
@@ -12484,13 +12484,13 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_rejects_removed_interactive_flag() {
         // --interactive was removed; onboard auto-detects TTY instead.
-        assert!(Cli::try_parse_from(["zeroclaw", "onboard", "--interactive"]).is_err());
+        assert!(Cli::try_parse_from(["max", "onboard", "--interactive"]).is_err());
     }
 
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_parses_quick_flag() {
-        let cli = Cli::try_parse_from(["zeroclaw", "onboard", "--quick"])
+        let cli = Cli::try_parse_from(["max", "onboard", "--quick"])
             .expect("onboard --quick should parse");
 
         match cli.command {
@@ -12503,7 +12503,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn gateway_get_paircode_cli_accepts_port_and_host_overrides() {
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "gateway",
             "get-paircode",
             "--new",
@@ -12517,7 +12517,7 @@ mod tests {
         match cli.command {
             Commands::Gateway {
                 gateway_command:
-                    Some(zeroclaw::GatewayCommands::GetPaircode {
+                    Some(max::GatewayCommands::GetPaircode {
                         new,
                         rotate,
                         rotate_device,
@@ -12538,12 +12538,12 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn security_status_cli_requires_agent_and_parses_json_form() {
-        let err = Cli::try_parse_from(["zeroclaw", "security", "status"])
+        let err = Cli::try_parse_from(["max", "security", "status"])
             .expect_err("security status requires --agent");
         assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         let cli =
-            Cli::try_parse_from(["zeroclaw", "security", "status", "--agent", "ops", "--json"])
+            Cli::try_parse_from(["max", "security", "status", "--agent", "ops", "--json"])
                 .expect("security status --agent --json should parse");
         match cli.command {
             Commands::Security {
@@ -12566,7 +12566,7 @@ mod tests {
             ..Default::default()
         };
         let tls_dir = config.data_dir.join("tls");
-        zeroclaw_tls::ensure_server_materials(&tls_dir, &[]).expect("daemon TLS materials");
+        max_tls::ensure_server_materials(&tls_dir, &[]).expect("daemon TLS materials");
         std::fs::create_dir(tls_dir.join("ledger.db")).expect("poison ledger path");
 
         let err = issue_wss_client_cert(
@@ -12616,7 +12616,7 @@ mod tests {
             data_dir: dir.path().to_path_buf(),
             ..Default::default()
         };
-        zeroclaw_tls::ensure_server_materials(&config.data_dir.join("tls"), &[])
+        max_tls::ensure_server_materials(&config.data_dir.join("tls"), &[])
             .expect("daemon TLS materials");
 
         // Obstruct the drop-in ca.crt with a non-empty directory so the copy
@@ -12646,14 +12646,14 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn issue_client_cert_rename_failure_leaves_an_undelivered_row_that_reconciles_away() {
-        use zeroclaw_runtime::security::cert_ledger::{CertLedger, CertStatus, revoked_list_path};
+        use max_runtime::security::cert_ledger::{CertLedger, CertStatus, revoked_list_path};
         let dir = tempfile::tempdir().expect("tempdir");
         let out = tempfile::tempdir().expect("out tempdir");
         let config = Config {
             data_dir: dir.path().to_path_buf(),
             ..Default::default()
         };
-        zeroclaw_tls::ensure_server_materials(&config.data_dir.join("tls"), &[])
+        max_tls::ensure_server_materials(&config.data_dir.join("tls"), &[])
             .expect("daemon TLS materials");
 
         // Make the publication rename fail the way a real filesystem does:
@@ -12770,7 +12770,7 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn revoke_client_cert_handler_materializes_the_revoked_file() {
-        use zeroclaw_runtime::security::cert_ledger::{
+        use max_runtime::security::cert_ledger::{
             CertLedger, CertStatus, IssuanceActor, LedgerEntry, revoked_list_path,
         };
         let dir = tempfile::tempdir().expect("tempdir");
@@ -12822,11 +12822,11 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn revoke_and_list_client_cert_cli_parsing() {
         // Neither selector -> rejected.
-        assert!(Cli::try_parse_from(["zeroclaw", "security", "revoke-client-cert"]).is_err());
+        assert!(Cli::try_parse_from(["max", "security", "revoke-client-cert"]).is_err());
         // Both selectors -> rejected (mutually exclusive).
         assert!(
             Cli::try_parse_from([
-                "zeroclaw",
+                "max",
                 "security",
                 "revoke-client-cert",
                 "--fingerprint",
@@ -12838,7 +12838,7 @@ mod tests {
         );
         // Exactly one selector -> parses.
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "security",
             "revoke-client-cert",
             "--fingerprint",
@@ -12859,7 +12859,7 @@ mod tests {
             other => panic!("expected revoke-client-cert, got {other:?}"),
         }
         // list-client-certs parses with --json.
-        let cli = Cli::try_parse_from(["zeroclaw", "security", "list-client-certs", "--json"])
+        let cli = Cli::try_parse_from(["max", "security", "list-client-certs", "--json"])
             .expect("list parses");
         assert!(matches!(
             cli.command,
@@ -12875,17 +12875,17 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn gateway_get_paircode_rotate_flags_parse_and_conflict() {
-        let cli = Cli::try_parse_from(["zeroclaw", "gateway", "get-paircode", "--rotate"])
+        let cli = Cli::try_parse_from(["max", "gateway", "get-paircode", "--rotate"])
             .expect("gateway get-paircode --rotate should parse");
         match cli.command {
             Commands::Gateway {
-                gateway_command: Some(zeroclaw::GatewayCommands::GetPaircode { rotate, .. }),
+                gateway_command: Some(max::GatewayCommands::GetPaircode { rotate, .. }),
             } => assert!(rotate),
             other => panic!("expected gateway get-paircode command, got {other:?}"),
         }
 
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "gateway",
             "get-paircode",
             "--rotate-device",
@@ -12894,19 +12894,19 @@ mod tests {
         .expect("gateway get-paircode --rotate-device should parse");
         match cli.command {
             Commands::Gateway {
-                gateway_command: Some(zeroclaw::GatewayCommands::GetPaircode { rotate_device, .. }),
+                gateway_command: Some(max::GatewayCommands::GetPaircode { rotate_device, .. }),
             } => assert_eq!(rotate_device.as_deref(), Some("dash-1")),
             other => panic!("expected gateway get-paircode command, got {other:?}"),
         }
 
         assert!(
-            Cli::try_parse_from(["zeroclaw", "gateway", "get-paircode", "--new", "--rotate"])
+            Cli::try_parse_from(["max", "gateway", "get-paircode", "--new", "--rotate"])
                 .is_err(),
             "--new and --rotate must conflict"
         );
         assert!(
             Cli::try_parse_from([
-                "zeroclaw",
+                "max",
                 "gateway",
                 "get-paircode",
                 "--rotate",
@@ -12952,10 +12952,10 @@ mod tests {
 
         assert!(msg.contains(&t(
             "cli-pairing-show-only",
-            "`zeroclaw gateway get-paircode` only displays an existing active code; it does not mint a new one.",
+            "`max gateway get-paircode` only displays an existing active code; it does not mint a new one.",
         )));
-        assert!(msg.contains("zeroclaw gateway get-paircode --new"));
-        assert!(msg.contains("zeroclaw gateway get-paircode --rotate"));
+        assert!(msg.contains("max gateway get-paircode --new"));
+        assert!(msg.contains("max gateway get-paircode --rotate"));
         assert!(msg.contains("open http://127.0.0.1:42617"));
     }
 
@@ -12974,10 +12974,10 @@ mod tests {
         );
 
         assert!(
-            msg.contains("zeroclaw gateway get-paircode --new --port 9001 --host 192.168.1.20")
+            msg.contains("max gateway get-paircode --new --port 9001 --host 192.168.1.20")
         );
         assert!(
-            msg.contains("zeroclaw gateway get-paircode --rotate --port 9001 --host 192.168.1.20")
+            msg.contains("max gateway get-paircode --rotate --port 9001 --host 192.168.1.20")
         );
         assert!(msg.contains("open http://192.168.1.20:9001"));
     }
@@ -13020,8 +13020,8 @@ mod tests {
             None,
         );
 
-        assert!(msg.contains("zeroclaw gateway get-paircode --new\n"));
-        assert!(msg.contains("zeroclaw gateway get-paircode --rotate\n"));
+        assert!(msg.contains("max gateway get-paircode --new\n"));
+        assert!(msg.contains("max gateway get-paircode --rotate\n"));
         assert!(!msg.contains("--port 9001"));
         assert!(!msg.contains("--host 192.168.1.20"));
     }
@@ -13044,7 +13044,7 @@ mod tests {
             "cli-pairing-new-code-unavailable",
             "The gateway did not mint a new pairing code. A code may already be pending, or pairing may need a reset.",
         )));
-        assert!(msg.contains("zeroclaw gateway get-paircode --rotate"));
+        assert!(msg.contains("max gateway get-paircode --rotate"));
     }
 
     #[test]
@@ -13068,16 +13068,16 @@ mod tests {
             String::new(),
             t(
                 "cli-pairing-show-only",
-                "`zeroclaw gateway get-paircode` only displays an existing active code; it does not mint a new one.",
+                "`max gateway get-paircode` only displays an existing active code; it does not mint a new one.",
             ),
             t("cli-pairing-pair-another", "To pair another device, run:"),
-            "    zeroclaw gateway get-paircode --new".into(),
+            "    max gateway get-paircode --new".into(),
             String::new(),
             t(
                 "cli-pairing-revoke-replace",
                 "To revoke existing pairings and mint a replacement code, run:",
             ),
-            "    zeroclaw gateway get-paircode --rotate".into(),
+            "    max gateway get-paircode --rotate".into(),
             String::new(),
             t("cli-pairing-inspect", "To inspect the running gateway:"),
             "    open http://127.0.0.1:42617".into(),
@@ -13164,8 +13164,8 @@ mod tests {
 
         assert!(msg.contains("Port 42617 is already in use"));
         assert!(msg.contains("open http://127.0.0.1:42617"));
-        assert!(msg.contains("zeroclaw gateway get-paircode\n"));
-        assert!(msg.contains("zeroclaw gateway start --port 42618"));
+        assert!(msg.contains("max gateway get-paircode\n"));
+        assert!(msg.contains("max gateway start --port 42618"));
         assert!(msg.contains("lsof -nP -iTCP:42617 -sTCP:LISTEN"));
     }
 
@@ -13176,8 +13176,8 @@ mod tests {
             gateway_addr_in_use_message("0.0.0.0", 9001, &default.host, default.port, Some(9002));
 
         assert!(!msg.contains("open http://127.0.0.1:42617"));
-        assert!(msg.contains("zeroclaw gateway get-paircode --port 9001 --host 0.0.0.0"));
-        assert!(msg.contains("zeroclaw gateway start --port 9002 --host 0.0.0.0"));
+        assert!(msg.contains("max gateway get-paircode --port 9001 --host 0.0.0.0"));
+        assert!(msg.contains("max gateway start --port 9002 --host 0.0.0.0"));
         assert!(msg.contains("lsof -nP -iTCP:9001 -sTCP:LISTEN"));
     }
 
@@ -13200,8 +13200,8 @@ mod tests {
         let msg =
             gateway_addr_in_use_message("127.0.0.1", 42617, &default.host, default.port, None);
 
-        assert!(msg.contains("zeroclaw gateway get-paircode\n"));
-        assert!(!msg.contains("zeroclaw gateway start --port"));
+        assert!(msg.contains("max gateway get-paircode\n"));
+        assert!(!msg.contains("max gateway start --port"));
         assert!(msg.contains("lsof -nP -iTCP:42617 -sTCP:LISTEN"));
     }
 
@@ -13222,11 +13222,11 @@ mod tests {
         );
 
         assert!(
-            !msg.contains(&format!("zeroclaw gateway start --port {}", port + 1)),
+            !msg.contains(&format!("max gateway start --port {}", port + 1)),
             "{msg}"
         );
         assert!(
-            msg.contains(&format!("zeroclaw gateway start --port {available_port}")),
+            msg.contains(&format!("max gateway start --port {available_port}")),
             "{msg}"
         );
     }
@@ -13236,7 +13236,7 @@ mod tests {
         let msg = gateway_addr_in_use_message("192.168.1.20", 9001, "192.168.1.20", 9001, None);
 
         assert!(msg.contains("open http://192.168.1.20:9001"));
-        assert!(msg.contains("zeroclaw gateway get-paircode\n"));
+        assert!(msg.contains("max gateway get-paircode\n"));
         assert!(!msg.contains("get-paircode --port 9001"));
     }
 
@@ -13254,7 +13254,7 @@ mod tests {
 
     #[test]
     fn gateway_bind_addr_resolver_accepts_bracketed_ipv6_hosts() {
-        let addr = zeroclaw_infra::effective_gateway_bind_socket_addr("[::1]", 9001);
+        let addr = max_infra::effective_gateway_bind_socket_addr("[::1]", 9001);
 
         assert_eq!(addr.port(), 9001);
         assert!(addr.is_ipv6());
@@ -13303,7 +13303,7 @@ mod tests {
     fn onboard_cli_quick_and_channels_only_conflict() {
         // --quick and --channels-only should both parse at the CLI level
         // (the conflict is checked at runtime), but we verify both flags parse.
-        let cli = Cli::try_parse_from(["zeroclaw", "onboard", "--quick", "--channels-only"]);
+        let cli = Cli::try_parse_from(["max", "onboard", "--quick", "--channels-only"]);
         assert!(
             cli.is_ok(),
             "--quick --channels-only should parse at CLI level"
@@ -13313,7 +13313,7 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_bare_parses() {
-        let cli = Cli::try_parse_from(["zeroclaw", "onboard"]).expect("bare onboard should parse");
+        let cli = Cli::try_parse_from(["max", "onboard"]).expect("bare onboard should parse");
 
         match cli.command {
             Commands::Onboard { section, .. } => assert!(section.is_none()),
@@ -13324,8 +13324,8 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn onboard_cli_positional_sections_parse() {
-        for w in zeroclaw_config::sections::QUICKSTART_SECTIONS {
-            let cli = Cli::try_parse_from(["zeroclaw", "onboard", w.as_str()])
+        for w in max_config::sections::QUICKSTART_SECTIONS {
+            let cli = Cli::try_parse_from(["max", "onboard", w.as_str()])
                 .unwrap_or_else(|_| panic!("onboard {} should parse", w.as_str()));
             match cli.command {
                 Commands::Onboard { section, .. } => assert_eq!(section, Some(*w)),
@@ -13339,17 +13339,17 @@ mod tests {
     fn homebrew_onboard_config_dir_detects_cellar_paths() {
         assert_eq!(
             resolve_homebrew_onboard_config_dir(
-                Path::new("/opt/homebrew/Cellar/zeroclaw/0.8.0/bin/zeroclaw"),
+                Path::new("/opt/homebrew/Cellar/max/0.8.0/bin/max"),
                 |_| None,
             ),
-            Some(PathBuf::from("/opt/homebrew/var/zeroclaw")),
+            Some(PathBuf::from("/opt/homebrew/var/max")),
         );
         assert_eq!(
             resolve_homebrew_onboard_config_dir(
-                Path::new("/usr/local/Cellar/zeroclaw/0.8.0/bin/zeroclaw"),
+                Path::new("/usr/local/Cellar/max/0.8.0/bin/max"),
                 |_| None,
             ),
-            Some(PathBuf::from("/usr/local/var/zeroclaw")),
+            Some(PathBuf::from("/usr/local/var/max")),
         );
     }
 
@@ -13359,27 +13359,27 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let prefix = temp.path().join("homebrew");
         std::fs::create_dir_all(prefix.join("Cellar")).expect("create Cellar marker");
-        let exe = prefix.join("bin/zeroclaw");
+        let exe = prefix.join("bin/max");
 
         assert_eq!(
             resolve_homebrew_onboard_config_dir(&exe, |_| None),
-            Some(prefix.join("var/zeroclaw")),
+            Some(prefix.join("var/max")),
         );
     }
 
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn homebrew_onboard_config_dir_preserves_explicit_runtime_paths() {
-        let exe = Path::new("/opt/homebrew/Cellar/zeroclaw/0.8.0/bin/zeroclaw");
+        let exe = Path::new("/opt/homebrew/Cellar/max/0.8.0/bin/max");
 
         for var in [
-            "ZEROCLAW_CONFIG_DIR",
-            "ZEROCLAW_DATA_DIR",
-            "ZEROCLAW_WORKSPACE",
+            "MAX_CONFIG_DIR",
+            "MAX_DATA_DIR",
+            "MAX_WORKSPACE",
         ] {
             assert_eq!(
                 resolve_homebrew_onboard_config_dir(exe, |name| {
-                    (name == var).then(|| "/tmp/zeroclaw-explicit".to_string())
+                    (name == var).then(|| "/tmp/max-explicit".to_string())
                 }),
                 None,
                 "{var} should take precedence over Homebrew detection",
@@ -13390,11 +13390,11 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn homebrew_onboard_config_dir_treats_workspace_whitespace_as_explicit() {
-        let exe = Path::new("/opt/homebrew/Cellar/zeroclaw/0.8.0/bin/zeroclaw");
+        let exe = Path::new("/opt/homebrew/Cellar/max/0.8.0/bin/max");
 
         assert_eq!(
             resolve_homebrew_onboard_config_dir(exe, |name| {
-                (name == "ZEROCLAW_WORKSPACE").then(|| "   ".to_string())
+                (name == "MAX_WORKSPACE").then(|| "   ".to_string())
             }),
             None,
         );
@@ -13403,7 +13403,7 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn apply_homebrew_onboard_config_dir_sets_detected_config_dir() {
-        let exe = Path::new("/opt/homebrew/Cellar/zeroclaw/0.8.0/bin/zeroclaw");
+        let exe = Path::new("/opt/homebrew/Cellar/max/0.8.0/bin/max");
         let mut applied = None;
 
         let detected = apply_homebrew_onboard_config_dir_with(
@@ -13412,12 +13412,12 @@ mod tests {
             |name, value| applied = Some((name, value.to_path_buf())),
         );
 
-        assert_eq!(detected, Some(PathBuf::from("/opt/homebrew/var/zeroclaw")));
+        assert_eq!(detected, Some(PathBuf::from("/opt/homebrew/var/max")));
         assert_eq!(
             applied,
             Some((
-                "ZEROCLAW_CONFIG_DIR",
-                PathBuf::from("/opt/homebrew/var/zeroclaw"),
+                "MAX_CONFIG_DIR",
+                PathBuf::from("/opt/homebrew/var/max"),
             )),
         );
     }
@@ -13425,12 +13425,12 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn apply_homebrew_onboard_config_dir_skips_explicit_config_dir() {
-        let exe = Path::new("/opt/homebrew/Cellar/zeroclaw/0.8.0/bin/zeroclaw");
+        let exe = Path::new("/opt/homebrew/Cellar/max/0.8.0/bin/max");
         let mut applied = None;
 
         let detected = apply_homebrew_onboard_config_dir_with(
             exe,
-            |name| (name == "ZEROCLAW_CONFIG_DIR").then(|| "/tmp/zeroclaw".to_string()),
+            |name| (name == "MAX_CONFIG_DIR").then(|| "/tmp/max".to_string()),
             |name, value| applied = Some((name, value.to_path_buf())),
         );
 
@@ -13441,7 +13441,7 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn cli_parses_estop_default_engage() {
-        let cli = Cli::try_parse_from(["zeroclaw", "estop"]).expect("estop command should parse");
+        let cli = Cli::try_parse_from(["max", "estop"]).expect("estop command should parse");
 
         match cli.command {
             Commands::Estop {
@@ -13462,7 +13462,7 @@ mod tests {
     #[test]
     #[cfg(feature = "agent-runtime")]
     fn cli_parses_estop_resume_domain() {
-        let cli = Cli::try_parse_from(["zeroclaw", "estop", "resume", "--domain", "*.chase.com"])
+        let cli = Cli::try_parse_from(["max", "estop", "resume", "--domain", "*.chase.com"])
             .expect("estop resume command should parse");
 
         match cli.command {
@@ -13478,7 +13478,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn agent_command_parses_with_temperature() {
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "agent",
             "--agent",
             "morning-shift",
@@ -13499,7 +13499,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn agent_command_parses_without_temperature() {
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "agent",
             "--agent",
             "morning-shift",
@@ -13520,7 +13520,7 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     fn agent_command_parses_session_state_file() {
         let cli = Cli::try_parse_from([
-            "zeroclaw",
+            "max",
             "agent",
             "--agent",
             "morning-shift",
@@ -13598,7 +13598,7 @@ mod tests {
         );
 
         let known_paths: Vec<String> = config.prop_fields().into_iter().map(|f| f.name).collect();
-        let api_key_path = zeroclaw_config::helpers::resolve_field_path(
+        let api_key_path = max_config::helpers::resolve_field_path(
             &known_paths,
             "providers.models.deepseek.default.api-key",
         );
@@ -13692,12 +13692,12 @@ mod tests {
         // Mirror the CLI `config set` path exactly: resolve, materialize the
         // map key, then re-resolve so the now-present alias field is found.
         let known: Vec<String> = config.prop_fields().into_iter().map(|f| f.name).collect();
-        let mut path = zeroclaw_config::helpers::resolve_field_path(&known, raw);
+        let mut path = max_config::helpers::resolve_field_path(&known, raw);
         let created = ensure_map_key_for_prop_path(&mut config, &path)
             .expect("known typed transcription provider path should be materialized");
         assert!(created, "missing transcription alias should be created");
         let known: Vec<String> = config.prop_fields().into_iter().map(|f| f.name).collect();
-        path = zeroclaw_config::helpers::resolve_field_path(&known, &path);
+        path = max_config::helpers::resolve_field_path(&known, &path);
 
         config
             .set_prop_persistent(&path, "whisper-large-v3")
@@ -13787,15 +13787,15 @@ mod tests {
         let raw = "agents.assistant.workspace.path";
 
         let known: Vec<String> = config.prop_fields().into_iter().map(|f| f.name).collect();
-        let mut path = zeroclaw_config::helpers::resolve_field_path(&known, raw);
+        let mut path = max_config::helpers::resolve_field_path(&known, raw);
         let created = ensure_map_key_for_prop_path(&mut config, &path)
             .expect("agent alias and workspace path should materialize");
         assert!(created, "missing agent alias should be created");
 
         let known: Vec<String> = config.prop_fields().into_iter().map(|f| f.name).collect();
-        path = zeroclaw_config::helpers::resolve_field_path(&known, &path);
+        path = max_config::helpers::resolve_field_path(&known, &path);
         config
-            .set_prop_persistent(&path, "/srv/zeroclaw/assistant")
+            .set_prop_persistent(&path, "/srv/max/assistant")
             .expect("agent workspace path should be writable");
 
         assert_eq!(path, raw);
@@ -13804,7 +13804,7 @@ mod tests {
                 .agents
                 .get("assistant")
                 .and_then(|agent| agent.workspace.path.as_deref()),
-            Some(std::path::Path::new("/srv/zeroclaw/assistant"))
+            Some(std::path::Path::new("/srv/max/assistant"))
         );
     }
 
@@ -13833,7 +13833,7 @@ mod tests {
         let mut config = Config::default();
         config.cron.insert(
             "morning-brief".to_string(),
-            zeroclaw_config::schema::CronJobDecl::default(),
+            max_config::schema::CronJobDecl::default(),
         );
 
         let created = ensure_map_key_for_prop_path(&mut config, "cron.morning-brief.name")
@@ -13863,7 +13863,7 @@ mod tests {
 
     // `config init` alias tests. Every test in this module builds a bare
     // `Config::default()`, whose `config_path` points at the developer's real
-    // `~/.zeroclaw/config.toml`, and no gate catches a write from `src/`. These
+    // `~/.max/config.toml`, and no gate catches a write from `src/`. These
     // stay safe only by calling `init_map_alias` and in-memory readers such as
     // `get_map_keys` — never `save()`, `save_dirty()`, a persisting `set_prop`,
     // `ensure_disk_at_current_version`, or the real `ConfigCommands::Init` arm.
@@ -13989,9 +13989,9 @@ mod tests {
     #[cfg(feature = "agent-runtime")]
     async fn sop_maintenance_tick_dispatches_cached_cron_triggers() {
         use std::sync::{Arc, Mutex};
-        use zeroclaw_config::schema::{MemoryConfig, SopConfig};
-        use zeroclaw_memory::traits::Memory;
-        use zeroclaw_runtime::sop::{
+        use max_config::schema::{MemoryConfig, SopConfig};
+        use max_memory::traits::Memory;
+        use max_runtime::sop::{
             Sop, SopEngine, SopExecutionMode, SopPriority, SopStep, SopStepKind, SopTrigger,
         };
 
@@ -14019,7 +14019,7 @@ mod tests {
             max_concurrent: 2,
             location: None,
             deterministic: false,
-            admission_policy: zeroclaw_runtime::sop::types::SopAdmissionPolicy::Parallel,
+            admission_policy: max_runtime::sop::types::SopAdmissionPolicy::Parallel,
             max_pending_approvals: 0,
             agent: None,
         }]);
@@ -14031,9 +14031,9 @@ mod tests {
             ..MemoryConfig::default()
         };
         let memory: Arc<dyn Memory> =
-            Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
-        let audit = Arc::new(zeroclaw_runtime::sop::SopAuditLogger::new(memory));
-        let cache = zeroclaw_runtime::sop::dispatch::SopCronCache::from_engine(&engine);
+            Arc::from(max_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let audit = Arc::new(max_runtime::sop::SopAuditLogger::new(memory));
+        let cache = max_runtime::sop::dispatch::SopCronCache::from_engine(&engine);
 
         let mut last_cron_check = chrono::Utc::now() - chrono::Duration::minutes(2);
         let report =

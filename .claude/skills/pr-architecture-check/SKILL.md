@@ -3,7 +3,7 @@ name: pr-architecture-check
 description: "Advisory architecture review of a PR diff. Validates dependency direction, trait boundary compliance, extension pattern conformance, and crate placement against AGENTS.md and FND-001. Posts a non-blocking comment; never gates merge. Trigger on: 'arch-check #N', 'architecture check #N'."
 ---
 
-# ZeroClaw PR Architecture Check — Advisory Review
+# Max PR Architecture Check — Advisory Review
 
 You perform an advisory architecture review of a pull request against the
 project's documented architecture constraints. Your output is informational
@@ -36,11 +36,11 @@ architecture check #1234
 Run these in parallel:
 
 ```bash
-gh pr diff <N> --repo zeroclaw-labs/zeroclaw
+gh pr diff <N> --repo max-labs/max
 ```
 
 ```bash
-gh pr view <N> --repo zeroclaw-labs/zeroclaw --json files,title,baseRefName,labels,number
+gh pr view <N> --repo max-labs/max --json files,title,baseRefName,labels,number
 ```
 
 ### Step 2 — Load architecture references
@@ -56,12 +56,12 @@ gh pr view <N> --repo zeroclaw-labs/zeroclaw --json files,title,baseRefName,labe
 
 | Files touched | Also load |
 |---|---|
-| `crates/zeroclaw-api/` | Extension examples: `docs/book/src/developing/extension-examples.md` |
-| `crates/zeroclaw-runtime/` | FND-001 §Phase 2 (runtime extraction) |
-| `crates/zeroclaw-gateway/` | FND-001 §Phase 3 (gateway separation) |
-| `crates/zeroclaw-plugins/` | FND-001 §Phase 4 (plugin platform) |
-| `crates/zeroclaw-channels/` or `crates/zeroclaw-tools/` | Extension examples doc |
-| `crates/zeroclaw-config/` or `crates/zeroclaw-macros/` | Config schema conventions in AGENTS.md |
+| `crates/max-api/` | Extension examples: `docs/book/src/developing/extension-examples.md` |
+| `crates/max-runtime/` | FND-001 §Phase 2 (runtime extraction) |
+| `crates/max-gateway/` | FND-001 §Phase 3 (gateway separation) |
+| `crates/max-plugins/` | FND-001 §Phase 4 (plugin platform) |
+| `crates/max-channels/` or `crates/max-tools/` | Extension examples doc |
+| `crates/max-config/` or `crates/max-macros/` | Config schema conventions in AGENTS.md |
 | `.github/workflows/` | FND-003 governance, CI risk tier (high risk per AGENTS.md) |
 
 ### Step 3 — Analyze
@@ -131,7 +131,7 @@ Once, and only once, the human has explicitly approved, post the artifact as a
 PR comment. The comment must include the advisory header.
 
 ```bash
-gh pr comment <N> --repo zeroclaw-labs/zeroclaw \
+gh pr comment <N> --repo max-labs/max \
   --body-file tmp/arch-review-<N>.md
 ```
 

@@ -1,6 +1,6 @@
 # PR Review Protocol
 
-This is the procedure followed when reviewing a pull request in `zeroclaw-labs/zeroclaw`. It's loaded by the `github-pr-review-session` skill and read by human reviewers, it's authoritative for both.
+This is the procedure followed when reviewing a pull request in `max-labs/max`. It's loaded by the `github-pr-review-session` skill and read by human reviewers, it's authoritative for both.
 
 The `gh` CLI is assumed available and authenticated.
 
@@ -25,7 +25,7 @@ Run all of these. The data informs every step that follows.
    #### sh
 
    ```sh
-   gh pr view <number> --repo zeroclaw-labs/zeroclaw
+   gh pr view <number> --repo max-labs/max
    ```
 
    </div>
@@ -39,7 +39,7 @@ Run all of these. The data informs every step that follows.
    #### sh
 
    ```sh
-   gh pr view <number> --comments --repo zeroclaw-labs/zeroclaw
+   gh pr view <number> --comments --repo max-labs/max
    ```
 
    </div>
@@ -51,7 +51,7 @@ Run all of these. The data informs every step that follows.
    #### sh
 
    ```sh
-   gh api repos/zeroclaw-labs/zeroclaw/pulls/<number>/comments --paginate
+   gh api repos/max-labs/max/pulls/<number>/comments --paginate
    ```
 
    </div>
@@ -65,7 +65,7 @@ Run all of these. The data informs every step that follows.
    #### sh
 
    ```sh
-   gh api repos/zeroclaw-labs/zeroclaw/pulls/<number>/reviews --paginate
+   gh api repos/max-labs/max/pulls/<number>/reviews --paginate
    ```
 
    </div>
@@ -94,7 +94,7 @@ Run all of these. The data informs every step that follows.
    #### sh
 
    ```sh
-   gh pr diff <number> --repo zeroclaw-labs/zeroclaw
+   gh pr diff <number> --repo max-labs/max
    ```
 
    </div>
@@ -238,7 +238,7 @@ Write the review body to a file under `tmp/review-<number>.md` first: this is th
 #### sh
 
 ```sh
-gh pr review <number> --repo zeroclaw-labs/zeroclaw \
+gh pr review <number> --repo max-labs/max \
   <--approve | --request-changes | --comment> \
   --body-file tmp/review-<number>.md
 ```

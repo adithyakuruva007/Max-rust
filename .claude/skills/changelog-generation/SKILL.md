@@ -1,11 +1,11 @@
 ---
 name: changelog-generation
-description: "Changelog generation skill for ZeroClaw releases. Use this skill when the user wants to generate a changelog, prepare release notes, or summarize what changed between versions. Trigger on: 'generate changelog', 'changelog for v0.7.x', 'prepare release notes', 'what changed since <tag>', 'write the changelog', 'CHANGELOG-next', 'release notes for the next release'."
+description: "Changelog generation skill for Max releases. Use this skill when the user wants to generate a changelog, prepare release notes, or summarize what changed between versions. Trigger on: 'generate changelog', 'changelog for v0.7.x', 'prepare release notes', 'what changed since <tag>', 'write the changelog', 'CHANGELOG-next', 'release notes for the next release'."
 ---
 
-# ZeroClaw Changelog Generation
+# Max Changelog Generation
 
-You are generating a human-friendly `CHANGELOG-next.md` for a ZeroClaw release.
+You are generating a human-friendly `CHANGELOG-next.md` for a Max release.
 The GitHub CLI (`gh`) is available and authenticated. The local repository is
 checked out and up to date.
 
@@ -88,7 +88,7 @@ contributors.
 
 ```bash
 gh api graphql -f query='
-{ repository(owner:"zeroclaw-labs", name:"zeroclaw") {
+{ repository(owner:"max-labs", name:"max") {
     ref(qualifiedName:"refs/heads/master") { target { ... on Commit {
       history(first:100) {
         pageInfo { hasNextPage endCursor }
@@ -138,7 +138,7 @@ post a reader would want, not as a summary of the sections below:
 - Reference shape, from v0.8.5:
 
   ```
-  ZeroRelay + ZeroRouter, together — a blind relay with native mTLS, and a hosted model router.
+  MaxRelay + ZeroRouter, together — a blind relay with native mTLS, and a hosted model router.
 
   Plus multi-chat with image upload, live thinking, two new providers, and hardened plugin, skill, sandbox, and webhook boundaries.
   ```
@@ -173,7 +173,7 @@ git push upstream <branch>
 ```
 
 Replace `vX.Y.Z` with the next release version — ask the user if unsure.
-Push to the open release PR branch on `zeroclaw-labs/zeroclaw`. Do **not** push
+Push to the open release PR branch on `max-labs/max`. Do **not** push
 to `master` directly.
 
 ---

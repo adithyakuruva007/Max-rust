@@ -1,10 +1,10 @@
-# ZeroClaw v0.8.5
+# Max v0.8.5
 
-ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spanning **454 commits** from **73 contributors**. It introduces ZeroRelay and ZeroRouter, expands live chat and provider capabilities, hardens plugin, sandbox, webhook, credential, and file boundaries, and makes cross-platform builds and coordinated crate publication more reproducible. This release also removes or narrows several deprecated surfaces; review [Breaking Changes](#breaking-changes) before upgrading plugins, skills, legacy node integrations, WATI deployments, TodoWrite configuration, or contributor tooling.
+Max v0.8.5 is a security, connectivity, and operator-experience release spanning **454 commits** from **73 contributors**. It introduces MaxRelay and ZeroRouter, expands live chat and provider capabilities, hardens plugin, sandbox, webhook, credential, and file boundaries, and makes cross-platform builds and coordinated crate publication more reproducible. This release also removes or narrows several deprecated surfaces; review [Breaking Changes](#breaking-changes) before upgrading plugins, skills, legacy node integrations, WATI deployments, TodoWrite configuration, or contributor tooling.
 
 ## Highlights
 
-- **ZeroRelay and ZeroRouter arrive together:** ZeroRelay provides blind forwarding with native mTLS enrollment, while ZeroRouter adds a first-class hosted routing preset and public model catalog (#10142, #9645, #10453).
+- **MaxRelay and ZeroRouter arrive together:** MaxRelay provides blind forwarding with native mTLS enrollment, while ZeroRouter adds a first-class hosted routing preset and public model catalog (#10142, #9645, #10453).
 - **Chat becomes more capable:** the dashboard can keep several conversations open per agent, open the same agent in multiple tabs, and attach or drop images through the new upload path (#9353, #9355, #10544).
 - **Provider support expands:** Anthropic gains opt-in live thinking display, Grok Build ACP and Atlas Cloud become first-class providers, and compatible providers gain stronger response, attribution, image, proxy, and retry handling (#10542, #9104, #9200, #9404, #9974, #10448).
 - **Plugin and skill boundaries get substantially tighter:** typed instance configuration, scoped secrets, host-owned egress, bounded exports, path-traversal protection, and fail-closed skill HTTP execution now cover the main package and network trust boundaries (#9126, #9128, #9137, #9403, #9582, #10369, GHSA-93f6-34w8-5g98).
@@ -13,22 +13,22 @@ ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spa
 
 ## What's New
 
-### ZeroRelay, Routing, and Providers
+### MaxRelay, Routing, and Providers
 
-- Add ZeroRelay secure transport with blind forwarding, native mTLS enrollment, bounded admission, and per-node routing (#10142).
+- Add MaxRelay secure transport with blind forwarding, native mTLS enrollment, bounded admission, and per-node routing (#10142).
 - Add the ZeroRouter provider preset and public catalog, then point new defaults at the hosted beta deployment (#9645, #10453).
 - Add Anthropic `thinking.display` support so eligible models can stream readable thinking updates while retaining signed reasoning only for replay (#10542).
 - Add Grok Build ACP and Atlas Cloud providers, accept data-wrapped compatible responses, and centralize provider endpoint metadata (#9104, #9200, #9404, #9747).
 - Preserve OpenRouter attribution and streaming metadata, model context during Gemini requests, compatible tool-result image policy, and accurate served-model and lifecycle accounting (#9974, #9782, #10435, #10448, #10027, #10144).
 - Improve terminal provider errors, model-list bounds, OAuth refresh behavior, proxy handling, and reasoning-tool fallback classification; retry replay-safe empty streams once and evict compatible-provider images individually (#10234, #10314, #10012, #9606, #9400, #10211, #10602, #10564).
 
-### Dashboard, ZeroCode, and RPC
+### Dashboard, MaxCode, and RPC
 
 - Hold several independent conversations per agent, allow the same agent to remain open in multiple chat tabs, and add session-local Todo close control (#9353, #9355, #10584).
 - Add image upload plus dashboard attach/drop UI through a bounded gateway endpoint (#10544).
 - Add queued-message recovery, transcript copy actions, selectable log text, text-editor cursor navigation, and Option-Backspace word deletion (#10057, #9994, #10096, #9287, #10078).
 - Add read-only SOP status and run views with live icons, authenticated cancellation, and responsive background refresh (#9694, #9688, #9692, #9476, #10392).
-- Keep chat WebSockets alive, preserve persisted ACP transcripts and prompt completion, expose `keep_siblings` control, and describe the originating ZeroCode interaction context on new sessions (#9701, #10380, #10466, #9738, #10382).
+- Keep chat WebSockets alive, preserve persisted ACP transcripts and prompt completion, expose `keep_siblings` control, and describe the originating MaxCode interaction context on new sessions (#9701, #10380, #10466, #9738, #10382).
 - Keep input and inactive-chat refresh responsive during reconnects, make modifier intent explicit, show the active log path on payload fallback, and improve terminal restoration, clipboard errors, mouse decoding, paste ownership, file-search keys, and local-session fallback (#10374, #10393, #10479, #10474, #10184, #10443, #10444, #10278, #10065, #10541).
 
 ### Channels, Gateway, SOP, and MCP
@@ -71,7 +71,7 @@ ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spa
 - Move routine CI and container builders to Rust 1.98 while retaining the declared Rust 1.96 source floor (#9527).
 - Publish the coordinated 23-crate workspace to crates.io through a tokenless tarball preflight and a protected, resumable upload job (#10158).
 - Add reader-scale and Mermaid controls, generate SOP syntax documentation from runtime sources, and update the docs toolchain to mdBook 0.5.4 (#10515, #10383, #10517).
-- Move the official website and documentation links to `zeroclaw.com` and `docs.zeroclaw.com` while retaining redirects from the legacy domain (#10616).
+- Move the official website and documentation links to `max.com` and `docs.max.com` while retaining redirects from the legacy domain (#10616).
 - Rehearse Scoop credentials before release, retry AUR publication through outages, detect stale packages, and bound shared apt installation attempts (#9785, #9787, #10156).
 
 ## Bug Fixes
@@ -81,8 +81,8 @@ ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spa
 | Providers | Harden stream completion and structured upstream errors; retry replay-safe empty streams; evict images individually; preserve compatible, OpenRouter, Gemini, proxy, fallback, and lifecycle metadata; and report terminal causes accurately (#8838, #9968, #9782, #10435, #10448, #9606, #10234, #10027, #10144, #10602, #10564) |
 | Runtime and agents | Detect context overflow through error causes, preserve session state from RPC prompts, retain detailed tool output alongside short errors, serialize live provider replacement, make streamed user turns conversational, clarify operator denials, and keep Docker runtime boundaries intact (#10416, #10030, #10364, #9748, #9325, #10490, #9402) |
 | Channels | Repair health ownership, transcription routing, Matrix reasoning identity, Telegram history and media, WhatsApp group-policy and persistence behavior, inbound alias attribution, approval authorization, and cancellation-aware filesystem listeners (#10005, #10494, #10487, #10481, #10418, #9563, #9382, #10438, #10029, #9574, #10217) |
-| ZeroCode | Clear disconnected dashboard state, restore ACP transcripts and prompt completion, keep reconnect input and inactive-chat refresh responsive, keep SOP navigation responsive, preserve terminal and paste ownership, surface clipboard failures, and repair mouse and search behavior (#10260, #10380, #10466, #10374, #10393, #10392, #10184, #10278, #10443, #10444, #10065) |
-| Configuration | Honor `ZEROCLAW_CONFIG_DIR`, reject unsafe bare-path overwrites, complete required sections consistently, preserve cost-cache and period calculations, migrate legacy provider selectors, and roll back failed map-alias writes (#10521, #10498, #10476, #10482, #10462, #9707, #9281) |
+| MaxCode | Clear disconnected dashboard state, restore ACP transcripts and prompt completion, keep reconnect input and inactive-chat refresh responsive, keep SOP navigation responsive, preserve terminal and paste ownership, surface clipboard failures, and repair mouse and search behavior (#10260, #10380, #10466, #10374, #10393, #10392, #10184, #10278, #10443, #10444, #10065) |
+| Configuration | Honor `MAX_CONFIG_DIR`, reject unsafe bare-path overwrites, complete required sections consistently, preserve cost-cache and period calculations, migrate legacy provider selectors, and roll back failed map-alias writes (#10521, #10498, #10476, #10482, #10462, #9707, #9281) |
 | Security | Close sandbox, path, egress, webhook, secret-redaction, approval, and action-budget gaps across Wasmtime, Landlock, plugins, skills, shell, channels, and audit exports (#10508, #10100, #10098, #9937, #9582, #10369, #9384, #10367, #9569, #9995, #9996) |
 | Plugins, skills, and tools | Enforce typed plugin configuration, scope secrets and egress, prevent install races, preserve skill-review history, keep coding environments intact, and replace panic-prone tool assumptions with ordinary errors (#9126, #9128, #9582, #10367, #9515, #10403, #10129) |
 | Cron, SOP, and memory | Make agent-scoped cron updates atomic, preserve scheduler workspace and originating delivery aliases, map command patches to prompts, retain SOP failure causes, and preserve memory snapshot and pgvector initialization integrity (#10177, #10253, #9941, #10258, #9957, #10469, #10209) |
@@ -92,13 +92,13 @@ ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spa
 
 ## Breaking Changes
 
-- **Typed plugin instance configuration is mandatory.** Plugins that read operator configuration must declare a schema and use the full instance key shown by `zeroclaw plugin info <package>`; legacy package- or binding-only entries are not consulted (#9126).
+- **Typed plugin instance configuration is mandatory.** Plugins that read operator configuration must declare a schema and use the full instance key shown by `max plugin info <package>`; legacy package- or binding-only entries are not consulted (#9126).
 - **Skill HTTP requests are now fail-closed.** Placeholders are URL-component values and can no longer inject `/`, `?`, `&`, or `#`; redirects and ambient proxy variables are ignored; destinations must resolve directly to admitted public addresses. Update affected skill manifests to use direct URLs and data-only placeholders (#10369).
 - **The legacy node transport is retired.** Delete `[node_transport]` from `config.toml`; `[nodes]` remains supported. External Rust users must remove imports of `NodeTransport`, `sign_request`, and `verify_request`, and should rotate the retired secret anywhere it was reused (#10289).
-- **TodoWrite display configuration moved to ZeroCode.** Copy `[todotracker]` values into `<config-dir>/zerocode-config.toml`, replace recognized `ZEROCLAW_todotracker__*` variables with `ZEROCODE_todotracker__*`, then remove the daemon section (#9013).
+- **TodoWrite display configuration moved to MaxCode.** Copy `[todotracker]` values into `<config-dir>/maxcode-config.toml`, replace recognized `MAX_todotracker__*` variables with `MAXCODE_todotracker__*`, then remove the daemon section (#9013).
 - **The WATI channel was removed.** Move deployments to WhatsApp Cloud or WhatsApp Web; stale WATI configuration remains only long enough to emit migration guidance (#9571).
 - **The Aardvark transport and legacy robot-kit crates were removed from the workspace.** Users that still need the in-tree integration should remain on v0.8.4; independently published library versions are unaffected (#9853).
-- **The root Cargo package is now named `zeroclaw`.** The installed binary name is unchanged, but contributor scripts using `cargo ... -p zeroclawlabs` must switch to `-p zeroclaw` (#9835).
+- **The root Cargo package is now named `max`.** The installed binary name is unchanged, but contributor scripts using `cargo ... -p maxlabs` must switch to `-p max` (#9835).
 
 ## Contributors
 
@@ -180,4 +180,4 @@ ZeroClaw v0.8.5 is a security, connectivity, and operator-experience release spa
 
 The 454-commit range contains 57 feature, 277 fix, 13 refactor, 2 performance, 27 documentation, 20 CI, 29 test, 28 chore, and one prefixless security-fix commit. Internal maintenance entries are grouped above when user-visible and remain available individually in the full comparison.
 
-**Full diff:** [Compare v0.8.4...v0.8.5](https://github.com/zeroclaw-labs/zeroclaw/compare/v0.8.4...v0.8.5)
+**Full diff:** [Compare v0.8.4...v0.8.5](https://github.com/max-labs/max/compare/v0.8.4...v0.8.5)

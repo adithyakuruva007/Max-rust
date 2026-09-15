@@ -27,7 +27,7 @@ The Project board is an automated planning board, not the authoritative PR revie
 
 Use the board for issue readiness, routing evidence, roadmap grouping, dependencies, blocker state, and stale-exemption reasons. Those signals move slowly enough that a board field or planning lane can stay useful.
 
-The current automation is manual and report-only. [`project-dashboard-plan.yml`](https://github.com/zeroclaw-labs/zeroclaw/blob/master/.github/workflows/project-dashboard-plan.yml) runs on `workflow_dispatch` for a single issue number, reads the issue payload, and writes a step summary proposing the existing Project Status value that best matches the issue's live labels and state. It does not write Project fields, edit issues, add labels, post comments, or run automatically on issue events.
+The current automation is manual and report-only. [`project-dashboard-plan.yml`](https://github.com/max-labs/max/blob/master/.github/workflows/project-dashboard-plan.yml) runs on `workflow_dispatch` for a single issue number, reads the issue payload, and writes a step summary proposing the existing Project Status value that best matches the issue's live labels and state. It does not write Project fields, edit issues, add labels, post comments, or run automatically on issue events.
 
 A JSON summary of this planning split lives in [`project-board-contract.json`](./project-board-contract.json). Treat it as the contract for the report-only planner and future board refresh automation, not as approval for automatic issue-event runs or active GitHub Project mutation yet. Live ProjectV2 writes need an approved field mapping, a project-scoped credential or app installation, and readback that compares planned status with live Project state before maintainers rely on it.
 
@@ -130,7 +130,7 @@ Before requesting review, the PR has all of these:
 - Validation evidence attached, actual command output, not "CI will check."
 - Security & privacy, compatibility, and (for risky paths) rollback fields completed.
 - Privacy and data-hygiene rules satisfied, neutral, project-scoped test wording. See [Privacy](../contributing/privacy.md).
-- Identity-like wording, where unavoidable, uses ZeroClaw / project-native labels.
+- Identity-like wording, where unavoidable, uses Max / project-native labels.
 
 ## Definition of Done (DoD)
 
@@ -202,9 +202,9 @@ The reviewer-side queue management, backlog pruning order, stale handling, label
 
 Review these paths attentively because they often contain boundary-relevant behavior:
 
-- `crates/zeroclaw-runtime/` (including `src/security/`)
-- `crates/zeroclaw-gateway/` (ingress, authentication, pairing)
-- `crates/zeroclaw-tools/` (anything with execution capability)
+- `crates/max-runtime/` (including `src/security/`)
+- `crates/max-gateway/` (ingress, authentication, pairing)
+- `crates/max-tools/` (anything with execution capability)
 - `.github/workflows/` and the release pipeline
 
 Path location alone does not select `risk:high`. Classify the actual diff and consequence under [Labels → Risk labels](./labels.md#risk-labels). A trust, credential, compatibility, governance, release-authority, or cross-cutting security boundary receives deep review when the PR carries `risk:high` or `domain:security`.

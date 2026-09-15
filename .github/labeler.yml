@@ -41,204 +41,204 @@
           - "src/alias_cli/**"
           - "src/cli_input.rs"
           - "src/memory/cli.rs"
-          - "crates/zeroclaw-commands/**"
-          - "crates/zeroclaw-runtime/src/cli_input.rs"
+          - "crates/max-commands/**"
+          - "crates/max-runtime/src/cli_input.rs"
 
 "agent":
   - changed-files:
       - any-glob-to-any-file:
           - "src/agent/**"
-          - "crates/zeroclaw-runtime/src/agent/**"
+          - "crates/max-runtime/src/agent/**"
 
 "channel":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/**"
-          - "crates/zeroclaw-channels/src/**"
+          - "crates/max-channels/src/**"
 
 "channel:core":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/mod.rs"
-          - "crates/zeroclaw-api/src/channel.rs"
-          - "crates/zeroclaw-channels/src/lib.rs"
-          - "crates/zeroclaw-channels/src/orchestrator/**"
+          - "crates/max-api/src/channel.rs"
+          - "crates/max-channels/src/lib.rs"
+          - "crates/max-channels/src/orchestrator/**"
 
 "channel:acp":
   - changed-files:
       - any-glob-to-any-file:
-          - "src/bin/zeroclaw-acp-bridge.rs"
+          - "src/bin/max-acp-bridge.rs"
           - "docs/book/src/channels/acp.md"
-          - "apps/zerocode/src/acp.rs"
+          - "apps/maxcode/src/acp.rs"
           - "web/src/lib/acp.ts"
           - "web/src/pages/AcpConsole.tsx"
-          - "crates/zeroclaw-channels/src/acp_channel.rs"
-          - "crates/zeroclaw-channels/src/orchestrator/acp_server.rs"
-          - "crates/zeroclaw-gateway/src/acp.rs"
-          - "crates/zeroclaw-infra/src/acp_session_store.rs"
+          - "crates/max-channels/src/acp_channel.rs"
+          - "crates/max-channels/src/orchestrator/acp_server.rs"
+          - "crates/max-gateway/src/acp.rs"
+          - "crates/max-infra/src/acp_session_store.rs"
 
 "channel:bluesky":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/bluesky.rs"
-          - "crates/zeroclaw-channels/src/bluesky.rs"
+          - "crates/max-channels/src/bluesky.rs"
 
 "channel:clawdtalk":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/clawdtalk.rs"
-          - "crates/zeroclaw-channels/src/clawdtalk.rs"
+          - "crates/max-channels/src/clawdtalk.rs"
 
 "channel:cli":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-channels/src/cli.rs"
+          - "crates/max-channels/src/cli.rs"
 
 "channel:dingtalk":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/dingtalk.rs"
-          - "crates/zeroclaw-channels/src/dingtalk.rs"
+          - "crates/max-channels/src/dingtalk.rs"
 
 "channel:discord":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/discord.rs"
-          - "crates/zeroclaw-channels/src/discord/**"
-          - "crates/zeroclaw-channels/src/discord_slash_state.rs"
+          - "crates/max-channels/src/discord/**"
+          - "crates/max-channels/src/discord_slash_state.rs"
 
 "channel:email":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/email_channel.rs"
           - "src/channels/gmail_push.rs"
-          - "crates/zeroclaw-channels/src/email_channel.rs"
-          - "crates/zeroclaw-channels/src/gmail_push.rs"
+          - "crates/max-channels/src/email_channel.rs"
+          - "crates/max-channels/src/gmail_push.rs"
 
 "channel:imessage":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/imessage.rs"
-          - "crates/zeroclaw-channels/src/imessage.rs"
+          - "crates/max-channels/src/imessage.rs"
 
 "channel:irc":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/irc.rs"
-          - "crates/zeroclaw-channels/src/irc.rs"
+          - "crates/max-channels/src/irc.rs"
 
 "channel:lark":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/lark.rs"
-          - "crates/zeroclaw-channels/src/lark.rs"
+          - "crates/max-channels/src/lark.rs"
 
 "channel:line":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-channels/src/line.rs"
+          - "crates/max-channels/src/line.rs"
           - "docs/book/src/channels/line.md"
 
 "channel:linq":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/linq.rs"
-          - "crates/zeroclaw-channels/src/linq.rs"
+          - "crates/max-channels/src/linq.rs"
 
 "channel:matrix":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/matrix.rs"
-          - "crates/zeroclaw-channels/src/matrix.rs"
+          - "crates/max-channels/src/matrix.rs"
 
 "channel:mattermost":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/mattermost.rs"
-          - "crates/zeroclaw-channels/src/mattermost.rs"
+          - "crates/max-channels/src/mattermost.rs"
 
 "channel:mochat":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/mochat.rs"
-          - "crates/zeroclaw-channels/src/mochat.rs"
+          - "crates/max-channels/src/mochat.rs"
 
 "channel:mqtt":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-channels/src/orchestrator/mqtt.rs"
+          - "crates/max-channels/src/orchestrator/mqtt.rs"
 
 "channel:nextcloud-talk":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/nextcloud_talk.rs"
-          - "crates/zeroclaw-channels/src/nextcloud_talk.rs"
+          - "crates/max-channels/src/nextcloud_talk.rs"
 
 "channel:nostr":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/nostr.rs"
-          - "crates/zeroclaw-channels/src/nostr.rs"
+          - "crates/max-channels/src/nostr.rs"
 
 "channel:notion":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/notion.rs"
-          - "crates/zeroclaw-channels/src/notion.rs"
+          - "crates/max-channels/src/notion.rs"
 
 "channel:qq":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/qq.rs"
-          - "crates/zeroclaw-channels/src/qq.rs"
+          - "crates/max-channels/src/qq.rs"
 
 "channel:reddit":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/reddit.rs"
-          - "crates/zeroclaw-channels/src/reddit.rs"
+          - "crates/max-channels/src/reddit.rs"
 
 "channel:signal":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/signal.rs"
-          - "crates/zeroclaw-channels/src/signal.rs"
+          - "crates/max-channels/src/signal.rs"
 
 "channel:slack":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/slack.rs"
-          - "crates/zeroclaw-channels/src/slack.rs"
+          - "crates/max-channels/src/slack.rs"
 
 "channel:telegram":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/telegram.rs"
-          - "crates/zeroclaw-channels/src/telegram.rs"
+          - "crates/max-channels/src/telegram.rs"
 
 "channel:twitter":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/twitter.rs"
-          - "crates/zeroclaw-channels/src/twitter.rs"
+          - "crates/max-channels/src/twitter.rs"
 
 "channel:wechat":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-channels/src/wechat.rs"
+          - "crates/max-channels/src/wechat.rs"
 
 "channel:webhook":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/webhook.rs"
-          - "crates/zeroclaw-channels/src/webhook.rs"
+          - "crates/max-channels/src/webhook.rs"
 
 "channel:wecom":
   - changed-files:
       - any-glob-to-any-file:
           - "src/channels/wecom.rs"
-          - "crates/zeroclaw-channels/src/wecom.rs"
-          - "crates/zeroclaw-channels/src/wecom_ws.rs"
+          - "crates/max-channels/src/wecom.rs"
+          - "crates/max-channels/src/wecom_ws.rs"
 
 "channel:whatsapp":
   - changed-files:
@@ -246,141 +246,141 @@
           - "src/channels/whatsapp.rs"
           - "src/channels/whatsapp_storage.rs"
           - "src/channels/whatsapp_web.rs"
-          - "crates/zeroclaw-channels/src/whatsapp.rs"
-          - "crates/zeroclaw-channels/src/whatsapp_storage.rs"
-          - "crates/zeroclaw-channels/src/whatsapp_web.rs"
+          - "crates/max-channels/src/whatsapp.rs"
+          - "crates/max-channels/src/whatsapp_storage.rs"
+          - "crates/max-channels/src/whatsapp_web.rs"
 
 "gateway":
   - changed-files:
       - any-glob-to-any-file:
           - "src/gateway/**"
-          - "crates/zeroclaw-gateway/src/**"
+          - "crates/max-gateway/src/**"
 
 "config":
   - changed-files:
       - any-glob-to-any-file:
           - "src/config/**"
-          - "crates/zeroclaw-config/src/**"
+          - "crates/max-config/src/**"
 
 "cron":
   - changed-files:
       - any-glob-to-any-file:
           - "src/cron/**"
-          - "crates/zeroclaw-runtime/src/cron/**"
+          - "crates/max-runtime/src/cron/**"
 
 "daemon":
   - changed-files:
       - any-glob-to-any-file:
           - "src/daemon/**"
-          - "crates/zeroclaw-runtime/src/daemon/**"
+          - "crates/max-runtime/src/daemon/**"
 
 "doctor":
   - changed-files:
       - any-glob-to-any-file:
           - "src/doctor/**"
-          - "crates/zeroclaw-runtime/src/doctor/**"
+          - "crates/max-runtime/src/doctor/**"
 
 "health":
   - changed-files:
       - any-glob-to-any-file:
           - "src/health/**"
-          - "crates/zeroclaw-runtime/src/health/**"
+          - "crates/max-runtime/src/health/**"
 
 "heartbeat":
   - changed-files:
       - any-glob-to-any-file:
           - "src/heartbeat/**"
-          - "crates/zeroclaw-runtime/src/heartbeat/**"
+          - "crates/max-runtime/src/heartbeat/**"
 
 "integration":
   - changed-files:
       - any-glob-to-any-file:
           - "src/integrations/**"
-          - "crates/zeroclaw-runtime/src/integrations/**"
+          - "crates/max-runtime/src/integrations/**"
 
 "memory":
   - changed-files:
       - any-glob-to-any-file:
           - "src/memory/**"
-          - "crates/zeroclaw-memory/src/**"
+          - "crates/max-memory/src/**"
 
 "memory:backend":
   - changed-files:
       - any-glob-to-any-file:
           - "src/memory/cli.rs"
-          - "crates/zeroclaw-memory/src/backend.rs"
-          - "crates/zeroclaw-memory/src/lucid.rs"
-          - "crates/zeroclaw-memory/src/markdown.rs"
-          - "crates/zeroclaw-memory/src/none.rs"
-          - "crates/zeroclaw-memory/src/postgres.rs"
-          - "crates/zeroclaw-memory/src/qdrant.rs"
-          - "crates/zeroclaw-memory/src/sqlite.rs"
+          - "crates/max-memory/src/backend.rs"
+          - "crates/max-memory/src/lucid.rs"
+          - "crates/max-memory/src/markdown.rs"
+          - "crates/max-memory/src/none.rs"
+          - "crates/max-memory/src/postgres.rs"
+          - "crates/max-memory/src/qdrant.rs"
+          - "crates/max-memory/src/sqlite.rs"
 
 "security":
   - changed-files:
       - any-glob-to-any-file:
           - "src/security/**"
-          - "crates/zeroclaw-runtime/src/security/**"
+          - "crates/max-runtime/src/security/**"
 
 "security:bubblewrap":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/bubblewrap.rs"
+          - "crates/max-runtime/src/security/bubblewrap.rs"
 
 "security:docker":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/docker.rs"
+          - "crates/max-runtime/src/security/docker.rs"
 
 "security:leak-detector":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/leak_detector.rs"
+          - "crates/max-runtime/src/security/leak_detector.rs"
 
 "security:pairing":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/pairing.rs"
-          - "crates/zeroclaw-gateway/src/api_pairing.rs"
+          - "crates/max-runtime/src/security/pairing.rs"
+          - "crates/max-gateway/src/api_pairing.rs"
           - "apps/tauri/src/commands/pairing.rs"
           - "web/src/pages/Pairing.tsx"
 
 "security:policy":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/policy.rs"
-          - "crates/zeroclaw-runtime/src/security/iam_policy.rs"
-          - "crates/zeroclaw-config/src/policy.rs"
+          - "crates/max-runtime/src/security/policy.rs"
+          - "crates/max-runtime/src/security/iam_policy.rs"
+          - "crates/max-config/src/policy.rs"
 
 "security:secrets":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/secrets.rs"
-          - "crates/zeroclaw-config/src/secrets.rs"
+          - "crates/max-runtime/src/security/secrets.rs"
+          - "crates/max-config/src/secrets.rs"
 
 "security:traits":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/security/traits.rs"
+          - "crates/max-runtime/src/security/traits.rs"
 
 "runtime":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/**"
+          - "crates/max-runtime/src/**"
 
 "runtime:wasm":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/platform/wasm.rs"
-          - "crates/zeroclaw-plugins/src/wasm_tool.rs"
-          - "crates/zeroclaw-plugins/src/wasm_channel.rs"
+          - "crates/max-runtime/src/platform/wasm.rs"
+          - "crates/max-plugins/src/wasm_tool.rs"
+          - "crates/max-plugins/src/wasm_channel.rs"
 
 "quickstart":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/quickstart/**"
-          - "crates/zeroclaw-gateway/src/api_quickstart.rs"
-          - "apps/zerocode/src/quickstart_pane.rs"
+          - "crates/max-runtime/src/quickstart/**"
+          - "crates/max-gateway/src/api_quickstart.rs"
+          - "apps/maxcode/src/quickstart_pane.rs"
           - "web/src/pages/quickstart/**"
 
 "desktop":
@@ -393,8 +393,8 @@
       - any-glob-to-any-file:
           - "src/hardware/**"
           - "src/peripherals/mod.rs"
-          - "crates/zeroclaw-hardware/**"
-          - "crates/zeroclaw-api/src/peripherals_traits.rs"
+          - "crates/max-hardware/**"
+          - "crates/max-api/src/peripherals_traits.rs"
           - "firmware/**"
 
 "web":
@@ -402,114 +402,114 @@
       - any-glob-to-any-file:
           - "web/**"
 
-"zerocode":
+"maxcode":
   - changed-files:
       - any-glob-to-any-file:
-          - "apps/zerocode/**"
+          - "apps/maxcode/**"
 
 "provider":
   - changed-files:
       - any-glob-to-any-file:
           - "src/providers/**"
-          - "crates/zeroclaw-providers/src/**"
+          - "crates/max-providers/src/**"
 
 "provider:anthropic":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/anthropic.rs"
+          - "crates/max-providers/src/anthropic.rs"
 
 "provider:azure-openai":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/azure_openai.rs"
+          - "crates/max-providers/src/azure_openai.rs"
 
 "provider:bedrock":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/bedrock.rs"
+          - "crates/max-providers/src/bedrock.rs"
 
 "provider:claude-code":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-tools/src/claude_code.rs"
-          - "crates/zeroclaw-tools/src/claude_code_runner.rs"
+          - "crates/max-tools/src/claude_code.rs"
+          - "crates/max-tools/src/claude_code_runner.rs"
           - "src/tools/claude_code.rs"
           - "src/tools/claude_code_runner.rs"
 
 "provider:compatible":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/compatible.rs"
+          - "crates/max-providers/src/compatible.rs"
 
 "provider:copilot":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/copilot.rs"
+          - "crates/max-providers/src/copilot.rs"
 
 "provider:gemini":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/gemini.rs"
-          - "crates/zeroclaw-providers/src/gemini_cli.rs"
+          - "crates/max-providers/src/gemini.rs"
+          - "crates/max-providers/src/gemini_cli.rs"
 
 "provider:glm":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/glm.rs"
+          - "crates/max-providers/src/glm.rs"
 
 "provider:kilocli":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/kilocli.rs"
+          - "crates/max-providers/src/kilocli.rs"
 
 "provider:ollama":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/ollama.rs"
+          - "crates/max-providers/src/ollama.rs"
 
 "provider:openai":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/openai.rs"
-          - "crates/zeroclaw-providers/src/openai_codex.rs"
+          - "crates/max-providers/src/openai.rs"
+          - "crates/max-providers/src/openai_codex.rs"
 
 "provider:openrouter":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/openrouter.rs"
+          - "crates/max-providers/src/openrouter.rs"
 
 "provider:reliable":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/reliable.rs"
+          - "crates/max-providers/src/reliable.rs"
 
 "provider:router":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/router.rs"
+          - "crates/max-providers/src/router.rs"
 
 "provider:telnyx":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-providers/src/telnyx.rs"
+          - "crates/max-providers/src/telnyx.rs"
 
 "service":
   - changed-files:
       - any-glob-to-any-file:
           - "src/service/**"
-          - "crates/zeroclaw-runtime/src/service/**"
+          - "crates/max-runtime/src/service/**"
 
 "skills":
   - changed-files:
       - any-glob-to-any-file:
           - "src/skills/**"
-          - "crates/zeroclaw-runtime/src/skills/**"
+          - "crates/max-runtime/src/skills/**"
 
 "tool":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/**"
-          - "crates/zeroclaw-tools/src/**"
+          - "crates/max-tools/src/**"
 
 "tool:browser":
   - changed-files:
@@ -519,33 +519,33 @@
           - "src/tools/browser_open.rs"
           - "src/tools/text_browser.rs"
           - "src/tools/screenshot.rs"
-          - "crates/zeroclaw-tools/src/browser.rs"
-          - "crates/zeroclaw-tools/src/browser_delegate.rs"
-          - "crates/zeroclaw-tools/src/browser_open.rs"
-          - "crates/zeroclaw-tools/src/text_browser.rs"
-          - "crates/zeroclaw-tools/src/screenshot.rs"
+          - "crates/max-tools/src/browser.rs"
+          - "crates/max-tools/src/browser_delegate.rs"
+          - "crates/max-tools/src/browser_open.rs"
+          - "crates/max-tools/src/text_browser.rs"
+          - "crates/max-tools/src/screenshot.rs"
 
 "tool:composio":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/composio.rs"
-          - "crates/zeroclaw-tools/src/composio.rs"
+          - "crates/max-tools/src/composio.rs"
 
 "tool:cron":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/tools/cron_add.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_common.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_list.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_remove.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_run.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_runs.rs"
-          - "crates/zeroclaw-runtime/src/tools/cron_update.rs"
+          - "crates/max-runtime/src/tools/cron_add.rs"
+          - "crates/max-runtime/src/tools/cron_common.rs"
+          - "crates/max-runtime/src/tools/cron_list.rs"
+          - "crates/max-runtime/src/tools/cron_remove.rs"
+          - "crates/max-runtime/src/tools/cron_run.rs"
+          - "crates/max-runtime/src/tools/cron_runs.rs"
+          - "crates/max-runtime/src/tools/cron_update.rs"
 
 "tool:delegate":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/tools/delegate.rs"
+          - "crates/max-runtime/src/tools/delegate.rs"
 
 "tool:file":
   - changed-files:
@@ -554,23 +554,23 @@
           - "src/tools/file_write.rs"
           - "src/tools/glob_search.rs"
           - "src/tools/content_search.rs"
-          - "crates/zeroclaw-tools/src/file_edit.rs"
-          - "crates/zeroclaw-runtime/src/tools/file_read.rs"
-          - "crates/zeroclaw-tools/src/file_write.rs"
-          - "crates/zeroclaw-tools/src/glob_search.rs"
-          - "crates/zeroclaw-tools/src/content_search.rs"
+          - "crates/max-tools/src/file_edit.rs"
+          - "crates/max-runtime/src/tools/file_read.rs"
+          - "crates/max-tools/src/file_write.rs"
+          - "crates/max-tools/src/glob_search.rs"
+          - "crates/max-tools/src/content_search.rs"
 
 "tool:google-workspace":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/google_workspace.rs"
-          - "crates/zeroclaw-tools/src/google_workspace.rs"
+          - "crates/max-tools/src/google_workspace.rs"
 
 "tool:pushover":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/pushover.rs"
-          - "crates/zeroclaw-tools/src/pushover.rs"
+          - "crates/max-tools/src/pushover.rs"
 
 "tool:mcp":
   - changed-files:
@@ -580,11 +580,11 @@
           - "src/tools/mcp_protocol.rs"
           - "src/tools/mcp_tool.rs"
           - "src/tools/mcp_transport.rs"
-          - "crates/zeroclaw-tools/src/mcp_client.rs"
-          - "crates/zeroclaw-tools/src/mcp_deferred.rs"
-          - "crates/zeroclaw-tools/src/mcp_protocol.rs"
-          - "crates/zeroclaw-tools/src/mcp_tool.rs"
-          - "crates/zeroclaw-tools/src/mcp_transport.rs"
+          - "crates/max-tools/src/mcp_client.rs"
+          - "crates/max-tools/src/mcp_deferred.rs"
+          - "crates/max-tools/src/mcp_protocol.rs"
+          - "crates/max-tools/src/mcp_tool.rs"
+          - "crates/max-tools/src/mcp_transport.rs"
 
 "tool:memory":
   - changed-files:
@@ -592,31 +592,31 @@
           - "src/tools/memory_forget.rs"
           - "src/tools/memory_recall.rs"
           - "src/tools/memory_store.rs"
-          - "crates/zeroclaw-tools/src/memory_forget.rs"
-          - "crates/zeroclaw-tools/src/memory_recall.rs"
-          - "crates/zeroclaw-tools/src/memory_store.rs"
+          - "crates/max-tools/src/memory_forget.rs"
+          - "crates/max-tools/src/memory_recall.rs"
+          - "crates/max-tools/src/memory_store.rs"
 
 "tool:microsoft365":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-tools/src/microsoft365/**"
+          - "crates/max-tools/src/microsoft365/**"
 
 "tool:shell":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/cli_discovery.rs"
-          - "crates/zeroclaw-runtime/src/tools/shell.rs"
-          - "crates/zeroclaw-gateway/src/node_tool.rs"
-          - "crates/zeroclaw-tools/src/cli_discovery.rs"
+          - "crates/max-runtime/src/tools/shell.rs"
+          - "crates/max-gateway/src/node_tool.rs"
+          - "crates/max-tools/src/cli_discovery.rs"
 
 "tool:sop":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/tools/sop_advance.rs"
-          - "crates/zeroclaw-runtime/src/tools/sop_approve.rs"
-          - "crates/zeroclaw-runtime/src/tools/sop_execute.rs"
-          - "crates/zeroclaw-runtime/src/tools/sop_list.rs"
-          - "crates/zeroclaw-runtime/src/tools/sop_status.rs"
+          - "crates/max-runtime/src/tools/sop_advance.rs"
+          - "crates/max-runtime/src/tools/sop_approve.rs"
+          - "crates/max-runtime/src/tools/sop_execute.rs"
+          - "crates/max-runtime/src/tools/sop_list.rs"
+          - "crates/max-runtime/src/tools/sop_status.rs"
 
 "tool:web":
   - changed-files:
@@ -625,53 +625,53 @@
           - "src/tools/web_search_tool.rs"
           - "src/tools/web_search_provider_routing.rs"
           - "src/tools/http_request.rs"
-          - "crates/zeroclaw-tools/src/web_fetch.rs"
-          - "crates/zeroclaw-tools/src/web_search_tool.rs"
-          - "crates/zeroclaw-tools/src/web_search_provider_routing.rs"
-          - "crates/zeroclaw-tools/src/http_request.rs"
+          - "crates/max-tools/src/web_fetch.rs"
+          - "crates/max-tools/src/web_search_tool.rs"
+          - "crates/max-tools/src/web_search_provider_routing.rs"
+          - "crates/max-tools/src/http_request.rs"
 
 "tool:security":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/tools/security_ops.rs"
-          - "crates/zeroclaw-runtime/src/tools/verifiable_intent.rs"
+          - "crates/max-runtime/src/tools/security_ops.rs"
+          - "crates/max-runtime/src/tools/verifiable_intent.rs"
 
 "tool:cloud":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tools/cloud_ops.rs"
           - "src/tools/cloud_patterns.rs"
-          - "crates/zeroclaw-tools/src/cloud_ops.rs"
-          - "crates/zeroclaw-tools/src/cloud_patterns.rs"
+          - "crates/max-tools/src/cloud_ops.rs"
+          - "crates/max-tools/src/cloud_patterns.rs"
 
 "tunnel":
   - changed-files:
       - any-glob-to-any-file:
           - "src/tunnel/**"
-          - "crates/zeroclaw-runtime/src/tunnel/**"
+          - "crates/max-runtime/src/tunnel/**"
 
 "observability":
   - changed-files:
       - any-glob-to-any-file:
           - "src/observability/**"
-          - "crates/zeroclaw-runtime/src/observability/**"
+          - "crates/max-runtime/src/observability/**"
 
 "observability:log":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-log/src/**"
-          - "crates/zeroclaw-runtime/src/observability/log.rs"
+          - "crates/max-log/src/**"
+          - "crates/max-runtime/src/observability/log.rs"
 
 "observability:otel":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/observability/otel.rs"
+          - "crates/max-runtime/src/observability/otel.rs"
           - "tests/component/otel_dependency_feature_regression.rs"
 
 "observability:prometheus":
   - changed-files:
       - any-glob-to-any-file:
-          - "crates/zeroclaw-runtime/src/observability/prometheus.rs"
+          - "crates/max-runtime/src/observability/prometheus.rs"
 
 "tests":
   - changed-files:

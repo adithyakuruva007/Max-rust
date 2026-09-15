@@ -12,7 +12,7 @@ On the CLI, the agent alias is required, there is no default agent:
 #### sh
 
 ```sh
-zeroclaw agent -a <alias> -m "hello"
+max agent -a <alias> -m "hello"
 ```
 
 </div>
@@ -46,23 +46,23 @@ When an agent needs a one-off helper instead of an existing peer, it spawns an
 ephemeral [SubAgent](./delegation.md) that inherits its identity and
 security policy for a single task, then disappears.
 
-## Agents in zerocode
+## Agents in maxcode
 
-[zerocode](../zerocode/overview.md) is the terminal UI for driving agents. Two
+[maxcode](../maxcode/overview.md) is the terminal UI for driving agents. Two
 panes put an agent in front of you:
 
 - The **Code** pane runs an agent against your working tree for coding tasks.
 - The **Chat** pane is a conversational view of an agent.
 
-Both panes drive a specific agent, and zerocode can give each agent its own
+Both panes drive a specific agent, and maxcode can give each agent its own
 colour palette so you can tell them apart at a glance, see
-[Per-agent themes](../zerocode/themes.md#per-agent-themes-code--chat-panes). The
+[Per-agent themes](../maxcode/themes.md#per-agent-themes-code--chat-panes). The
 **Config** pane is the preferred place to add and wire agents without editing
 files by hand.
 
 ## Operating multiple agents at once
 
-`zeroclaw daemon` brings up every enabled agent together, each answering on its
+`max daemon` brings up every enabled agent together, each answering on its
 own channels. Adding an agent is additive: define a new `[agents.<alias>]`
 block, wire its references, and it joins the running set, the existing agents
 are untouched.

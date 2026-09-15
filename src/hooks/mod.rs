@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::hooks::*;
+pub use max_runtime::hooks::*;

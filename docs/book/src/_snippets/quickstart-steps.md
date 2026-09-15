@@ -1,5 +1,5 @@
 <!--
-  Canonical Quickstart step list, shared across the CLI, zerocode, and web
+  Canonical Quickstart step list, shared across the CLI, maxcode, and web
   gateway surfaces. All three drive the same `BuilderSubmission` and produce
   identical config. Only the launch path and chrome differ. Edit the steps
   here once; every surface page picks up the change via {{#include}}.

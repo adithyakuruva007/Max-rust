@@ -1,6 +1,6 @@
 services:
-  zeroclaw:
+  max:
     build:
       context: .
       dockerfile: Dockerfile.alpine
-    image: zeroclaw:alpine
+    image: max:alpine

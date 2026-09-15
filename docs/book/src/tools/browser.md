@@ -1,10 +1,10 @@
 # Browser Automation
 
-This guide covers setting up browser automation capabilities in ZeroClaw, including both headless automation and GUI access via VNC.
+This guide covers setting up browser automation capabilities in Max, including both headless automation and GUI access via VNC.
 
 ## Overview
 
-ZeroClaw supports multiple browser access methods:
+Max supports multiple browser access methods:
 
 | Method | Use Case | Requirements |
 |--------|----------|--------------|
@@ -40,17 +40,17 @@ agent-browser install
 
 </div>
 
-### 2. Verify ZeroClaw Config
+### 2. Verify Max Config
 
-The browser tool is enabled by default with `allowed_domains = ["*"]`. Restrict domains or disable it via `zeroclaw config set`:
+The browser tool is enabled by default with `allowed_domains = ["*"]`. Restrict domains or disable it via `max config set`:
 
 <div class="os-tabs-src">
 
 #### sh
 
 ```sh
-zeroclaw config set browser.allowed_domains '["example.com", "docs.example.com"]'
-zeroclaw config set browser.enabled false
+max config set browser.allowed_domains '["example.com", "docs.example.com"]'
+max config set browser.enabled false
 ```
 
 </div>
@@ -68,7 +68,7 @@ zeroclaw config set browser.enabled false
 > that host to redirect/reject plaintext HTTP itself (HSTS, server-side 308), or a future
 > scheme-aware browser policy.
 
-For the `agent_browser` backend, set `browser.headed = true` to launch the browser in headed mode for debugging or first-time login setup, or `browser.headed = false` to force headless mode. When `browser.headed` is unset, Zeroclaw preserves the inherited `AGENT_BROWSER_HEADED` environment behavior. The rust-native backend continues to use `browser.native_headless`.
+For the `agent_browser` backend, set `browser.headed = true` to launch the browser in headed mode for debugging or first-time login setup, or `browser.headed = false` to force headless mode. When `browser.headed` is unset, Max preserves the inherited `AGENT_BROWSER_HEADED` environment behavior. The rust-native backend continues to use `browser.native_headless`.
 
 See the [Config reference](../reference/config.md) for all browser fields and defaults.
 
@@ -79,7 +79,7 @@ See the [Config reference](../reference/config.md) for all browser fields and de
 #### sh
 
 ```sh
-echo "Open https://example.com and tell me what it says" | zeroclaw agent -a assistant
+echo "Open https://example.com and tell me what it says" | max agent -a assistant
 ```
 
 </div>
@@ -215,7 +215,7 @@ agent-browser close
 
 </div>
 
-### ZeroClaw Integration Tests
+### Max Integration Tests
 
 <div class="os-tabs-src">
 
@@ -223,13 +223,13 @@ agent-browser close
 
 ```sh
 # Content extraction
-echo "Open https://example.com and summarize it" | zeroclaw agent -a assistant
+echo "Open https://example.com and summarize it" | max agent -a assistant
 
 # Navigation
-echo "Go to https://github.com/trending and list the top 3 repos" | zeroclaw agent -a assistant
+echo "Go to https://github.com/trending and list the top 3 repos" | max agent -a assistant
 
 # Form interaction
-echo "Go to Wikipedia, search for 'Rust programming language', and summarize" | zeroclaw agent -a assistant
+echo "Go to Wikipedia, search for 'Rust programming language', and summarize" | max agent -a assistant
 ```
 
 </div>

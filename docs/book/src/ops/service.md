@@ -25,18 +25,18 @@ Without lingering, a user-scope systemd service stops when the last session clos
 
 ## Restart behaviour
 
-The installed systemd user unit (`~/.config/systemd/user/zeroclaw.service`) uses:
+The installed systemd user unit (`~/.config/systemd/user/max.service`) uses:
 
 ```ini
 Restart=always
 RestartSec=3
 ```
 
-systemd restarts the daemon on any exit with a 3-second backoff. There is no exit-code allowlist, so a daemon that fails fast on a bad config will flap; fix the config and `systemctl --user restart zeroclaw` rather than relying on the service to give up.
+systemd restarts the daemon on any exit with a 3-second backoff. There is no exit-code allowlist, so a daemon that fails fast on a bad config will flap; fix the config and `systemctl --user restart max` rather than relying on the service to give up.
 
-On macOS, the LaunchAgent (`~/Library/LaunchAgents/com.zeroclaw.daemon.plist`) sets `RunAtLoad` and `KeepAlive` to `true`, so launchd keeps the daemon running and relaunches it whenever it exits.
+On macOS, the LaunchAgent (`~/Library/LaunchAgents/com.max.daemon.plist`) sets `RunAtLoad` and `KeepAlive` to `true`, so launchd keeps the daemon running and relaunches it whenever it exits.
 
-On Windows, `zeroclaw service install` registers a Task Scheduler task triggered `ONLOGON` at the `LIMITED` run level. It starts the daemon at logon; it does not add an automatic restart-on-failure policy.
+On Windows, `max service install` registers a Task Scheduler task triggered `ONLOGON` at the `LIMITED` run level. It starts the daemon at logon; it does not add an automatic restart-on-failure policy.
 
 ## Graceful shutdown
 
@@ -50,7 +50,7 @@ How the daemon comes back after a refusal depends on what was running it:
 
 - Under the installed systemd unit (`Restart=always`) or launchd LaunchAgent (`KeepAlive`), the service manager starts a fresh daemon process, as described under Restart behaviour.
 - Under the Windows `ONLOGON` task, which has no restart-on-failure policy, the daemon stays down until you restart it manually or the next logon.
-- When ZeroCode started the daemon itself, which it does by spawning an ephemeral daemon whenever it finds no local endpoint, ZeroCode owns that child and replaces it itself instead of waiting on a service manager. It makes a single automatic respawn attempt per disconnect, and flags the daemon as needing attention if that attempt does not come back.
+- When MaxCode started the daemon itself, which it does by spawning an ephemeral daemon whenever it finds no local endpoint, MaxCode owns that child and replaces it itself instead of waiting on a service manager. It makes a single automatic respawn attempt per disconnect, and flags the daemon as needing attention if that attempt does not come back.
 
 Conversation memory and session state are written to SQLite incrementally during operation, not buffered until shutdown, so a clean stop does not depend on a flush step. Tool receipts are in-band HMAC tokens in the conversation, not a separate on-disk log. A hard `SIGKILL` skips the clean channel teardown but does not corrupt already-committed memory; only an agent turn that was mid-write is lost.
 
@@ -63,13 +63,13 @@ Skip the service and run the daemon directly:
 #### sh
 
 ```sh
-zeroclaw service stop     # free the gateway port if the service is running
-zeroclaw daemon
+max service stop     # free the gateway port if the service is running
+max daemon
 ```
 
 </div>
 
-`zeroclaw daemon` runs in the foreground, logs to stderr, and is the same process the service runs, just without the service harness. Useful when:
+`max daemon` runs in the foreground, logs to stderr, and is the same process the service runs, just without the service harness. Useful when:
 
 - Diagnosing startup failures that the service swallows
 - Running under `gdb` / `lldb`
@@ -88,7 +88,7 @@ Add to a drop-in:
 #### sh
 
 ```sh
-systemctl --user edit zeroclaw.service
+systemctl --user edit max.service
 ```
 
 </div>
@@ -108,14 +108,14 @@ Reload and restart:
 
 ```sh
 systemctl --user daemon-reload
-systemctl --user restart zeroclaw
+systemctl --user restart max
 ```
 
 </div>
 
 ### macOS: launchd
 
-Edit `~/Library/LaunchAgents/com.zeroclaw.daemon.plist`:
+Edit `~/Library/LaunchAgents/com.max.daemon.plist`:
 
 ```xml
 <key>SoftResourceLimits</key>
@@ -132,8 +132,8 @@ Unload + load the plist to apply:
 #### sh
 
 ```sh
-launchctl unload ~/Library/LaunchAgents/com.zeroclaw.daemon.plist
-launchctl load ~/Library/LaunchAgents/com.zeroclaw.daemon.plist
+launchctl unload ~/Library/LaunchAgents/com.max.daemon.plist
+launchctl load ~/Library/LaunchAgents/com.max.daemon.plist
 ```
 
 </div>
@@ -144,8 +144,8 @@ Compose:
 
 ```yaml
 services:
-  zeroclaw:
-    image: ghcr.io/zeroclaw-labs/zeroclaw:latest
+  max:
+    image: ghcr.io/max-labs/max:latest
     mem_limit: 2g
     cpus: 2.0
     ulimits:
@@ -154,22 +154,22 @@ services:
 
 ## Running multiple workspaces
 
-Each ZeroClaw daemon owns one config directory (which contains its `data/` dir). To run two side by side, give each its own config directory via `--config-dir` (or the `ZEROCLAW_CONFIG_DIR` env var):
+Each Max daemon owns one config directory (which contains its `data/` dir). To run two side by side, give each its own config directory via `--config-dir` (or the `MAX_CONFIG_DIR` env var):
 
 <div class="os-tabs-src">
 
 #### sh
 
 ```sh
-zeroclaw --config-dir ~/.zeroclaw-home daemon
-zeroclaw --config-dir ~/.zeroclaw-work daemon
+max --config-dir ~/.max-home daemon
+max --config-dir ~/.max-work daemon
 ```
 
 </div>
 
 Each instance reads its own config, its own `data/` (memory, sessions), its own gateway port (set per config), and its own channel bindings. Memory stays separate; a Telegram bot in one config dir doesn't know about the other.
 
-`zeroclaw service install` always installs a single unit pointed at the default config directory; it has no flag to name or parameterize instances. To run more than one as a persistent service, hand-author a second unit file (copy `~/.config/systemd/user/zeroclaw.service` to a new name) whose `ExecStart` passes `--config-dir <dir>`, then enable it separately.
+`max service install` always installs a single unit pointed at the default config directory; it has no flag to name or parameterize instances. To run more than one as a persistent service, hand-author a second unit file (copy `~/.config/systemd/user/max.service` to a new name) whose `ExecStart` passes `--config-dir <dir>`, then enable it separately.
 
 Don't point two daemons at the same config directory. SQLite is single-writer; the second will fail on startup.
 
@@ -181,10 +181,10 @@ Don't point two daemons at the same config directory. SQLite is single-writer; t
 
 ```sh
 # Linux
-journalctl --user -u zeroclaw --since "1 day ago" | grep -E 'Started|Stopped|failed'
+journalctl --user -u max --since "1 day ago" | grep -E 'Started|Stopped|failed'
 
 # macOS
-log show --predicate 'process == "zeroclaw"' --last 1d | grep -E 'start|stop|error'
+log show --predicate 'process == "max"' --last 1d | grep -E 'start|stop|error'
 ```
 
 </div>

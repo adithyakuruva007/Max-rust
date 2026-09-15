@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::mcp_tool::*;
+pub use max_tools::mcp_tool::*;

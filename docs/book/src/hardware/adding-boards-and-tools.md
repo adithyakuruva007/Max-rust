@@ -1,6 +1,6 @@
-# Adding Boards and Tools: ZeroClaw Hardware Guide
+# Adding Boards and Tools: Max Hardware Guide
 
-This guide explains how to add new hardware boards and custom tools to ZeroClaw.
+This guide explains how to add new hardware boards and custom tools to Max.
 
 ## Quick Start: Add a Board via CLI
 
@@ -10,12 +10,12 @@ This guide explains how to add new hardware boards and custom tools to ZeroClaw.
 
 ```sh
 # Add a board
-zeroclaw peripheral add nucleo-f401re /dev/ttyACM0
-zeroclaw peripheral add arduino-uno /dev/cu.usbmodem12345
-zeroclaw peripheral add rpi-gpio native   # for Raspberry Pi GPIO (Linux)
+max peripheral add nucleo-f401re /dev/ttyACM0
+max peripheral add arduino-uno /dev/cu.usbmodem12345
+max peripheral add rpi-gpio native   # for Raspberry Pi GPIO (Linux)
 
 # Restart daemon to apply
-zeroclaw daemon --host 127.0.0.1 --port 42617
+max daemon --host 127.0.0.1 --port 42617
 ```
 
 </div>
@@ -65,20 +65,20 @@ builtin_led: 13
 ## Adding a New Board Type
 
 1. **Create a datasheet**: `docs/datasheets/my-board.md` with pin aliases and GPIO info.
-2. **Add to config**: `zeroclaw peripheral add my-board /dev/ttyUSB0`
-3. **Implement a peripheral** (optional): For custom protocols, implement the `Peripheral` trait in `crates/zeroclaw-hardware/src/peripherals/` and register in `create_peripheral_tools`.
+2. **Add to config**: `max peripheral add my-board /dev/ttyUSB0`
+3. **Implement a peripheral** (optional): For custom protocols, implement the `Peripheral` trait in `crates/max-hardware/src/peripherals/` and register in `create_peripheral_tools`.
 
 See [`docs/hardware/hardware-peripherals-design.md`](../hardware/hardware-peripherals-design.md) for the full design.
 
 ## Adding a Custom Tool
 
-1. Implement the `Tool` trait in `crates/zeroclaw-tools/src/`.
+1. Implement the `Tool` trait in `crates/max-tools/src/`.
 2. Register in `create_peripheral_tools` (for hardware tools) or the agent tool registry.
-3. Add a tool description to the agent's `tool_descs` in `crates/zeroclaw-runtime/src/agent/loop_.rs`.
+3. Add a tool description to the agent's `tool_descs` in `crates/max-runtime/src/agent/loop_.rs`.
 
 ## CLI Reference
 
-See the [generated CLI reference](../reference/cli.md) for `zeroclaw peripheral` and `zeroclaw hardware` subcommands.
+See the [generated CLI reference](../reference/cli.md) for `max peripheral` and `max hardware` subcommands.
 
 ## Troubleshooting
 

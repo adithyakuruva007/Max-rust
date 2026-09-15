@@ -495,7 +495,7 @@ interface FooterProps {
 }
 
 // Rail footer — version tag as a button, centered, with a native tooltip
-// carrying the full "ZeroClaw Gateway vX" string since the rail has no room for
+// carrying the full "Max Gateway vX" string since the rail has no room for
 // the label. When an update is available the version row is replaced by a
 // pulsing download-arrow icon stacked above the version text — the dot was
 // too easy to miss against the muted `text-faint` colour.

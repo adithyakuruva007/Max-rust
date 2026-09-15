@@ -24,9 +24,9 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use syn::visit::{self, Visit};
 
-/// The crate the world installs. Renamed from `zeroclawlabs` so that
-/// `cargo install zeroclaw` matches the binary name.
-const ROOT_PACKAGE: &str = "zeroclaw";
+/// The crate the world installs. Renamed from `maxlabs` so that
+/// `cargo install max` matches the binary name.
+const ROOT_PACKAGE: &str = "max";
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -107,7 +107,7 @@ fn workspace_version() -> String {
         .to_owned()
 }
 
-/// Crates in the coordinated ZeroClaw release.
+/// Crates in the coordinated Max release.
 ///
 /// Independent-version workspace members (for example a hardware binding that
 /// is awaiting removal) are not silently pulled into a v0.8.x release merely
@@ -190,7 +190,7 @@ struct Include {
 ///
 /// Handles the four spellings that appear in this workspace. The naive "first
 /// string literal" scan this replaced silently missed the `concat!` form and let
-/// seven escaping includes through in `zeroclaw-hardware`; `bindgen!` was missed
+/// seven escaping includes through in `max-hardware`; `bindgen!` was missed
 /// in turn because it is not an `include_*` macro at all, yet reads a directory
 /// from disk at compile time exactly like one:
 ///
@@ -379,7 +379,7 @@ fn root_package_is_the_installable_crate() {
     assert!(
         root.publishable,
         "the root package must remain publishable; `publish = false` here silently \
-         removes ZeroClaw from crates.io"
+         removes Max from crates.io"
     );
 }
 
@@ -422,14 +422,14 @@ fn release_set_is_exactly_the_root_closure_plus_companion_apps() {
                 .map(|krate| krate.name.as_str())
         })
         .collect();
-    expected.insert("zerocode");
-    expected.insert("zerorelay");
+    expected.insert("maxcode");
+    expected.insert("maxrelay");
 
     let actual = release_crates(&crates);
     assert_eq!(
         actual, expected,
-        "the coordinated release must contain the root dependency closure plus zerocode and \
-         zerorelay, and no test fixture, desktop bundle, or maintainer tool"
+        "the coordinated release must contain the root dependency closure plus maxcode and \
+         maxrelay, and no test fixture, desktop bundle, or maintainer tool"
     );
 
     for name in &actual {
@@ -602,7 +602,7 @@ fn published_crates_never_ship_dangling_symlinks() {
 
 /// Relative path literals consumed directly by a package build script.
 ///
-/// This complements the compile-time macro scanner: the ZeroCode packaging
+/// This complements the compile-time macro scanner: the MaxCode packaging
 /// failure that motivated the gate used `Path::join("../../web/...")` followed
 /// by `read_to_string`, so it contained no `include_*` macro for that scanner to
 /// see. Restricting this to top-level build scripts avoids treating ordinary
@@ -680,14 +680,14 @@ fn published_build_scripts_never_read_outside_their_package() {
 /// gitignored build output, so it cannot be in a registry tarball at all unless
 /// the crate grows a full `include` allowlist — no path fix helps. The feature is
 /// declared a non-user-selectable meta toggle in the root manifest's
-/// `[package.metadata.zeroclaw] non_row_features`, is off by default in both the
+/// `[package.metadata.max] non_row_features`, is off by default in both the
 /// gateway and the root crate, and its `build.rs` fails loudly with an actionable
 /// message ("run: cargo web build") rather than producing a broken binary. It is
 /// therefore source-checkout-only by design.
 ///
 /// Do not add entries here to silence a new violation — fix the include instead.
 const ESCAPE_EXCEPTIONS: &[(&str, &str)] = &[(
-    "crates/zeroclaw-gateway/src/static_files.rs",
+    "crates/max-gateway/src/static_files.rs",
     "../../web/dist",
 )];
 
@@ -697,10 +697,10 @@ fn slash_separated_path(path: &Path) -> String {
 
 #[test]
 fn repository_relative_paths_use_slash_separators() {
-    let windows_path = PathBuf::from(r"crates\zeroclaw-gateway\src\static_files.rs");
+    let windows_path = PathBuf::from(r"crates\max-gateway\src\static_files.rs");
     assert_eq!(
         slash_separated_path(&windows_path),
-        "crates/zeroclaw-gateway/src/static_files.rs"
+        "crates/max-gateway/src/static_files.rs"
     );
 }
 
@@ -792,8 +792,8 @@ fn published_crates_never_include_files_outside_their_own_directory() {
          and then fails from the published tarball. Feature-gated ones are especially dangerous: \
          `cargo publish --dry-run` verifies default features only, so they pass preflight and \
          ship broken.\n\
-         Fix by including through an in-crate symlink (see crates/zeroclaw-hardware/firmware \
-         and crates/zeroclaw-tools/locales) rather than reaching up out of the crate.",
+         Fix by including through an in-crate symlink (see crates/max-hardware/firmware \
+         and crates/max-tools/locales) rather than reaching up out of the crate.",
         violations.join("\n"),
     );
 }

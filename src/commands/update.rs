@@ -1,11 +1,11 @@
-//! `zeroclaw update` — self-update pipeline with rollback.
+//! `max update` — self-update pipeline with rollback.
 
 use anyhow::{Context, Result, bail};
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "agent-runtime")]
-use zeroclaw_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args};
+use max_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args};
 
 fn update_already_current_message(version: &str) -> String {
     #[cfg(feature = "agent-runtime")]
@@ -88,16 +88,16 @@ fn install_dir_not_writable_message(dir: &str, error: &str) -> String {
     #[cfg(not(feature = "agent-runtime"))]
     {
         format!(
-            "install directory {dir} is not writable ({error}); re-run `zeroclaw update` with \
+            "install directory {dir} is not writable ({error}); re-run `max update` with \
              elevated privileges (sudo on macOS/Linux, an Administrator console on Windows)"
         )
     }
 }
 
 const GITHUB_RELEASES_LATEST_URL: &str =
-    "https://api.github.com/repos/zeroclaw-labs/zeroclaw/releases/latest";
+    "https://api.github.com/repos/max-labs/max/releases/latest";
 const GITHUB_RELEASES_TAG_URL: &str =
-    "https://api.github.com/repos/zeroclaw-labs/zeroclaw/releases/tags";
+    "https://api.github.com/repos/max-labs/max/releases/tags";
 
 #[derive(Debug)]
 pub struct UpdateInfo {
@@ -120,7 +120,7 @@ pub async fn check(target_version: Option<&str>) -> Result<UpdateInfo> {
     let current = env!("CARGO_PKG_VERSION").to_string();
 
     let client = reqwest::Client::builder()
-        .user_agent(format!("zeroclaw/{current}"))
+        .user_agent(format!("max/{current}"))
         .timeout(std::time::Duration::from_secs(15))
         .build()?;
 
@@ -178,9 +178,9 @@ pub async fn check(target_version: Option<&str>) -> Result<UpdateInfo> {
 
 pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
     // Phase 1: Preflight
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 1/6: Preflight checks..."
     );
     let update_info = check(target_version).await?;
@@ -221,13 +221,13 @@ pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
     ensure_install_dir_writable(&current_exe).await?;
 
     // Phase 2: Download
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 2/6: Downloading..."
     );
     let temp_dir = tempfile::Builder::new()
-        .prefix(".zeroclaw-update-")
+        .prefix(".max-update-")
         .tempdir()
         .context("failed to create temp dir")?;
     let staging = temp_dir.path().join("staging");
@@ -239,9 +239,9 @@ pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
     .await?;
 
     // Phase 3: Backup
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 3/6: Creating backup..."
     );
     let backup_path = current_exe.with_extension("bak");
@@ -250,25 +250,25 @@ pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
         .context("failed to backup current binary")?;
 
     // Phase 4: Validate
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 4/6: Validating download..."
     );
     validate_binary(&main_binary).await?;
 
     // Phase 5: Swap
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 5/6: Swapping binary..."
     );
     if let Err(e) = swap_binary(&main_binary, &current_exe).await {
         // Rollback
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             WARN,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                .with_outcome(::max_log::EventOutcome::Unknown)
                 .with_attrs(::serde_json::json!({"error": format!("{}", e)})),
             "Swap failed, rolling back"
         );
@@ -284,16 +284,16 @@ pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
     }
 
     // Phase 6: Smoke test
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note),
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note),
         "Phase 6/6: Smoke test..."
     );
     match smoke_test(&current_exe).await {
         Ok(()) => {
             // Cleanup backup on success
             let _ = tokio::fs::remove_file(&backup_path).await;
-            // Install everything else the archive shipped (the `zerocode`
+            // Install everything else the archive shipped (the `maxcode`
             // companion, the `web/dist` dashboard bundle, …). Best-effort:
             // the validated main binary is already in place and must not be
             // rolled back if these fail.
@@ -303,10 +303,10 @@ pub async fn run(target_version: Option<&str>, force: bool) -> Result<()> {
             Ok(())
         }
         Err(e) => {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown)
                     .with_attrs(::serde_json::json!({"error": format!("{}", e)})),
                 "Smoke test failed, rolling back"
             );
@@ -369,11 +369,11 @@ fn is_sha256sums_asset(name: &str) -> bool {
 
 fn is_installable_release_asset(name: &str, target: &str) -> bool {
     // .tar.gz and .tgz are universal across all platforms
-    if name == format!("zeroclaw-{target}.tar.gz") || name == format!("zeroclaw-{target}.tgz") {
+    if name == format!("max-{target}.tar.gz") || name == format!("max-{target}.tgz") {
         return true;
     }
     // On Windows the release artifacts are published as .zip
-    if target.contains("windows") && name == format!("zeroclaw-{target}.zip") {
+    if target.contains("windows") && name == format!("max-{target}.zip") {
         return true;
     }
     false
@@ -421,10 +421,10 @@ fn should_install(is_newer: bool, force: bool) -> bool {
 /// **wholesale** into `staging` using each archive crate's own `unpack`/`extract`
 /// — both reject `..` and absolute-root entries internally, so we do not need
 /// a hand-written traversal guard. A non-archive URL is treated as a bare
-/// binary and written through as `staging/zeroclaw`, preserving the legacy
+/// binary and written through as `staging/max`, preserving the legacy
 /// single-file behavior for older release channels.
 ///
-/// Returns the path to the freshly unpacked main `zeroclaw` (or `zeroclaw.exe`)
+/// Returns the path to the freshly unpacked main `max` (or `max.exe`)
 /// binary, which is the only artifact the caller needs by name — everything
 /// else in the archive is installed later by walking `staging` generically.
 async fn download_release(
@@ -433,7 +433,7 @@ async fn download_release(
     staging: &Path,
 ) -> Result<PathBuf> {
     let client = reqwest::Client::builder()
-        .user_agent(format!("zeroclaw/{}", env!("CARGO_PKG_VERSION")))
+        .user_agent(format!("max/{}", env!("CARGO_PKG_VERSION")))
         .timeout(std::time::Duration::from_mins(5))
         .build()?;
 
@@ -451,10 +451,10 @@ async fn download_release(
     if let Some(sums_url) = sha256sums_url {
         verify_download_checksum(&bytes, url, sums_url, &client).await?;
     } else {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             WARN,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                .with_outcome(::max_log::EventOutcome::Unknown),
             "No SHA256SUMS asset found; skipping update download checksum verification"
         );
     }
@@ -521,10 +521,10 @@ async fn verify_download_checksum(
         .context("failed to read SHA256SUMS body")?;
     verify_checksum_bytes(bytes, &asset_name, &sums_text)?;
 
-    ::zeroclaw_log::record!(
+    ::max_log::record!(
         INFO,
-        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-            .with_outcome(::zeroclaw_log::EventOutcome::Success)
+        ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+            .with_outcome(::max_log::EventOutcome::Success)
             .with_attrs(::serde_json::json!({"asset": asset_name})),
         "Update download checksum verified"
     );
@@ -584,14 +584,14 @@ fn is_sha256_hex(value: &str) -> bool {
 
 fn main_binary_name() -> &'static str {
     if cfg!(windows) {
-        "zeroclaw.exe"
+        "max.exe"
     } else {
-        "zeroclaw"
+        "max"
     }
 }
 
 /// Names of top-level *file* artifacts (not directories) the release archive is
-/// allowed to install next to the running binary, beyond the main `zeroclaw`
+/// allowed to install next to the running binary, beyond the main `max`
 /// executable itself. Anything else in the archive's top level is warned about
 /// and skipped — symmetric with how unknown top-level *directories* are
 /// handled, and defense-in-depth for the browser-triggered self-upgrade path:
@@ -600,14 +600,14 @@ fn main_binary_name() -> &'static str {
 ///
 /// Grow this list — and its `.exe` twin on Windows — deliberately when a new
 /// companion ships. The CI release-artifact list is the source of truth this
-/// mirrors (currently: `zerocode` next to `zeroclaw`, plus the `web/dist`
+/// mirrors (currently: `maxcode` next to `max`, plus the `web/dist`
 /// directory that's handled by the whole-directory swap above).
 #[cfg(windows)]
-const ZEROCODE_BINARY_NAME: &str = "zerocode.exe";
+const MAXCODE_BINARY_NAME: &str = "maxcode.exe";
 #[cfg(not(windows))]
-const ZEROCODE_BINARY_NAME: &str = "zerocode";
+const MAXCODE_BINARY_NAME: &str = "maxcode";
 
-const KNOWN_COMPANION_FILES: &[&str] = &[ZEROCODE_BINARY_NAME];
+const KNOWN_COMPANION_FILES: &[&str] = &[MAXCODE_BINARY_NAME];
 
 fn is_known_companion(name: &str) -> bool {
     KNOWN_COMPANION_FILES.contains(&name)
@@ -652,10 +652,10 @@ fn unpack_zip(archive_bytes: &[u8], staging: &Path) -> Result<()> {
 
 /// Find the freshly unpacked main binary in `staging`.
 ///
-/// Walks the staged tree looking for a `zeroclaw` (or `zeroclaw.exe`) file. The
+/// Walks the staged tree looking for a `max` (or `max.exe`) file. The
 /// release archive is flat — the binary sits at the staging root — but we walk
 /// in case a future archive layout introduces a wrapper directory (e.g.
-/// `zeroclaw-v0.9/zeroclaw.exe`, which Windows zip tooling sometimes produces).
+/// `max-v0.9/max.exe`, which Windows zip tooling sometimes produces).
 fn locate_main_binary(staging: &Path) -> Result<PathBuf> {
     let target_name = main_binary_name();
     for entry in walk_files(staging) {
@@ -722,8 +722,8 @@ async fn validate_binary(path: &Path) -> Result<()> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    if !stdout.contains("zeroclaw") {
-        bail!("downloaded binary does not appear to be zeroclaw");
+    if !stdout.contains("max") {
+        bail!("downloaded binary does not appear to be max");
     }
 
     Ok(())
@@ -831,7 +831,7 @@ async fn ensure_install_dir_writable(exe: &Path) -> Result<()> {
     let dir = exe
         .parent()
         .context("cannot determine install directory for the current executable")?;
-    let probe = dir.join(format!(".zeroclaw-update-probe-{}", std::process::id()));
+    let probe = dir.join(format!(".max-update-probe-{}", std::process::id()));
     match tokio::fs::File::create(&probe).await {
         Ok(_) => {
             let _ = tokio::fs::remove_file(&probe).await;
@@ -905,7 +905,7 @@ async fn rollback_binary(backup: &Path, target: &Path) -> Result<()> {
 }
 
 /// Build a process-unique sidecar path next to `target`, e.g.
-/// `zeroclaw.exe` -> `zeroclaw.exe.<pid>.old`.
+/// `max.exe` -> `max.exe.<pid>.old`.
 #[cfg(windows)]
 fn sidecar_path(target: &Path, suffix: &str) -> std::path::PathBuf {
     let mut name = target.file_name().unwrap_or_default().to_os_string();
@@ -989,9 +989,9 @@ async fn smoke_test(binary: &Path) -> Result<()> {
 
 /// Install every artifact in `staging` other than the main binary onto the
 /// running install: the `web/dist` dashboard bundle and any other top-level
-/// files (e.g. the `zerocode` companion).
+/// files (e.g. the `maxcode` companion).
 ///
-/// Best-effort by design — the `zeroclaw` binary has already been swapped and
+/// Best-effort by design — the `max` binary has already been swapped and
 /// smoke-tested. A failure here (e.g. an unwritable data directory) is logged
 /// and swallowed rather than failing or rolling back an otherwise-good update.
 async fn install_companion_artifacts(
@@ -1004,17 +1004,17 @@ async fn install_companion_artifacts(
     let staged_web_dist = staging.join("web").join("dist");
     if staged_web_dist.is_dir() {
         match install_web_dist(&staged_web_dist, current_exe, host_candidates).await {
-            Ok(target) => ::zeroclaw_log::record!(
+            Ok(target) => ::max_log::record!(
                 INFO,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Success)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Success)
                     .with_attrs(::serde_json::json!({"dir": target.display().to_string()})),
                 "Updated web dashboard assets"
             ),
-            Err(e) => ::zeroclaw_log::record!(
+            Err(e) => ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown)
                     .with_attrs(::serde_json::json!({"error": format!("{e}")})),
                 "Web dashboard assets not updated; the main update still succeeded"
             ),
@@ -1029,10 +1029,10 @@ async fn install_companion_artifacts(
     //    radius so a compromised or forged release cannot install an
     //    arbitrarily-named file beside the running binary.
     let Some(install_dir) = current_exe.parent() else {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             WARN,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                .with_outcome(::max_log::EventOutcome::Unknown),
             "Cannot determine install directory; sibling files not refreshed"
         );
         return;
@@ -1055,10 +1055,10 @@ async fn install_companion_artifacts(
         // skip the entry rather than guessing where it should go.
         if ft.is_dir() {
             if name_str != "web" {
-                ::zeroclaw_log::record!(
+                ::max_log::record!(
                     WARN,
-                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                        .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                    ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                        .with_outcome(::max_log::EventOutcome::Unknown)
                         .with_attrs(::serde_json::json!({"name": name_str})),
                     "Release archive contains a top-level directory the updater \
                      doesn't know how to install — skipping. Teach \
@@ -1081,10 +1081,10 @@ async fn install_companion_artifacts(
         // `install_dir.join(&name)` composes the target path — no traversal
         // is possible because `read_dir(staging)` only yields staged names.
         if !is_known_companion(name_str) {
-            ::zeroclaw_log::record!(
+            ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown)
                     .with_attrs(::serde_json::json!({"name": name_str})),
                 "Release archive contains a top-level file that is not on the \
                  companion allowlist — skipping. Add it to KNOWN_COMPANION_FILES \
@@ -1096,20 +1096,20 @@ async fn install_companion_artifacts(
         let staged_path = entry.path();
         let target = install_dir.join(&name);
         match swap_file(&staged_path, &target).await {
-            Ok(()) => ::zeroclaw_log::record!(
+            Ok(()) => ::max_log::record!(
                 INFO,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Success)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Success)
                     .with_attrs(::serde_json::json!({
                         "name": name_str,
                         "path": target.display().to_string()
                     })),
                 "Updated sibling file from release archive"
             ),
-            Err(e) => ::zeroclaw_log::record!(
+            Err(e) => ::max_log::record!(
                 WARN,
-                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
+                    .with_outcome(::max_log::EventOutcome::Unknown)
                     .with_attrs(::serde_json::json!({
                         "name": name_str,
                         "error": format!("{e}")
@@ -1166,7 +1166,7 @@ async fn swap_file(new: &Path, target: &Path) -> Result<()> {
 /// Atomically(-ish) replace `target` with `new` on Windows.
 ///
 /// If the direct rename fails (the destination is locked because the file
-/// is currently executing — e.g. the user has the `zerocode` TUI open), we
+/// is currently executing — e.g. the user has the `maxcode` TUI open), we
 /// rename the existing `target` aside under a process-unique `.update-old`
 /// name and then rename the staged file into its place — the same idiom
 /// `swap_binary` uses for the main executable.
@@ -1243,9 +1243,9 @@ async fn install_web_dist(
     // `target` (it does — staging is in /tmp), `rename` would fail with
     // EXDEV; fall back to a recursive copy in that case.
     if let Err(rename_err) = tokio::fs::rename(staged_dist, &staging_dir).await {
-        ::zeroclaw_log::record!(
+        ::max_log::record!(
             DEBUG,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+            ::max_log::Event::new(module_path!(), ::max_log::Action::Note)
                 .with_attrs(::serde_json::json!({"rename_err": rename_err.to_string()})),
             "rename into target filesystem failed, falling back to copy"
         );
@@ -1289,7 +1289,7 @@ async fn install_web_dist(
 }
 
 /// Decide where to install the refreshed `web/dist` bundle, mirroring the
-/// gateway's dashboard auto-detection ([`crates/zeroclaw-gateway/src/lib.rs`])
+/// gateway's dashboard auto-detection ([`crates/max-gateway/src/lib.rs`])
 /// and `install.sh`:
 ///   1. existing `web/dist` next to the running binary (dev / packaged), or
 ///   2. one of `host_candidates` (Docker / system-package / platform data-dir
@@ -1327,16 +1327,16 @@ fn resolve_web_dist_target(current_exe: &Path, host_candidates: &[PathBuf]) -> P
 /// prebuilt-installer platform data dir. Extracted from
 /// [`resolve_web_dist_target`] so unit tests can run the resolver hermetically
 /// against a tempdir binary without consulting the real host layout — which
-/// may already hold a ZeroClaw dashboard and so divert the install target.
+/// may already hold a Max dashboard and so divert the install target.
 fn host_dashboard_candidates() -> Vec<PathBuf> {
     let mut c = vec![
-        PathBuf::from("/zeroclaw-data/web/dist"),
-        PathBuf::from("/usr/share/zeroclawlabs/web/dist"),
+        PathBuf::from("/max-data/web/dist"),
+        PathBuf::from("/usr/share/maxlabs/web/dist"),
     ];
     if let Some(base) = directories::BaseDirs::new() {
         c.push(
             base.data_local_dir()
-                .join("zeroclaw")
+                .join("max")
                 .join("web")
                 .join("dist"),
         );
@@ -1446,13 +1446,13 @@ mod tests {
     #[test]
     fn find_asset_url_picks_correct_gnu_over_android() {
         let release = make_release(&[
-            "zeroclaw-aarch64-linux-android.tar.gz",
-            "zeroclaw-aarch64-unknown-linux-gnu.tar.gz",
-            "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
-            "zeroclaw-x86_64-apple-darwin.tar.gz",
-            "zeroclaw-aarch64-apple-darwin.tar.gz",
-            "zeroclaw-x86_64-pc-windows-msvc.tar.gz",
-            "zeroclaw-aarch64-pc-windows-msvc.tar.gz",
+            "max-aarch64-linux-android.tar.gz",
+            "max-aarch64-unknown-linux-gnu.tar.gz",
+            "max-x86_64-unknown-linux-gnu.tar.gz",
+            "max-x86_64-apple-darwin.tar.gz",
+            "max-aarch64-apple-darwin.tar.gz",
+            "max-x86_64-pc-windows-msvc.tar.gz",
+            "max-aarch64-pc-windows-msvc.tar.gz",
         ]);
 
         let url = find_asset_url(&release);
@@ -1469,10 +1469,10 @@ mod tests {
     fn find_asset_url_ignores_non_installable_assets() {
         let target = current_target_triple().expect("supported test platform");
         let release = make_release(&[
-            &format!("zeroclaw-{target}.tar.gz.sha256"),
-            &format!("zeroclaw-{target}.zip.sha256"),
-            &format!("zeroclaw-{target}.zip"),
-            &format!("zeroclaw-{target}.tar.gz"),
+            &format!("max-{target}.tar.gz.sha256"),
+            &format!("max-{target}.zip.sha256"),
+            &format!("max-{target}.zip"),
+            &format!("max-{target}.tar.gz"),
         ]);
 
         let url = find_asset_url(&release).expect("should select archive asset");
@@ -1490,43 +1490,43 @@ mod tests {
         let release = serde_json::json!({
             "assets": [
                 {
-                    "name": format!("zeroclaw-{target}.tar.gz"),
+                    "name": format!("max-{target}.tar.gz"),
                     "browser_download_url": ""
                 },
                 {
-                    "name": format!("zeroclaw-{target}.tgz"),
+                    "name": format!("max-{target}.tgz"),
                     "browser_download_url": null
                 },
                 {
-                    "name": format!("zeroclaw-{target}.tar.gz"),
-                    "browser_download_url": format!("https://example.com/zeroclaw-{target}.tar.gz")
+                    "name": format!("max-{target}.tar.gz"),
+                    "browser_download_url": format!("https://example.com/max-{target}.tar.gz")
                 }
             ]
         });
 
         let url = find_asset_url(&release).expect("should skip unusable URLs");
-        assert_eq!(url, format!("https://example.com/zeroclaw-{target}.tar.gz"));
+        assert_eq!(url, format!("https://example.com/max-{target}.tar.gz"));
     }
 
     #[test]
-    fn find_asset_url_ignores_non_zeroclaw_assets() {
+    fn find_asset_url_ignores_non_max_assets() {
         let target = current_target_triple().expect("supported test platform");
         let release = make_release(&[
             &format!("helper-{target}.tar.gz"),
-            &format!("zeroclaw-{target}.tar.gz"),
+            &format!("max-{target}.tar.gz"),
         ]);
 
-        let url = find_asset_url(&release).expect("should select zeroclaw asset");
+        let url = find_asset_url(&release).expect("should select max asset");
         assert!(
-            url.contains(&format!("zeroclaw-{target}.tar.gz")),
-            "should select zeroclaw archive, got: {url}"
+            url.contains(&format!("max-{target}.tar.gz")),
+            "should select max archive, got: {url}"
         );
     }
 
     #[test]
     fn installable_release_asset_rejects_unknown_target() {
         assert!(!is_installable_release_asset(
-            "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
+            "max-x86_64-unknown-linux-gnu.tar.gz",
             "unknown"
         ));
     }
@@ -1568,7 +1568,7 @@ mod tests {
         let release = serde_json::json!({
             "assets": [
                 {
-                    "name": "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
+                    "name": "max-x86_64-unknown-linux-gnu.tar.gz",
                     "browser_download_url": "https://example.com/asset"
                 },
                 {
@@ -1617,16 +1617,16 @@ mod tests {
     fn expected_sha256_for_asset_matches_text_and_binary_mode_entries() {
         let digest = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         let sums = format!(
-            "{digest}  zeroclaw-aarch64-apple-darwin.tar.gz\n\
-             {digest} *zeroclaw-x86_64-unknown-linux-gnu.tar.gz\n"
+            "{digest}  max-aarch64-apple-darwin.tar.gz\n\
+             {digest} *max-x86_64-unknown-linux-gnu.tar.gz\n"
         );
 
         assert_eq!(
-            expected_sha256_for_asset(&sums, "zeroclaw-aarch64-apple-darwin.tar.gz").unwrap(),
+            expected_sha256_for_asset(&sums, "max-aarch64-apple-darwin.tar.gz").unwrap(),
             digest
         );
         assert_eq!(
-            expected_sha256_for_asset(&sums, "zeroclaw-x86_64-unknown-linux-gnu.tar.gz").unwrap(),
+            expected_sha256_for_asset(&sums, "max-x86_64-unknown-linux-gnu.tar.gz").unwrap(),
             digest
         );
     }
@@ -1634,8 +1634,8 @@ mod tests {
     #[test]
     fn expected_sha256_for_asset_rejects_missing_or_malformed_entry() {
         let err = expected_sha256_for_asset(
-            "not-a-hex-digest  zeroclaw-x86_64-unknown-linux-gnu.tar.gz\n",
-            "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
+            "not-a-hex-digest  max-x86_64-unknown-linux-gnu.tar.gz\n",
+            "max-x86_64-unknown-linux-gnu.tar.gz",
         )
         .unwrap_err()
         .to_string();
@@ -1643,15 +1643,15 @@ mod tests {
 
         let err = expected_sha256_for_asset(
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  other.tar.gz\n",
-            "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
+            "max-x86_64-unknown-linux-gnu.tar.gz",
         )
         .unwrap_err()
         .to_string();
         assert!(err.contains("not found"));
 
         let err = expected_sha256_for_asset(
-            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  zeroclaw-x86_64-unknown-linux-gnu.tar.gz extra\n",
-            "zeroclaw-x86_64-unknown-linux-gnu.tar.gz",
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  max-x86_64-unknown-linux-gnu.tar.gz extra\n",
+            "max-x86_64-unknown-linux-gnu.tar.gz",
         )
         .unwrap_err()
         .to_string();
@@ -1660,7 +1660,7 @@ mod tests {
 
     #[test]
     fn verify_checksum_bytes_accepts_matching_digest_and_rejects_mismatch() {
-        let asset_name = "zeroclaw-x86_64-unknown-linux-gnu.tar.gz";
+        let asset_name = "max-x86_64-unknown-linux-gnu.tar.gz";
         let digest = hex::encode(Sha256::digest(b"downloaded bytes"));
         let sums = format!("{digest}  {asset_name}\n");
 
@@ -1676,15 +1676,15 @@ mod tests {
     fn asset_name_from_url_uses_last_path_component() {
         assert_eq!(
             asset_name_from_url(
-                "https://github.com/zeroclaw-labs/zeroclaw/releases/download/v0.8.0/zeroclaw-aarch64-apple-darwin.tar.gz"
+                "https://github.com/max-labs/max/releases/download/v0.8.0/max-aarch64-apple-darwin.tar.gz"
             ),
-            Some("zeroclaw-aarch64-apple-darwin.tar.gz".to_string())
+            Some("max-aarch64-apple-darwin.tar.gz".to_string())
         );
         assert_eq!(
             asset_name_from_url(
-                "https://github.com/zeroclaw-labs/zeroclaw/releases/download/v0.8.0/zeroclaw-aarch64-apple-darwin.tar.gz?download=1#asset"
+                "https://github.com/max-labs/max/releases/download/v0.8.0/max-aarch64-apple-darwin.tar.gz?download=1#asset"
             ),
-            Some("zeroclaw-aarch64-apple-darwin.tar.gz".to_string())
+            Some("max-aarch64-apple-darwin.tar.gz".to_string())
         );
         assert_eq!(asset_name_from_url("https://example.com/releases/"), None);
     }
@@ -1697,10 +1697,10 @@ mod tests {
         let server = MockServer::start().await;
         let asset = b"downloaded bytes";
         let digest = hex::encode(Sha256::digest(asset));
-        let sums = format!("{digest}  zeroclaw-test.bin\n");
+        let sums = format!("{digest}  max-test.bin\n");
 
         Mock::given(method("GET"))
-            .and(path("/zeroclaw-test.bin"))
+            .and(path("/max-test.bin"))
             .respond_with(ResponseTemplate::new(200).set_body_bytes(asset))
             .mount(&server)
             .await;
@@ -1713,7 +1713,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
         let binary = download_release(
-            &format!("{}/zeroclaw-test.bin", server.uri()),
+            &format!("{}/max-test.bin", server.uri()),
             Some(&format!("{}/SHA256SUMS", server.uri())),
             &staging,
         )
@@ -1722,7 +1722,7 @@ mod tests {
 
         assert_eq!(std::fs::read(&binary).unwrap(), asset);
         // Bare (non-archive) download path — no siblings should appear.
-        assert!(!staging.join("zerocode").exists());
+        assert!(!staging.join("maxcode").exists());
         assert!(!staging.join("web").exists());
     }
 
@@ -1734,10 +1734,10 @@ mod tests {
         let server = MockServer::start().await;
         let asset = b"downloaded bytes";
         let digest = hex::encode(Sha256::digest(b"different bytes"));
-        let sums = format!("{digest}  zeroclaw-test.bin\n");
+        let sums = format!("{digest}  max-test.bin\n");
 
         Mock::given(method("GET"))
-            .and(path("/zeroclaw-test.bin"))
+            .and(path("/max-test.bin"))
             .respond_with(ResponseTemplate::new(200).set_body_bytes(asset))
             .mount(&server)
             .await;
@@ -1750,7 +1750,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
         let err = download_release(
-            &format!("{}/zeroclaw-test.bin", server.uri()),
+            &format!("{}/max-test.bin", server.uri()),
             Some(&format!("{}/SHA256SUMS", server.uri())),
             &staging,
         )
@@ -1759,7 +1759,7 @@ mod tests {
         .to_string();
 
         assert!(err.contains("checksum mismatch"));
-        assert!(!staging.join("zeroclaw").exists());
+        assert!(!staging.join("max").exists());
     }
 
     #[tokio::test]
@@ -1771,7 +1771,7 @@ mod tests {
         let asset = b"downloaded bytes";
 
         Mock::given(method("GET"))
-            .and(path("/zeroclaw-test.bin"))
+            .and(path("/max-test.bin"))
             .respond_with(ResponseTemplate::new(200).set_body_bytes(asset))
             .mount(&server)
             .await;
@@ -1779,7 +1779,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
         let binary = download_release(
-            &format!("{}/zeroclaw-test.bin", server.uri()),
+            &format!("{}/max-test.bin", server.uri()),
             None,
             &staging,
         )
@@ -1919,7 +1919,7 @@ mod tests {
 
     #[test]
     fn unpack_tar_gz_writes_main_binary() {
-        let fake_binary = b"#!/bin/sh\necho zeroclaw";
+        let fake_binary = b"#!/bin/sh\necho max";
         let gz_buf = make_tar_gz(&[(main_binary_name(), fake_binary)]);
 
         let tmp = tempfile::tempdir().unwrap();
@@ -1935,14 +1935,14 @@ mod tests {
 
     #[test]
     fn unpack_tar_gz_extracts_full_tree() {
-        let zeroclaw = b"#!/bin/sh\necho zeroclaw";
-        let zerocode = b"#!/bin/sh\necho zerocode";
+        let max = b"#!/bin/sh\necho max";
+        let maxcode = b"#!/bin/sh\necho maxcode";
         let index = b"<!doctype html><title>dash</title>";
         let asset = b"console.log('app')";
-        let companion_name = ZEROCODE_BINARY_NAME;
+        let companion_name = MAXCODE_BINARY_NAME;
         let gz_buf = make_tar_gz(&[
-            (main_binary_name(), zeroclaw),
-            (companion_name, zerocode),
+            (main_binary_name(), max),
+            (companion_name, maxcode),
             ("web/dist/index.html", index),
             ("web/dist/assets/app.js", asset),
         ]);
@@ -1953,10 +1953,10 @@ mod tests {
         unpack_tar_gz(&gz_buf, &staging).unwrap();
 
         let binary = locate_main_binary(&staging).unwrap();
-        assert_eq!(std::fs::read(&binary).unwrap(), zeroclaw);
+        assert_eq!(std::fs::read(&binary).unwrap(), max);
         assert_eq!(
             std::fs::read(staging.join(companion_name)).unwrap(),
-            zerocode
+            maxcode
         );
         assert_eq!(
             std::fs::read(staging.join("web").join("dist").join("index.html")).unwrap(),
@@ -2033,12 +2033,12 @@ mod tests {
         zip_buf
     }
 
-    /// Regression: verify the zip unpacker writes the zeroclaw.exe
+    /// Regression: verify the zip unpacker writes the max.exe
     /// binary bytes from a minimal Windows ZIP release asset.
     #[test]
-    fn unpack_zip_writes_zeroclaw_exe() {
-        let fake_exe = b"fake zeroclaw windows binary content";
-        let zip_buf = make_zip(&[("zeroclaw.exe", fake_exe)]);
+    fn unpack_zip_writes_max_exe() {
+        let fake_exe = b"fake max windows binary content";
+        let zip_buf = make_zip(&[("max.exe", fake_exe)]);
 
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
@@ -2048,18 +2048,18 @@ mod tests {
         // locate_main_binary searches by platform-specific name; assert by
         // staging path to keep the test cross-platform.
         assert_eq!(
-            std::fs::read(staging.join("zeroclaw.exe")).unwrap(),
+            std::fs::read(staging.join("max.exe")).unwrap(),
             fake_exe
         );
     }
 
     #[test]
-    fn unpack_zip_finds_zeroclaw_exe_in_subdirectory() {
+    fn unpack_zip_finds_max_exe_in_subdirectory() {
         // Windows archive tools sometimes produce paths like
-        // `zeroclaw-v0.9/zeroclaw.exe`. `locate_main_binary` walks the tree, so
+        // `max-v0.9/max.exe`. `locate_main_binary` walks the tree, so
         // a nested binary is still found.
-        let fake_exe = b"zeroclaw-exe-in-subdir";
-        let zip_buf = make_zip(&[("zeroclaw-v0.9/zeroclaw.exe", fake_exe)]);
+        let fake_exe = b"max-exe-in-subdir";
+        let zip_buf = make_zip(&[("max-v0.9/max.exe", fake_exe)]);
 
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
@@ -2067,22 +2067,22 @@ mod tests {
         unpack_zip(&zip_buf, &staging).unwrap();
 
         // We don't go through locate_main_binary here because its platform
-        // gate hides zeroclaw.exe on non-Windows hosts — assert the staged
+        // gate hides max.exe on non-Windows hosts — assert the staged
         // path directly so the test runs everywhere CI does.
         assert_eq!(
-            std::fs::read(staging.join("zeroclaw-v0.9/zeroclaw.exe")).unwrap(),
+            std::fs::read(staging.join("max-v0.9/max.exe")).unwrap(),
             fake_exe
         );
     }
 
     #[test]
     fn unpack_zip_extracts_full_tree() {
-        let zeroclaw = b"fake zeroclaw.exe";
-        let zerocode = b"fake zerocode.exe";
+        let max = b"fake max.exe";
+        let maxcode = b"fake maxcode.exe";
         let index = b"<!doctype html>";
         let zip_buf = make_zip(&[
-            ("zeroclaw.exe", zeroclaw),
-            ("zerocode.exe", zerocode),
+            ("max.exe", max),
+            ("maxcode.exe", maxcode),
             ("web/dist/index.html", index),
         ]);
 
@@ -2092,12 +2092,12 @@ mod tests {
         unpack_zip(&zip_buf, &staging).unwrap();
 
         assert_eq!(
-            std::fs::read(staging.join("zeroclaw.exe")).unwrap(),
-            zeroclaw
+            std::fs::read(staging.join("max.exe")).unwrap(),
+            max
         );
         assert_eq!(
-            std::fs::read(staging.join("zerocode.exe")).unwrap(),
-            zerocode
+            std::fs::read(staging.join("maxcode.exe")).unwrap(),
+            maxcode
         );
         assert_eq!(
             std::fs::read(staging.join("web").join("dist").join("index.html")).unwrap(),
@@ -2109,7 +2109,7 @@ mod tests {
     /// to write entries that would escape the destination root.
     #[test]
     fn unpack_zip_refuses_path_traversal() {
-        let zip_buf = make_zip(&[("zeroclaw.exe", b"fake"), ("../escape.txt", b"evil")]);
+        let zip_buf = make_zip(&[("max.exe", b"fake"), ("../escape.txt", b"evil")]);
 
         let tmp = tempfile::tempdir().unwrap();
         let staging = tmp.path().join("staging");
@@ -2121,13 +2121,13 @@ mod tests {
     #[tokio::test]
     async fn ensure_install_dir_writable_accepts_writable_dir() {
         let tmp = tempfile::tempdir().unwrap();
-        let exe = tmp.path().join("zeroclaw");
+        let exe = tmp.path().join("max");
         ensure_install_dir_writable(&exe).await.unwrap();
     }
 
     #[tokio::test]
     async fn ensure_install_dir_writable_rejects_missing_dir() {
-        let exe = Path::new("/no-such-zeroclaw-install-dir-9f1c/zeroclaw");
+        let exe = Path::new("/no-such-max-install-dir-9f1c/max");
         let err = ensure_install_dir_writable(exe)
             .await
             .unwrap_err()
@@ -2135,7 +2135,7 @@ mod tests {
         // Assert on the install-directory path, which the message interpolates in
         // every locale, rather than the (now localized) "not writable" wording.
         assert!(
-            err.contains("no-such-zeroclaw-install-dir-9f1c"),
+            err.contains("no-such-max-install-dir-9f1c"),
             "got: {err}"
         );
     }
@@ -2143,8 +2143,8 @@ mod tests {
     #[tokio::test]
     async fn swap_binary_replaces_target_contents() {
         let tmp = tempfile::tempdir().unwrap();
-        let target = tmp.path().join("zeroclaw");
-        let new = tmp.path().join("zeroclaw_new");
+        let target = tmp.path().join("max");
+        let new = tmp.path().join("max_new");
         std::fs::write(&target, b"old binary").unwrap();
         std::fs::write(&new, b"new binary").unwrap();
 
@@ -2156,8 +2156,8 @@ mod tests {
     #[tokio::test]
     async fn rollback_binary_restores_backup_contents() {
         let tmp = tempfile::tempdir().unwrap();
-        let target = tmp.path().join("zeroclaw");
-        let backup = tmp.path().join("zeroclaw.bak");
+        let target = tmp.path().join("max");
+        let backup = tmp.path().join("max.bak");
         std::fs::write(&target, b"broken binary").unwrap();
         std::fs::write(&backup, b"good binary").unwrap();
 
@@ -2172,7 +2172,7 @@ mod tests {
         let bin_dir = tmp.path().join("bin");
         std::fs::create_dir_all(bin_dir.join("web").join("dist")).unwrap();
         std::fs::write(bin_dir.join("web/dist/index.html"), b"<html>").unwrap();
-        let exe = bin_dir.join("zeroclaw");
+        let exe = bin_dir.join("max");
 
         let target = resolve_web_dist_target(&exe, &[]);
         assert_eq!(target, bin_dir.join("web").join("dist"));
@@ -2183,12 +2183,12 @@ mod tests {
         // No candidate directory contains index.html, so the resolver returns
         // the binary-adjacent path as the "write somewhere" fallback.
         let tmp = tempfile::tempdir().unwrap();
-        let exe = tmp.path().join("bin").join("zeroclaw");
+        let exe = tmp.path().join("bin").join("max");
         std::fs::create_dir_all(tmp.path().join("bin")).unwrap();
 
         let target = resolve_web_dist_target(&exe, &[]);
         // Fallback either lands on the binary-adjacent dir or on the platform
-        // data dir, depending on whether `/usr/share/zeroclawlabs/web/dist`
+        // data dir, depending on whether `/usr/share/maxlabs/web/dist`
         // happens to exist on the runner. Both are acceptable; what matters is
         // it does not error.
         assert!(target.ends_with("web/dist"));
@@ -2202,7 +2202,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
         std::fs::create_dir_all(&bin_dir).unwrap();
-        let exe = bin_dir.join("zeroclaw");
+        let exe = bin_dir.join("max");
 
         // Stands in for the platform data dir on a host with an install.
         let host_dashboard = tmp.path().join("host-install").join("web").join("dist");
@@ -2226,8 +2226,8 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
         std::fs::create_dir_all(&bin_dir).unwrap();
-        let exe = bin_dir.join("zeroclaw");
-        std::fs::write(&exe, b"zeroclaw").unwrap();
+        let exe = bin_dir.join("max");
+        std::fs::write(&exe, b"max").unwrap();
 
         // Existing (old) dashboard: contains a stale file the new release drops.
         let old_dist = bin_dir.join("web").join("dist");
@@ -2261,46 +2261,46 @@ mod tests {
     #[tokio::test]
     async fn swap_file_replaces_target() {
         let tmp = tempfile::tempdir().unwrap();
-        let target = tmp.path().join("zerocode");
-        std::fs::write(&target, b"old zerocode").unwrap();
-        let new = tmp.path().join("staging").join("zerocode");
+        let target = tmp.path().join("maxcode");
+        std::fs::write(&target, b"old maxcode").unwrap();
+        let new = tmp.path().join("staging").join("maxcode");
         std::fs::create_dir_all(new.parent().unwrap()).unwrap();
-        std::fs::write(&new, b"new zerocode").unwrap();
+        std::fs::write(&new, b"new maxcode").unwrap();
 
         swap_file(&new, &target).await.unwrap();
 
-        assert_eq!(std::fs::read(&target).unwrap(), b"new zerocode");
+        assert_eq!(std::fs::read(&target).unwrap(), b"new maxcode");
     }
 
     #[tokio::test]
     async fn install_companion_artifacts_swaps_top_level_siblings() {
         // The companion-artifact loop swaps every top-level file that is on
         // the explicit `KNOWN_COMPANION_FILES` allowlist (currently
-        // `zerocode` / `zerocode.exe`) — and only those. The main binary is
+        // `maxcode` / `maxcode.exe`) — and only those. The main binary is
         // handled earlier by the transactional `swap_binary` path; unknown
         // top-level files are covered by the sibling test below.
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
-        let companion_name = ZEROCODE_BINARY_NAME;
+        let companion_name = MAXCODE_BINARY_NAME;
         std::fs::create_dir_all(&bin_dir).unwrap();
         let exe = bin_dir.join(main_binary_name());
-        std::fs::write(&exe, b"zeroclaw").unwrap();
-        std::fs::write(bin_dir.join(companion_name), b"old zerocode").unwrap();
+        std::fs::write(&exe, b"max").unwrap();
+        std::fs::write(bin_dir.join(companion_name), b"old maxcode").unwrap();
 
         let staging = tmp.path().join("staging");
         std::fs::create_dir_all(&staging).unwrap();
         // Main binary lives in the staged tree but must NOT be re-swapped here
         // (it was already handled by the transactional `swap_binary` path).
-        std::fs::write(staging.join(main_binary_name()), b"new zeroclaw").unwrap();
-        std::fs::write(staging.join(companion_name), b"new zerocode").unwrap();
+        std::fs::write(staging.join(main_binary_name()), b"new max").unwrap();
+        std::fs::write(staging.join(companion_name), b"new maxcode").unwrap();
 
         install_companion_artifacts(&staging, &exe, &[]).await;
 
-        // zerocode swapped in.
-        let expected_zerocode = bin_dir.join(companion_name);
-        assert_eq!(std::fs::read(&expected_zerocode).unwrap(), b"new zerocode");
+        // maxcode swapped in.
+        let expected_maxcode = bin_dir.join(companion_name);
+        assert_eq!(std::fs::read(&expected_maxcode).unwrap(), b"new maxcode");
         // Main binary must be unchanged by the companion pass.
-        assert_eq!(std::fs::read(&exe).unwrap(), b"zeroclaw");
+        assert_eq!(std::fs::read(&exe).unwrap(), b"max");
     }
 
     /// An unknown top-level *file* in the archive (anything not on
@@ -2313,18 +2313,18 @@ mod tests {
     async fn install_companion_artifacts_skips_unknown_top_level_files() {
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
-        let companion_name = ZEROCODE_BINARY_NAME;
+        let companion_name = MAXCODE_BINARY_NAME;
         std::fs::create_dir_all(&bin_dir).unwrap();
         let exe = bin_dir.join(main_binary_name());
-        std::fs::write(&exe, b"zeroclaw").unwrap();
+        std::fs::write(&exe, b"max").unwrap();
 
         let staging = tmp.path().join("staging");
         std::fs::create_dir_all(&staging).unwrap();
         // Known companion — must be installed.
-        std::fs::write(staging.join(companion_name), b"new zerocode").unwrap();
+        std::fs::write(staging.join(companion_name), b"new maxcode").unwrap();
         // Unknown top-level file — must NOT be installed. This is the
         // defense-in-depth surface: a forged release cannot smuggle a
-        // `zerodash`, `.bashrc`, `evil.so`, etc. next to `zeroclaw` just by
+        // `zerodash`, `.bashrc`, `evil.so`, etc. next to `max` just by
         // naming it in its own archive.
         std::fs::write(staging.join("zerodash"), b"unknown artifact").unwrap();
 
@@ -2333,7 +2333,7 @@ mod tests {
         // Known companion installed.
         assert_eq!(
             std::fs::read(bin_dir.join(companion_name)).unwrap(),
-            b"new zerocode"
+            b"new maxcode"
         );
         // Unknown sibling NOT installed.
         assert!(
@@ -2351,14 +2351,14 @@ mod tests {
     async fn install_companion_artifacts_skips_unknown_top_level_directories() {
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
-        let companion_name = ZEROCODE_BINARY_NAME;
+        let companion_name = MAXCODE_BINARY_NAME;
         std::fs::create_dir_all(&bin_dir).unwrap();
         let exe = bin_dir.join(main_binary_name());
-        std::fs::write(&exe, b"zeroclaw").unwrap();
+        std::fs::write(&exe, b"max").unwrap();
 
         let staging = tmp.path().join("staging");
         std::fs::create_dir_all(&staging).unwrap();
-        std::fs::write(staging.join(companion_name), b"new zerocode").unwrap();
+        std::fs::write(staging.join(companion_name), b"new maxcode").unwrap();
         // An unknown directory (a future layout, a mispackaged release, …).
         std::fs::create_dir_all(staging.join("themes").join("dark")).unwrap();
         std::fs::write(staging.join("themes/dark/index.css"), b"body{}").unwrap();
@@ -2372,7 +2372,7 @@ mod tests {
         // Known artifacts installed.
         assert_eq!(
             std::fs::read(bin_dir.join(companion_name)).unwrap(),
-            b"new zerocode"
+            b"new maxcode"
         );
         assert_eq!(
             std::fs::read(bin_dir.join("web/dist/index.html")).unwrap(),
@@ -2391,42 +2391,42 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let parent = tmp.path();
         // Simulate residue left by previous PIDs.
-        std::fs::write(parent.join(".zerocode.update-99998"), b"stale tmp").unwrap();
-        std::fs::write(parent.join(".zerocode.update-old-99997"), b"stale old").unwrap();
+        std::fs::write(parent.join(".maxcode.update-99998"), b"stale tmp").unwrap();
+        std::fs::write(parent.join(".maxcode.update-old-99997"), b"stale old").unwrap();
         let stale_dir = parent.join(".dist.update-old-99996");
         std::fs::create_dir_all(stale_dir.join("assets")).unwrap();
         std::fs::write(stale_dir.join("index.html"), b"old").unwrap();
         std::fs::write(stale_dir.join("assets/app.js"), b"old").unwrap();
         // A file that does NOT match the prefix — must survive.
-        std::fs::write(parent.join("zerocode"), b"live").unwrap();
+        std::fs::write(parent.join("maxcode"), b"live").unwrap();
 
-        sweep_update_residue(parent, "zerocode").await;
+        sweep_update_residue(parent, "maxcode").await;
         sweep_update_residue(parent, "dist").await;
 
-        assert!(!parent.join(".zerocode.update-99998").exists());
-        assert!(!parent.join(".zerocode.update-old-99997").exists());
+        assert!(!parent.join(".maxcode.update-99998").exists());
+        assert!(!parent.join(".maxcode.update-old-99997").exists());
         assert!(!stale_dir.exists());
-        assert_eq!(std::fs::read(parent.join("zerocode")).unwrap(), b"live");
+        assert_eq!(std::fs::read(parent.join("maxcode")).unwrap(), b"live");
     }
 
     #[tokio::test]
     async fn swap_file_cleans_up_residue_from_earlier_runs() {
         let tmp = tempfile::tempdir().unwrap();
         let dir = tmp.path();
-        let target = dir.join("zerocode");
+        let target = dir.join("maxcode");
         std::fs::write(&target, b"old").unwrap();
         // Pretend a previous update left a sidelined file (e.g. because the
         // old process was still running and the file was locked).
-        std::fs::write(dir.join(".zerocode.update-old-99999"), b"stale").unwrap();
+        std::fs::write(dir.join(".maxcode.update-old-99999"), b"stale").unwrap();
 
-        let new = dir.join("new-zerocode");
+        let new = dir.join("new-maxcode");
         std::fs::write(&new, b"new").unwrap();
         swap_file(&new, &target).await.unwrap();
 
         assert_eq!(std::fs::read(&target).unwrap(), b"new");
         // The stale sidelined file from the previous run must be swept.
         assert!(
-            !dir.join(".zerocode.update-old-99999").exists(),
+            !dir.join(".maxcode.update-old-99999").exists(),
             "swap_file must sweep residue from previous runs"
         );
     }
@@ -2436,8 +2436,8 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let bin_dir = tmp.path().join("bin");
         std::fs::create_dir_all(&bin_dir).unwrap();
-        let exe = bin_dir.join("zeroclaw");
-        std::fs::write(&exe, b"zeroclaw").unwrap();
+        let exe = bin_dir.join("max");
+        std::fs::write(&exe, b"max").unwrap();
 
         // Existing dashboard.
         let old_dist = bin_dir.join("web").join("dist");
@@ -2471,9 +2471,9 @@ mod tests {
         use std::process::{Child, Command, Output, Stdio};
         use std::time::{Duration, Instant};
 
-        const CHILD_ENV: &str = "ZEROCLAW_WINDOWS_UPDATE_RUNTIME_TEST_CHILD";
-        const READY_ENV: &str = "ZEROCLAW_WINDOWS_UPDATE_RUNTIME_TEST_READY";
-        const RELEASE_ENV: &str = "ZEROCLAW_WINDOWS_UPDATE_RUNTIME_TEST_RELEASE";
+        const CHILD_ENV: &str = "MAX_WINDOWS_UPDATE_RUNTIME_TEST_CHILD";
+        const READY_ENV: &str = "MAX_WINDOWS_UPDATE_RUNTIME_TEST_READY";
+        const RELEASE_ENV: &str = "MAX_WINDOWS_UPDATE_RUNTIME_TEST_RELEASE";
         const CHILD_TEST: &str =
             "commands::update::tests::windows_runtime_tests::windows_update_runtime_child";
         const POLL_INTERVAL: Duration = Duration::from_millis(10);
@@ -2659,7 +2659,7 @@ mod tests {
         #[tokio::test]
         async fn windows_swap_binary_handles_locked_sidecars() {
             let tmp = tempfile::tempdir().unwrap();
-            let target = tmp.path().join("zeroclaw.exe");
+            let target = tmp.path().join("max.exe");
             let preexisting_seed = tmp.path().join("preexisting.exe");
             copy_current_test_executable(&target);
             copy_current_test_executable(&preexisting_seed);
@@ -2708,10 +2708,10 @@ mod tests {
         #[tokio::test]
         async fn windows_swap_failure_restores_then_rolls_back_locked_target() {
             let tmp = tempfile::tempdir().unwrap();
-            let target = tmp.path().join("zeroclaw.exe");
+            let target = tmp.path().join("max.exe");
             copy_current_test_executable(&target);
             let original = std::fs::read(&target).unwrap();
-            let backup = tmp.path().join("zeroclaw.bak");
+            let backup = tmp.path().join("max.bak");
             std::fs::write(&backup, b"backup bytes").unwrap();
             let missing = tmp.path().join("missing.exe");
 

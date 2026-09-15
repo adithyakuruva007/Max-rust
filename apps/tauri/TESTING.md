@@ -2,7 +2,7 @@
 
 ## Startup flow
 
-The desktop app is a thin shell over a running ZeroClaw **web gateway**. There
+The desktop app is a thin shell over a running Max **web gateway**. There
 is no longer a macOS/Windows/Linux permission-setup wizard — the app goes
 straight to the gateway, and first-time setup happens in the web Quickstart.
 
@@ -19,13 +19,13 @@ On launch:
    completed — to `/quickstart`. Returning users land on the dashboard.
 
 > The app looks for a gateway on `127.0.0.1:42617`: it reuses a running
-> daemon, or spawns `zeroclaw daemon` itself (preferring a kernel bundled
+> daemon, or spawns `max daemon` itself (preferring a kernel bundled
 > next to the app executable, then `PATH` and the common install dirs — see
-> `src/daemon.rs::find_zeroclaw_binary`). The self-contained installer below
+> `src/daemon.rs::find_max_binary`). The self-contained installer below
 > bundles the kernel as a Tauri sidecar — the "full experience" distribution
 > from architecture RFC fnd-001, D5.
 >
-> **Run `zeroclaw daemon`, not `zeroclaw gateway start`.** Both serve the
+> **Run `max daemon`, not `max gateway start`.** Both serve the
 > dashboard on 42617, but only the daemon attaches the supervisor that powers
 > in-place reload. After the Quickstart applies config it calls `/admin/reload`;
 > a standalone `gateway start` has no supervisor and returns
@@ -35,7 +35,7 @@ On launch:
 ## Self-contained build (bundled kernel)
 
 The plain `cargo tauri build` produces an app that *finds* an installed
-`zeroclaw`. To produce the zero-install artifact — double-click on a machine
+`max`. To produce the zero-install artifact — double-click on a machine
 with nothing pre-installed and get a running agent — bundle the kernel as a
 sidecar:
 
@@ -49,22 +49,22 @@ scripts/desktop/prepare-kernel.sh --target universal-apple-darwin --features emb
 cd apps/tauri && cargo tauri build --config tauri.bundled.conf.json
 ```
 
-`ZEROCLAW_KERNEL_PATH` can reuse a prebuilt single-target kernel, but that
+`MAX_KERNEL_PATH` can reuse a prebuilt single-target kernel, but that
 binary must already have been built with `--features embedded-web`; the staging
 script cannot add embedded assets to an existing executable.
 
 The overlay keeps the default config untouched, so `cargo tauri build`
 without the staged kernel keeps working. Tauri places the sidecar next to the
-app executable as `zeroclaw`, which is the first place
-`find_zeroclaw_binary()` looks — so the bundled app starts its own daemon
+app executable as `max`, which is the first place
+`find_max_binary()` looks — so the bundled app starts its own daemon
 from its own kernel.
 
-To verify self-containment, launch on a machine (or shell) where `zeroclaw`
+To verify self-containment, launch on a machine (or shell) where `max`
 is not on `PATH` and not in `~/.cargo/bin`, then check the daemon's process
 path points inside the app bundle:
 
 ```sh
-pgrep -fl 'zeroclaw daemon'   # expect .../ZeroClaw.app/Contents/MacOS/zeroclaw
+pgrep -fl 'max daemon'   # expect .../Max.app/Contents/MacOS/max
 ```
 
 > Size note: the kernel dominates the artifact. A stripped release kernel is
@@ -76,8 +76,8 @@ pgrep -fl 'zeroclaw daemon'   # expect .../ZeroClaw.app/Contents/MacOS/zeroclaw
 
 ### Reset to fresh-install state
 ```sh
-pkill -f 'target/debug/zeroclaw-desktop'
-rm "$HOME/Library/Application Support/ai.zeroclawlabs.desktop/settings.json"
+pkill -f 'target/debug/max-desktop'
+rm "$HOME/Library/Application Support/ai.maxlabs.desktop/settings.json"
 killall Dock                                   # if dock icon looks stale
 bash dev/run-tauri-dev.sh
 ```
@@ -89,16 +89,16 @@ an empty agents list via `GET /api/quickstart/state`).
 For a real installed-bundle test:
 ```sh
 cd apps/tauri && cargo tauri build
-cp -R target/release/bundle/macos/ZeroClaw.app /Applications/
-xattr -dr com.apple.quarantine /Applications/ZeroClaw.app
-open /Applications/ZeroClaw.app
+cp -R target/release/bundle/macos/Max.app /Applications/
+xattr -dr com.apple.quarantine /Applications/Max.app
+open /Applications/Max.app
 ```
 
 ### What to verify
-- With **no gateway running**: splash shows "Connecting to your ZeroClaw
+- With **no gateway running**: splash shows "Connecting to your Max
   gateway…" and, after a few seconds, the "make sure the gateway is running"
   hint. The tray icon shows Disconnected.
-- Start the daemon (`cargo run -p zeroclaw -- daemon`, or `zeroclaw daemon`):
+- Start the daemon (`cargo run -p max -- daemon`, or `max daemon`):
   within ~1–2s the splash hands off — the dashboard window opens, splash closes.
 - **First run** (fresh gateway config): the dashboard opens straight onto the
   **Quickstart**; completing it configures an agent and the gateway becomes

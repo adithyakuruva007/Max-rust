@@ -1,6 +1,6 @@
 # WhatsApp
 
-ZeroClaw supports two WhatsApp backends under the same `channels.whatsapp` config family:
+Max supports two WhatsApp backends under the same `channels.whatsapp` config family:
 
 | Mode | Use it when | Required selector |
 |---|---|---|
@@ -26,12 +26,12 @@ instance that should receive it: `GET`/`POST https://<your-public-url>/whatsapp/
 (e.g. `[channels.whatsapp.work]` → `/whatsapp/work`). This per-alias routing
 (#6312) lets multiple WhatsApp numbers run side by side. The bare `/whatsapp`
 path still works but is **deprecated**: it resolves to the lexicographically-first
-alias (deterministic across restarts) and sets an `X-Zeroclaw-Deprecation` response
+alias (deterministic across restarts) and sets an `X-Max-Deprecation` response
 header. An unknown alias returns `404`. Single-instance deployments need no change.
 
 ## Web mode
 
-WhatsApp Web mode links a regular WhatsApp account through the optional Web backend. It does not need a Meta Business account. It does need a ZeroClaw build with the `whatsapp-web` feature enabled and a persistent session database path.
+WhatsApp Web mode links a regular WhatsApp account through the optional Web backend. It does not need a Meta Business account. It does need a Max build with the `whatsapp-web` feature enabled and a persistent session database path.
 
 On first start, the Web backend pairs the account using QR or pair-code linking (`pair_phone` seeds pair-code linking; leave it unset for QR). Keep `session_path` on persistent storage; removing it forces a fresh device link. Bind the channel to an agent via that agent's `channels` list.
 
@@ -51,7 +51,7 @@ For Web mode, `dm_policy` and `group_policy` apply under **both** modes. `self_c
 | `mention_only` | `true`, `false` | both modes | Requires group messages to mention the bot |
 | `passive_group_context` | `true`, `false` | both modes | Records allowed unaddressed group messages as context only |
 
-`self_chat_mode` stays personal-only because the self-chat affordance is scoped to the personal branch by design. `mode` selects ZeroClaw's policy posture, not a WhatsApp account type: both modes drive the same linked-device session.
+`self_chat_mode` stays personal-only because the self-chat affordance is scoped to the personal branch by design. `mode` selects Max's policy posture, not a WhatsApp account type: both modes drive the same linked-device session.
 
 The fromMe guard also stays inside the personal branch, but not because business mode lacks an equivalent. Business mode is still a WhatsApp Web linked-device session, and WhatsApp mirrors the operator's own outbound messages to linked devices as `fromMe` in either mode. The linked account is persisted as an authorized peer, so under business mode that mirror can satisfy the allowlist and reach dispatch, which is the shape #6353 closed for personal mode. That behaviour predates this change and is not introduced here; it is called out rather than asserted away, and repairing it is tracked separately.
 
@@ -81,7 +81,7 @@ Each entry matches either the full group JID (`123456789012345@g.us`) or the JID
 ```toml
 [channels.whatsapp.myaccount]
 enabled = true
-session_path = "/var/lib/zeroclaw/wa.db"
+session_path = "/var/lib/max/wa.db"
 # Only operate in these two groups; all other groups are dropped.
 allowed_groups = ["120363012345678901@g.us", "120363098765432109"]
 ```
@@ -160,9 +160,9 @@ After configuring one mode, start the channel runner:
 #### sh
 
 ```sh
-zeroclaw channel start
+max channel start
 ```
 
 </div>
 
-Use `zeroclaw channel doctor` for a first check. For Web mode, also confirm the binary was built with `whatsapp-web`; for Cloud API mode, confirm the webhook tunnel and Meta verify token agree.
+Use `max channel doctor` for a first check. For Web mode, also confirm the binary was built with `whatsapp-web`; for Cloud API mode, confirm the webhook tunnel and Meta verify token agree.

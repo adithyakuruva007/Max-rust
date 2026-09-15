@@ -1,4 +1,4 @@
-//! Regression: `zeroclaw cron` delivery flags at the shipped CLI boundary.
+//! Regression: `max cron` delivery flags at the shipped CLI boundary.
 //!
 //! The unit tests around `handle_command` construct `CronCommands` values
 //! directly, so they never exercise Clap parsing, the process exit status, or
@@ -15,8 +15,8 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
-use zeroclaw_config::schema::Config;
-use zeroclaw_runtime::cron;
+use max_config::schema::Config;
+use max_runtime::cron;
 
 /// `locale = "en"` is pinned so stdout assertions do not depend on the
 /// environment; `config_dir_locale_regression.rs` shows config drives locale.
@@ -33,12 +33,12 @@ risk_profile = "default"
 "#;
 
 fn run(config_dir: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_zeroclaw"))
-        .env("ZEROCLAW_CONFIG_DIR", config_dir)
+    Command::new(env!("CARGO_BIN_EXE_max"))
+        .env("MAX_CONFIG_DIR", config_dir)
         .env("RUST_LOG", "off")
         .args(args)
         .output()
-        .expect("run zeroclaw")
+        .expect("run max")
 }
 
 fn stdout_of(out: &Output) -> String {
@@ -330,17 +330,17 @@ fn seed_declarative_job(config_dir: &Path) {
 
     config.agents.insert(
         "default".to_string(),
-        zeroclaw_config::schema::AliasedAgentConfig {
+        max_config::schema::AliasedAgentConfig {
             enabled: true,
             cron_jobs: vec!["decl_job".to_string()],
             ..Default::default()
         },
     );
 
-    let decl = zeroclaw_config::schema::CronJobDecl {
+    let decl = max_config::schema::CronJobDecl {
         name: Some("decl_job".to_string()),
         job_type: "shell".to_string(),
-        schedule: zeroclaw_config::schema::CronScheduleDecl::Cron {
+        schedule: max_config::schema::CronScheduleDecl::Cron {
             expr: "0 2 * * *".to_string(),
             tz: None,
         },
@@ -351,14 +351,14 @@ fn seed_declarative_job(config_dir: &Path) {
         allowed_tools: None,
         uses_memory: true,
         session_target: None,
-        delivery: Some(zeroclaw_config::schema::DeliveryConfigDecl {
+        delivery: Some(max_config::schema::DeliveryConfigDecl {
             mode: "announce".to_string(),
             channel: Some("telegram".to_string()),
             to: Some("111".to_string()),
             thread_id: None,
             best_effort: true,
         }),
-        shell_output_format: zeroclaw_config::schema::CronShellOutputFormat::Wrapped,
+        shell_output_format: max_config::schema::CronShellOutputFormat::Wrapped,
     };
 
     let mut decls = std::collections::HashMap::new();
@@ -377,7 +377,7 @@ fn cron_update_rejects_delivery_on_a_declarative_job() {
     // Materialize the declarative row before invoking the CLI. No CLI command
     // runs `sync_declarative_jobs`; the only production caller is the scheduler's
     // daemon-startup path (`cron/scheduler.rs`). Seeding through the library is
-    // how `zeroclaw-gateway`'s own declarative test sets this up, and it keeps the
+    // how `max-gateway`'s own declarative test sets this up, and it keeps the
     // assertions on what the binary does rather than on how the row got there.
     seed_declarative_job(config_dir);
 

@@ -15,7 +15,7 @@ re-enabled from branch protection with no code change).
 
 ## Branching Model
 
-ZeroClaw uses a single default branch: `master`. All contributor PRs target
+Max uses a single default branch: `master`. All contributor PRs target
 `master` directly. There is no `dev` or promotion branch.
 
 Maintainers with merge authority: `JordanTheJet`, `Audacity88`, `WareWolf-MoonWall`, `Nillth`, and `tidux`.
@@ -64,15 +64,15 @@ tag push.
 1. Contributor opens or updates a PR targeting `master`.
 2. `ci.yml` runs:
    - `lint`: `cargo fmt --all -- --check`, `cargo clippy --workspace
-     --exclude zeroclaw-desktop --all-targets --features ci-all -- -D warnings`
+     --exclude max-desktop --all-targets --features ci-all -- -D warnings`
      (PRs only).
    - `build`: matrix across `x86_64-unknown-linux-gnu`,
      `aarch64-apple-darwin`, `x86_64-pc-windows-msvc`.
    - `check`: matrix: all features + no default features.
    - `check-32bit`: `i686-unknown-linux-gnu`, no default features.
    - `bench`: benchmarks compile check.
-   - `test`: `cargo nextest run --locked --workspace --exclude zeroclaw-desktop` on `ubuntu-latest`.
-   - `memory-postgres-test`: feature-enabled `zeroclaw-memory` tests plus serial database-backed acceptance tests against an ephemeral PostgreSQL 17 service.
+   - `test`: `cargo nextest run --locked --workspace --exclude max-desktop` on `ubuntu-latest`.
+   - `memory-postgres-test`: feature-enabled `max-memory` tests plus serial database-backed acceptance tests against an ephemeral PostgreSQL 17 service.
    - `windows-test-scope` and `windows-test`: advisory-only Windows measurement. The selector compares base SHA..`HEAD` and chooses baseline `skip`, `scoped`, or `full` plus the orthogonal `needs_plugin_host` flag; the Windows job records both outputs, passes explicit `-p` arguments for `scoped`, uses the full workspace command for `full`, and when the flag is true installs `wasm32-wasip2` and runs the feature-enabled plugin component, library, runtime config, runtime admission, gateway, CLI, and root host tests. Baseline and appended invocations use `--no-fail-fast`, retain separate failure statuses, and report baseline, plugin-host, and total durations.
    - `security`: `cargo deny check`.
    - `CI Required Gate`: composite job; branch protection requires this.

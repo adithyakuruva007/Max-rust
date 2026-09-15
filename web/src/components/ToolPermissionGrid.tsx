@@ -13,10 +13,10 @@
 // same convention operators were already hand-writing into `allowed_tools`
 // to fake a zero-tools profile) so the config still round-trips through
 // today's backend with no schema change. See `RiskProfileConfig` in
-// crates/zeroclaw-config/src/schema.rs.
+// crates/max-config/src/schema.rs.
 //
 // Deny always wins its axis; Ask-every-time always wins over Auto-approve
-// when a tool is in both — see crates/zeroclaw-runtime/src/approval/mod.rs.
+// when a tool is in both — see crates/max-runtime/src/approval/mod.rs.
 //
 // The component is controlled — it owns no permission state, just reflects
 // `value` and fires `onChange(next)` with the full updated bundle.

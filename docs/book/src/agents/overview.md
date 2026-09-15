@@ -1,6 +1,6 @@
 # Agents
 
-Agents are the star of a ZeroClaw deployment. Everything else in this book, the
+Agents are the star of a Max deployment. Everything else in this book, the
 providers, the channels, the security profiles, the skills, the memory, exists
 so that an agent can use it. This section is the showcase; the rest of the docs
 are the credits.
@@ -84,7 +84,7 @@ single task. See [Delegation & SubAgents](./delegation.md).
 - [Filesystem components](./filesystem.md): the workspace, memory, and identity
   that live on disk per agent.
 - [Running agents](./operating.md): addressing agents, coexistence, and how an
-  agent surfaces in the zerocode Code and Chat panes.
+  agent surfaces in the maxcode Code and Chat panes.
 
 For the runtime internals, the permission model, the memory model, and the
 agent loop, see [Runtime internals](./internals.md).

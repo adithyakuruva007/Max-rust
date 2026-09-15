@@ -1,6 +1,6 @@
 # Android Setup
 
-ZeroClaw can publish an experimental prebuilt binary for Android devices.
+Max can publish an experimental prebuilt binary for Android devices.
 
 ## Supported Architectures
 
@@ -16,7 +16,7 @@ prebuilt binary.
 
 ## Installation via Termux
 
-The easiest way to run ZeroClaw on Android is via [Termux](https://termux.dev/).
+The easiest way to run Max on Android is via [Termux](https://termux.dev/).
 
 ### 1. Install Termux
 
@@ -24,7 +24,7 @@ Download from [F-Droid](https://f-droid.org/packages/com.termux/) (recommended) 
 
 > ⚠️ **Note:** The Play Store version is outdated and unsupported.
 
-### 2. Download ZeroClaw
+### 2. Download Max
 
 <div class="os-tabs-src">
 
@@ -38,8 +38,8 @@ uname -m
 
 # Optionally download the experimental 64-bit (aarch64) binary.
 # A 404 means this release did not build it; use the source build below instead.
-if curl -fLO https://github.com/zeroclaw-labs/zeroclaw/releases/latest/download/zeroclaw-aarch64-linux-android.tar.gz; then
-  tar xzf zeroclaw-aarch64-linux-android.tar.gz
+if curl -fLO https://github.com/max-labs/max/releases/latest/download/max-aarch64-linux-android.tar.gz; then
+  tar xzf max-aarch64-linux-android.tar.gz
 else
   echo "Download failed. If GitHub reported 404, build from source below. Otherwise, check the error and retry."
 fi
@@ -57,21 +57,21 @@ build from source when the asset is missing, or resolve the download error and r
 #### sh
 
 ```sh
-chmod +x zeroclaw
-mv zeroclaw $PREFIX/bin/
+chmod +x max
+mv max $PREFIX/bin/
 
 # Verify installation
-zeroclaw --version
+max --version
 
 # Run setup
-zeroclaw quickstart
+max quickstart
 ```
 
 </div>
 
 ## Direct Installation via ADB
 
-For advanced users who want to run ZeroClaw outside Termux:
+For advanced users who want to run Max outside Termux:
 
 <div class="os-tabs-src">
 
@@ -79,9 +79,9 @@ For advanced users who want to run ZeroClaw outside Termux:
 
 ```sh
 # From your computer with ADB
-adb push zeroclaw /data/local/tmp/
-adb shell chmod +x /data/local/tmp/zeroclaw
-adb shell /data/local/tmp/zeroclaw --version
+adb push max /data/local/tmp/
+adb shell chmod +x /data/local/tmp/max
+adb shell /data/local/tmp/max --version
 ```
 
 </div>
@@ -93,7 +93,7 @@ adb shell /data/local/tmp/zeroclaw --version
 - **No systemd:** Use Termux's `termux-services` for daemon mode
 - **Storage access:** Requires Termux storage permissions (`termux-setup-storage`)
 - **Network:** Some features may require Android VPN permission for local binding
-- **Artifact contents:** The Android artifact contains `zeroclaw` but not `zerocode`; the terminal dependencies required by `zerocode` are unavailable for this target.
+- **Artifact contents:** The Android artifact contains `max` but not `maxcode`; the terminal dependencies required by `maxcode` are unavailable for this target.
 
 ## Building from Source
 
@@ -128,7 +128,7 @@ cargo build --release --target aarch64-linux-android
 #### sh
 
 ```sh
-chmod +x zeroclaw
+chmod +x max
 ```
 
 </div>

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 #
 # mtls-relay-testbed.sh - stand up a self-contained mTLS WSS testbed and prove
-# both reach paths a `zerocode` client can use against a running daemon:
+# both reach paths a `maxcode` client can use against a running daemon:
 #
-#   1. DIRECT     zerocode --connect wss://127.0.0.1:<wss>           (mutual TLS)
-#   2. VIA RELAY  zerocode --connect wss://127.0.0.1:<wss> \
+#   1. DIRECT     maxcode --connect wss://127.0.0.1:<wss>           (mutual TLS)
+#   2. VIA RELAY  maxcode --connect wss://127.0.0.1:<wss> \
 #                          --relay 127.0.0.1:<relay> --relay-node <id>
 #
-# It builds the three binaries (zeroclaw, zerocode, zerorelay), creates an
+# It builds the three binaries (max, maxcode, maxrelay), creates an
 # isolated config dir with [wss] + [relay] enabled, boots a relay and a daemon,
 # issues a client certificate from the daemon's auto-generated CA, and then
 # self-verifies BOTH paths before handing you live processes plus the exact
-# zerocode commands to run by hand.
+# maxcode commands to run by hand.
 #
 # Self-checks (hard failures, exit non-zero):
 #   - direct mTLS handshake SUCCEEDS with the client cert (TLS 1.3, Verify OK)
@@ -92,9 +92,9 @@ case "$PROFILE" in
            export RUST_MIN_STACK="${RUST_MIN_STACK:-8388608}" ;;
   *) echo "ZC_PROFILE must be 'release' or 'debug' (got '$PROFILE')" >&2; exit 2 ;;
 esac
-ZEROCLAW="$BIN_DIR/zeroclaw"
-ZEROCODE="$BIN_DIR/zerocode"
-ZERORELAY="$BIN_DIR/zerorelay"
+MAX="$BIN_DIR/max"
+MAXCODE="$BIN_DIR/maxcode"
+MAXRELAY="$BIN_DIR/maxrelay"
 
 say()  { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m  ok\033[0m %s\n' "$*"; }
@@ -113,14 +113,14 @@ trap cleanup EXIT INT TERM
 # --- 1. build ----------------------------------------------------------------
 if [ "$SKIP_BUILD" = "1" ]; then
   say "skipping build (reusing binaries in $BIN_DIR)"
-  for b in "$ZEROCLAW" "$ZEROCODE" "$ZERORELAY"; do
+  for b in "$MAX" "$MAXCODE" "$MAXRELAY"; do
     [ -x "$b" ] || die "missing binary $b (drop --skip-build to build it)"
   done
 else
-  say "building zeroclaw, zerocode, zerorelay ($PROFILE) with ${CARGO_CMD[*]} ..."
+  say "building max, maxcode, maxrelay ($PROFILE) with ${CARGO_CMD[*]} ..."
   ( cd "$REPO_ROOT" && CARGO_TARGET_DIR="$CARGO_TARGET_DIR" "${CARGO_CMD[@]}" build $CARGO_PROFILE_FLAG \
       --features channels-full \
-      -p zeroclaw -p zerocode -p zerorelay ) \
+      -p max -p maxcode -p maxrelay ) \
     || die "build failed"
 fi
 ok "binaries ready in $BIN_DIR"
@@ -168,7 +168,7 @@ ok "wrote $TB/config.toml (wss :$WSS_PORT, relay $RELAY_BIND:$RELAY_PORT, node '
 
 CA="$TB/data/tls/ca.crt"
 # issue-client-cert into a drop-in client TLS dir: with --out-dir it also writes
-# the generic ca.crt/client.crt/client.key that zerocode finds by default under
+# the generic ca.crt/client.crt/client.key that maxcode finds by default under
 # <config-dir>/tls, so the relay command needs no --tls-* flags.
 CLIENT_CONFIG_DIR="$TB/client"
 CLIENT_DIR="$CLIENT_CONFIG_DIR/tls"
@@ -179,13 +179,13 @@ CLIENT_KEY="$CLIENT_DIR/client.key"
 # No openssl: with no --tls-cert the relay generates its own CA + server cert
 # (SAN localhost/127.0.0.1, plus ZC_RELAY_PUBLIC_HOST when set) into --tls-dir,
 # the same machinery the daemon uses.
-say "starting zerorelay on $RELAY_BIND:$RELAY_PORT (open admission, self-provisioned TLS)"
+say "starting maxrelay on $RELAY_BIND:$RELAY_PORT (open admission, self-provisioned TLS)"
 RELAY_TLS_SAN_ARGS=()
 case "$RELAY_PUBLIC_HOST" in
   ""|"127.0.0.1"|"localhost") ;;
   *) RELAY_TLS_SAN_ARGS+=(--tls-san "$RELAY_PUBLIC_HOST") ;;
 esac
-"$ZERORELAY" --bind "$RELAY_BIND:$RELAY_PORT" --registration-mode open \
+"$MAXRELAY" --bind "$RELAY_BIND:$RELAY_PORT" --registration-mode open \
   --tls-dir "$RELAY_TLS_DIR" \
   "${RELAY_TLS_SAN_ARGS[@]}" \
   > "$TB/relay.log" 2>&1 &
@@ -200,7 +200,7 @@ ok "relay listening (pid $RELAY_PID)"
 
 # --- 4. start the daemon -----------------------------------------------------
 say "starting daemon (auto-generates CA, binds WSS, registers with relay)"
-ZEROCLAW_CONFIG_DIR="$TB" "$ZEROCLAW" daemon > "$TB/daemon.log" 2>&1 &
+MAX_CONFIG_DIR="$TB" "$MAX" daemon > "$TB/daemon.log" 2>&1 &
 DAEMON_PID=$!
 for _ in $(seq 1 80); do
   [ -f "$CA" ] && ss -ltn 2>/dev/null | grep -q ":$WSS_PORT" && break
@@ -213,8 +213,8 @@ ok "daemon up (pid $DAEMON_PID), CA at $CA, WSS on :$WSS_PORT"
 
 # --- 5. issue a client certificate -------------------------------------------
 say "issuing a client certificate from the daemon CA"
-ZEROCLAW_CONFIG_DIR="$TB" "$ZEROCLAW" security issue-client-cert \
-  --name zerocode --out-dir "$CLIENT_DIR" --force > "$TB/issue.log" 2>&1 \
+MAX_CONFIG_DIR="$TB" "$MAX" security issue-client-cert \
+  --name maxcode --out-dir "$CLIENT_DIR" --force > "$TB/issue.log" 2>&1 \
   || { cat "$TB/issue.log" >&2; die "issue-client-cert failed"; }
 [ -f "$CLIENT_CRT" ] && [ -f "$CLIENT_KEY" ] || die "client cert/key not written to $CLIENT_DIR"
 ok "client cert $CLIENT_CRT"
@@ -234,7 +234,7 @@ say "self-check B: daemon DEMANDS a client certificate (mandatory mTLS)"
 # the server's post-handshake rejection alert in a greppable way, so we assert
 # the deterministic signal instead: the server sends a CertificateRequest naming
 # the daemon CA. The actual certless REJECTION is proven authoritatively by:
-#   cargo test -p zeroclaw-runtime --test wss_mtls_transport (missing_client_cert_is_rejected)
+#   cargo test -p max-runtime --test wss_mtls_transport (missing_client_cert_is_rejected)
 out="$(printf 'Q' | openssl s_client -connect "127.0.0.1:$WSS_PORT" -tls1_3 \
   -CAfile "$CA" 2>&1 || true)"
 echo "$out" | grep -qi "Acceptable client certificate CA names" \
@@ -246,9 +246,9 @@ ok "daemon requires a client certificate (mandatory mTLS; rejection proven by ca
 # and multiplexes binary DATA frames - too much to re-implement faithfully in a
 # shell probe. The authoritative inner-mTLS-end-to-end-through-the-relay proof
 # (real RelayServer + real daemon bridge) is the integration test:
-#     cargo test -p zeroclaw-runtime --test relay_full_path
+#     cargo test -p max-runtime --test relay_full_path
 # Here we assert the relay's OUTER TLS plane is live and the daemon bridge is up,
-# then hand you the exact zerocode command for the relay route.
+# then hand you the exact maxcode command for the relay route.
 say "self-check C: relay outer TLS verifies against its self-provisioned CA"
 out="$(echo Q | openssl s_client -connect "127.0.0.1:$RELAY_PORT" \
   -CAfile "$RELAY_TLS_DIR/ca.crt" -servername 127.0.0.1 2>&1 || true)"
@@ -261,7 +261,7 @@ ok "relay outer TLS verified against its own CA; daemon bridge running (deep e2e
 # Prove the headline frictionless flow: a CERTLESS client fetches its first
 # certificate from the enrollment endpoint using the daemon's one-time pairing
 # code, caches it, and that cert then completes the mutually-authenticated WSS
-# handshake. Driven through zerocode non-interactively.
+# handshake. Driven through maxcode non-interactively.
 say "preparing one-time enrollment code"
 for _ in $(seq 1 40); do
   ss -ltn 2>/dev/null | grep -q ":$ENROLL_PORT" && break
@@ -277,7 +277,7 @@ ENROLL_DIR="$TB/enrolled"
 # connect (here, via the cached relay whose self-signed outer cert this fresh
 # client does not yet trust) is irrelevant to validating ENROLLMENT itself, so we
 # ignore the exit code and assert the cert was cached, then verify it below.
-printf '%s\ny\n' "$CODE" | ZEROCLAW_CONFIG_DIR="$ENROLL_DIR" "$ZEROCODE" \
+printf '%s\ny\n' "$CODE" | MAX_CONFIG_DIR="$ENROLL_DIR" "$MAXCODE" \
   --enroll --enroll-host 127.0.0.1 --enroll-port "$ENROLL_PORT" \
   --config-dir "$ENROLL_DIR" > "$TB/enroll.log" 2>&1 || true
 ENR_CRT="$ENROLL_DIR/tls/client.crt"; ENR_KEY="$ENROLL_DIR/tls/client.key"
@@ -296,7 +296,7 @@ say "self-check F: un-migrated (certless) client is told to enroll"
 UNMIG_DIR="$TB/unmigrated"
 mkdir -p "$UNMIG_DIR"
 set +e
-out="$(ZEROCLAW_CONFIG_DIR="$UNMIG_DIR" "$ZEROCODE" \
+out="$(MAX_CONFIG_DIR="$UNMIG_DIR" "$MAXCODE" \
   --connect "wss://127.0.0.1:$WSS_PORT" --config-dir "$UNMIG_DIR" </dev/null 2>&1)"
 rc=$?
 set -e
@@ -317,19 +317,19 @@ fi
 cat <<EOF
 
 ------------------------------------------------------------------------------
- Live testbed is UP. Run zerocode against it (mutual TLS):
+ Live testbed is UP. Run maxcode against it (mutual TLS):
 
- DIRECT (zerocode -> daemon):
-   $ZEROCODE \\
+ DIRECT (maxcode -> daemon):
+   $MAXCODE \\
      --connect wss://127.0.0.1:$WSS_PORT \\
      --tls-ca-cert $CA \\
      --tls-client-cert $CLIENT_CRT \\
      --tls-client-key $CLIENT_KEY \\
      --agent <your-agent-alias>
 
- VIA RELAY (zerocode -> relay -> daemon) - short form, certs picked up from
+ VIA RELAY (maxcode -> relay -> daemon) - short form, certs picked up from
  <config-dir>/tls and --connect defaulted to the daemon loopback:
-   $ZEROCODE \\
+   $MAXCODE \\
      --config-dir $CLIENT_CONFIG_DIR \\
      --relay $RELAY_PUBLIC_HOST:$RELAY_PORT \\
      --relay-node $NODE_ID \\

@@ -12,9 +12,9 @@ from pathlib import Path
 from pathlib import PurePosixPath
 
 
-DESKTOP_PACKAGE = "zeroclaw-desktop"
-PLUGIN_HOST_PACKAGE = "zeroclaw-plugins"
-PLUGIN_FEATURE_OWNER_PACKAGES = {"zeroclaw", "zeroclaw-gateway", "zeroclaw-providers"}
+DESKTOP_PACKAGE = "max-desktop"
+PLUGIN_HOST_PACKAGE = "max-plugins"
+PLUGIN_FEATURE_OWNER_PACKAGES = {"max", "max-gateway", "max-providers"}
 SAFE_PACKAGE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.+-]*$")
 DOC_SUFFIXES = {".md", ".mdx", ".markdown", ".rst"}
 FULL_PATHS = {
@@ -28,9 +28,9 @@ IRRELEVANT_WORKFLOW_PATHS = {
 }
 FULL_PATH_PREFIXES = (".github/actions/", "wit/")
 PLUGIN_HOST_PATH_PREFIXES = (
-    "crates/zeroclaw-plugins/",
-    "crates/zeroclaw-runtime/",
-    "crates/zeroclaw-config/",
+    "crates/max-plugins/",
+    "crates/max-runtime/",
+    "crates/max-config/",
     "wit/",
 )
 PLUGIN_HOST_EXACT_PATHS = {
@@ -46,7 +46,7 @@ PLUGIN_HOST_CONTROL_PREFIXES = (
     ".cargo/",
     ".github/actions/",
 )
-DYNAMIC_TEST_FIXTURE_PREFIX = "crates/zeroclaw-plugins/tests/fixtures/"
+DYNAMIC_TEST_FIXTURE_PREFIX = "crates/max-plugins/tests/fixtures/"
 
 
 @dataclass(frozen=True)

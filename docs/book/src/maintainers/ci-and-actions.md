@@ -16,13 +16,13 @@ Composite job with multiple matrix legs:
   runs use `github.sha`. The guard and its fixture test reject an empty
   `git merge-base`, preventing a grafted second root from collapsing
   `git blame` after merge
-- **lint**: `cargo clippy --workspace --exclude zeroclaw-desktop --all-targets --features ci-all -- -D warnings`, then `cargo doc --no-deps --workspace --exclude zeroclaw-desktop` (rustdoc warnings are fatal via `.cargo/config.toml` `build.rustdocflags`; desktop is excluded to match `xtask build_api` / docs-deploy and avoid GTK/`glib-sys` on the lint runner), and the comment hygiene gate
+- **lint**: `cargo clippy --workspace --exclude max-desktop --all-targets --features ci-all -- -D warnings`, then `cargo doc --no-deps --workspace --exclude max-desktop` (rustdoc warnings are fatal via `.cargo/config.toml` `build.rustdocflags`; desktop is excluded to match `xtask build_api` / docs-deploy and avoid GTK/`glib-sys` on the lint runner), and the comment hygiene gate
 - **build**: matrix: `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin`, `x86_64-pc-windows-msvc`
-- **check**: two warnings-fatal passes over the workspace (excluding `zeroclaw-desktop`): no default features; and default features with `--all-targets`, which is the only leg that compiles test targets on the default feature surface. The all-features surface is compiled and type-checked by **lint**, whose clippy pass runs `--features ci-all --all-targets` on the same workspace; a separate all-features `cargo check` leg would duplicate that compilation without adding coverage
+- **check**: two warnings-fatal passes over the workspace (excluding `max-desktop`): no default features; and default features with `--all-targets`, which is the only leg that compiles test targets on the default feature surface. The all-features surface is compiled and type-checked by **lint**, whose clippy pass runs `--features ci-all --all-targets` on the same workspace; a separate all-features `cargo check` leg would duplicate that compilation without adding coverage
 - **check-32bit**: `i686-unknown-linux-gnu` with no default features
 - **bench**: benchmarks compile check; runs on `master` pushes, merge-queue runs, and manual dispatch only. PRs skip it (the gate treats the skip as non-fatal), so benchmark bitrot is still caught before a release without spending the compile on every PR
-- **test**: the standalone firmware protocol host gate from `scripts/ci/firmware_protocol_gate.sh` and `cargo nextest run --locked --workspace --exclude zeroclaw-desktop` on Linux, including the config-write isolation and Fluent coverage (no bare user-facing strings) architecture guards
-- **memory-postgres-test**: `cargo nextest run --locked -p zeroclaw-memory --features memory-postgres`, followed by the crate's serial ignored acceptance tests against an ephemeral PostgreSQL 17 service
+- **test**: the standalone firmware protocol host gate from `scripts/ci/firmware_protocol_gate.sh` and `cargo nextest run --locked --workspace --exclude max-desktop` on Linux, including the config-write isolation and Fluent coverage (no bare user-facing strings) architecture guards
+- **memory-postgres-test**: `cargo nextest run --locked -p max-memory --features memory-postgres`, followed by the crate's serial ignored acceptance tests against an ephemeral PostgreSQL 17 service
 - **windows-test-scope / windows-test**: advisory PR measurement on `windows-latest`; the selector classifies the PR as baseline `skip`, `scoped`, or `full` plus `needs_plugin_host`, and the Windows job runs pinned-toolchain `cargo nextest` only when appropriate
 - **parallel-runtime-test**: repeated same-process runtime/channel tests from `scripts/ci/parallel_runtime_test_gate.sh`, run in parallel with the main test job for relevant PR paths and unconditionally on `master` pushes and merge queue runs
 - **security**: `cargo deny check`
@@ -41,19 +41,19 @@ Fresh required CI is normally the shared evidence for the Cargo surfaces it actu
 
 When a definition or import is feature-gated, compare its `cfg` predicate with every consumer. Validate both the enabled configuration and each relevant disabled configuration: an enabled-feature pass proves the consumer still works, while the workspace-wide no-default-features check catches warning-producing mismatches such as unused private definitions or imports. That pass runs `cargo check` without `--all-targets`, so it never compiles test targets: a helper gated on plain `test` whose only callers sit behind a feature is caught by the default-features/all-targets leg instead. Targeted feature combinations remain necessary when neither required CI configuration exercises the changed predicate.
 
-The PostgreSQL memory job runs all non-ignored `zeroclaw-memory` tests with `memory-postgres` enabled, then runs the crate's ignored tests serially with `ZEROCLAW_TEST_POSTGRES_URL` pointed at its disposable service. To reproduce the database-backed half locally, provide an isolated PostgreSQL database and run `ZEROCLAW_TEST_POSTGRES_URL=postgres://<user>:<password>@127.0.0.1:5432/<database> cargo test --locked -p zeroclaw-memory --features memory-postgres -- --ignored --test-threads=1`. Each acceptance test owns a uniquely named schema and drops only that schema.
+The PostgreSQL memory job runs all non-ignored `max-memory` tests with `memory-postgres` enabled, then runs the crate's ignored tests serially with `MAX_TEST_POSTGRES_URL` pointed at its disposable service. To reproduce the database-backed half locally, provide an isolated PostgreSQL database and run `MAX_TEST_POSTGRES_URL=postgres://<user>:<password>@127.0.0.1:5432/<database> cargo test --locked -p max-memory --features memory-postgres -- --ignored --test-threads=1`. Each acceptance test owns a uniquely named schema and drops only that schema.
 
 ### Advisory PR Windows Measurement (`ci.yml`)
 
 The first Windows PR rollout is measurement-only and is not a required check. On `pull_request`, `windows-test-scope` compares the base SHA to `HEAD`, generates Cargo workspace metadata from the checkout on the Linux selector runner, and writes baseline `mode`, JSON `packages`, concise `reason`, and the orthogonal `needs_plugin_host` boolean to job outputs and the step summary. The advisory selector and Windows jobs are skipped for `push` and `merge_group`; the nightly full-platform workflow remains the post-merge backstop without adding a second full Windows run to every merge.
 
-`skip` means no changed path affects Rust compilation or tests covered by the current workspace suite. `scoped` maps Rust source, test, benchmark, example, and package-local manifest paths to package roots from Cargo metadata, closes that set over workspace reverse dependents, maps root `src/` and `tests/` to the root package, deduplicates package names, and excludes `zeroclaw-desktop` like the existing workspace suite. `full` is selected for workspace manifests or dependency resolution, `.cargo`, the Rust toolchain, CI or test infrastructure, the selector or workflow, unknown paths, ambiguous metadata, and other changes that cannot be mapped safely. Every `Cargo.lock` change selects `full` because workspace-wide dependency resolution can affect packages beyond the directly changed manifests. Direct changes to the root, gateway, or provider packages, plus changes to plugin, runtime, plugin config, WIT, root plugin activation, plugin backend filter, dependency, selector, selector-contract, or `ci.yml` paths, set `needs_plugin_host=true`. The controlling-file cases make workflow revisions exercise the plugin-host path they own. Malformed or unavailable changed-path input selects baseline `full` and true. Missing or malformed Cargo metadata also selects baseline `full` with `needs_plugin_host=true` because the dependency closure cannot be established safely.
+`skip` means no changed path affects Rust compilation or tests covered by the current workspace suite. `scoped` maps Rust source, test, benchmark, example, and package-local manifest paths to package roots from Cargo metadata, closes that set over workspace reverse dependents, maps root `src/` and `tests/` to the root package, deduplicates package names, and excludes `max-desktop` like the existing workspace suite. `full` is selected for workspace manifests or dependency resolution, `.cargo`, the Rust toolchain, CI or test infrastructure, the selector or workflow, unknown paths, ambiguous metadata, and other changes that cannot be mapped safely. Every `Cargo.lock` change selects `full` because workspace-wide dependency resolution can affect packages beyond the directly changed manifests. Direct changes to the root, gateway, or provider packages, plus changes to plugin, runtime, plugin config, WIT, root plugin activation, plugin backend filter, dependency, selector, selector-contract, or `ci.yml` paths, set `needs_plugin_host=true`. The controlling-file cases make workflow revisions exercise the plugin-host path they own. Malformed or unavailable changed-path input selects baseline `full` and true. Missing or malformed Cargo metadata also selects baseline `full` with `needs_plugin_host=true` because the dependency closure cannot be established safely.
 
-For `scoped`, the Windows job passes explicit `-p` arguments to `cargo nextest`; for `full`, it runs `cargo nextest run --locked --no-fail-fast --workspace --exclude zeroclaw-desktop`. When `needs_plugin_host=true`, it installs `wasm32-wasip2` and appends the feature-enabled `zeroclaw-plugins` component targets (`channel_plugin_e2e`, `tool_plugin_timeout_e2e`, `reference_plugin`, `reference_plugin_e2e`, and `tool_plugin_e2e`), plugin library tests, runtime live-config and admission regressions, gateway library tests, focused root CLI plugin-registry tests, and root `plugin_channel_runtime_e2e`. Every appended invocation runs even when an earlier one fails, and the summary preserves each phase status plus the failure inventory. The job reports separate baseline, plugin-host, and total durations. Ordinary `scoped` and `full` selections do not pay the plugin-host compilation cost. Pull requests restore the `platform-test` cache seeded by trusted nightly or manual runs on `master` and never write cache entries. A skipped Windows job is intentional and visible beside the selector result.
+For `scoped`, the Windows job passes explicit `-p` arguments to `cargo nextest`; for `full`, it runs `cargo nextest run --locked --no-fail-fast --workspace --exclude max-desktop`. When `needs_plugin_host=true`, it installs `wasm32-wasip2` and appends the feature-enabled `max-plugins` component targets (`channel_plugin_e2e`, `tool_plugin_timeout_e2e`, `reference_plugin`, `reference_plugin_e2e`, and `tool_plugin_e2e`), plugin library tests, runtime live-config and admission regressions, gateway library tests, focused root CLI plugin-registry tests, and root `plugin_channel_runtime_e2e`. Every appended invocation runs even when an earlier one fails, and the summary preserves each phase status plus the failure inventory. The job reports separate baseline, plugin-host, and total durations. Ordinary `scoped` and `full` selections do not pay the plugin-host compilation cost. Pull requests restore the `platform-test` cache seeded by trusted nightly or manual runs on `master` and never write cache entries. A skipped Windows job is intentional and visible beside the selector result.
 
 ### Scheduled Platform Tests (`platform-tests.yml`)
 
-Runs `cargo nextest run --locked --workspace --exclude zeroclaw-desktop --no-fail-fast` on `macos-14` and `windows-latest` after a cheap Linux formatting check. This nightly full-workspace run is the backstop for the advisory PR measurement and inventories failures with `--no-fail-fast`. The matrix runs for:
+Runs `cargo nextest run --locked --workspace --exclude max-desktop --no-fail-fast` on `macos-14` and `windows-latest` after a cheap Linux formatting check. This nightly full-workspace run is the backstop for the advisory PR measurement and inventories failures with `--no-fail-fast`. The matrix runs for:
 
 - pull requests that change `platform-tests.yml` itself;
 - manual dispatches; and
@@ -90,9 +90,9 @@ Today the release publisher is the only automated writer:
 1. **`pub-scoop.yml` pushes on release.** Scoop users see the new version immediately when this succeeds. It needs the cross-repo `SCOOP_BUCKET_TOKEN`, which is the fragile part.
 2. **Maintainers recover failed pushes.** Rotate or repair the token, dispatch Scoop Bucket Canary to verify it through the fail-closed `credential_canary` path, rerun the publisher with `dry_run: false`, and confirm the bucket manifest landed the release version.
 
-A bucket-side Excavator is proposed in [scoop-zeroclaw#1](https://github.com/zeroclaw-labs/scoop-zeroclaw/pull/1). Once that workflow is merged, the bucket repository grants Actions read/write workflow permission, and a maintainer smoke test proves that it commits an update, it can become a credential-independent recovery layer. Until all three conditions are satisfied, do not assume a failed publisher will self-heal.
+A bucket-side Excavator is proposed in [scoop-max#1](https://github.com/max-labs/scoop-max/pull/1). Once that workflow is merged, the bucket repository grants Actions read/write workflow permission, and a maintainer smoke test proves that it commits an update, it can become a credential-independent recovery layer. Until all three conditions are satisfied, do not assume a failed publisher will self-heal.
 
-The `checkver` and `autoupdate` blocks are already load-bearing for the planned Excavator path. The current push path also uses `scripts/release/scoop_metadata.sh` to derive its release URL template from `autoupdate`, so both paths share one manifest contract. Do not remove those blocks, and do not hand-edit them out of `dist/scoop/zeroclaw.json`.
+The `checkver` and `autoupdate` blocks are already load-bearing for the planned Excavator path. The current push path also uses `scripts/release/scoop_metadata.sh` to derive its release URL template from `autoupdate`, so both paths share one manifest contract. Do not remove those blocks, and do not hand-edit them out of `dist/scoop/max.json`.
 
 ### PR Path Labeler (`pr-path-labeler.yml`)
 
@@ -144,7 +144,7 @@ Fires after a successful stable release. Posts an announcement tweet.
 
 ### Weekly AUR Freshness Check (`aur-freshness-check.yml`)
 
-Compares the published `zeroclawlabs` AUR version against the current stable GitHub release every Monday, and fails if the AUR is behind.
+Compares the published `maxlabs` AUR version against the current stable GitHub release every Monday, and fails if the AUR is behind.
 
 Publishing to the AUR is fire-and-forget: if `pub-aur.yml` fails, nothing re-checks, so the package silently falls behind. That is exactly what happened after v0.8.4. An `aur.archlinux.org` maintenance window overlapped the release, the single unretried clone failed with `The AUR is down due to maintenance`, and the package sat three weeks behind with no signal. The publisher now allows at most one active non-dry-run publish and retries to survive a short outage; GitHub may supersede an earlier queued real publish in the same concurrency group, while dry runs use a separate group. Every attempt reclones the authoritative package state and refuses to replace a newer `epoch:pkgver-pkgrel` tuple with an older one. A retry budget still cannot cover every failure, so this check is the backstop that turns a silent miss or superseded run into a visible one.
 
@@ -213,10 +213,10 @@ authoritative automation.
 | Secret | Used by |
 |---|---|
 | `AUR_SSH_KEY` | `pub-aur.yml` |
-| `CARGO_REGISTRY_TOKEN` | Repository secret explicitly passed to `pub-crates.yml` and referenced only by its protected publish job; v0.8.5 needs `publish-new` for `zerorelay`, `zeroclaw-relay-proto`, and `zeroclaw-tls`, while later coordinated updates need `publish-update` |
+| `CARGO_REGISTRY_TOKEN` | Repository secret explicitly passed to `pub-crates.yml` and referenced only by its protected publish job; v0.8.5 needs `publish-new` for `maxrelay`, `max-relay-proto`, and `max-tls`, while later coordinated updates need `publish-update` |
 | `DISCORD_WEBHOOK_URL` | `discord-release.yml` |
 | `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_TOKEN_SECRET`, `TWITTER_CONSUMER_API_KEY`, `TWITTER_CONSUMER_API_SECRET_KEY` | `tweet-release.yml` |
-| `SCOOP_BUCKET_TOKEN` | `pub-scoop.yml`, `release-stable-manual.yml`, `scoop-bucket-canary.yml`; fine-grained PAT limited to `zeroclaw-labs/scoop-zeroclaw` with Contents read/write |
+| `SCOOP_BUCKET_TOKEN` | `pub-scoop.yml`, `release-stable-manual.yml`, `scoop-bucket-canary.yml`; fine-grained PAT limited to `max-labs/scoop-max` with Contents read/write |
 | `WEBSITE_REPO_PAT` | `release-stable-manual.yml` (triggers the website repo redeploy) |
 | `GITHUB_TOKEN` (automatic) | All workflows that push commits, open PRs, or push images to GHCR |
 
@@ -224,7 +224,7 @@ Docker images push to GHCR using the automatic `GITHUB_TOKEN`; there is no separ
 
 Most crates in the coordinated release set already exist and are eligible for
 crates.io trusted publishing. The v0.8.5 release additionally creates
-`zerorelay`, `zeroclaw-relay-proto`, and `zeroclaw-tls`, so its bootstrap token
+`maxrelay`, `max-relay-proto`, and `max-tls`, so its bootstrap token
 must include `publish-new`. The environment token remains the bootstrap path
 until every crate has a trusted-publisher entry for this workflow. After those
 entries are configured, migrate the job so GitHub exchanges OIDC identity for
@@ -246,26 +246,26 @@ release:
    recurs on a fixed schedule whether or not anything else changes.
 2. **The owning identity loses write on the bucket.** The token can still be
    valid while the account behind it is only a `read` collaborator. This
-   produces `remote: Permission to zeroclaw-labs/scoop-zeroclaw.git denied to
+   produces `remote: Permission to max-labs/scoop-max.git denied to
    <account>` and HTTP 403, not an auth error, so it reads as a code problem
    when it is a permissions problem.
 
-Own the token with the `ZeroClaw-Bot` account, never a personal account, so the
+Own the token with the `Max-Bot` account, never a personal account, so the
 release path does not depend on one maintainer's credentials. To rotate:
 
-1. As `ZeroClaw-Bot`, create a fine-grained PAT with **Resource owner**
-   `zeroclaw-labs`, **Repository access** limited to the single repository
-   `zeroclaw-labs/scoop-zeroclaw`, and **Repository permissions → Contents:
+1. As `Max-Bot`, create a fine-grained PAT with **Resource owner**
+   `max-labs`, **Repository access** limited to the single repository
+   `max-labs/scoop-max`, and **Repository permissions → Contents:
    Read and write**. Nothing else.
 2. Confirm the org approved the token. Fine-grained PATs against an org
    resource owner stay pending until approved, and a pending token authenticates
    but cannot push.
-3. Confirm `ZeroClaw-Bot` still has `write` on the bucket:
-   `gh api repos/zeroclaw-labs/scoop-zeroclaw/collaborators/ZeroClaw-Bot/permission --jq '.role_name'`.
+3. Confirm `Max-Bot` still has `write` on the bucket:
+   `gh api repos/max-labs/scoop-max/collaborators/Max-Bot/permission --jq '.role_name'`.
    Step 1 does not grant repository access; it only scopes what the token may
    use. A token cannot exceed the permissions its owner already holds.
 4. Set the secret:
-   `gh secret set SCOOP_BUCKET_TOKEN --repo zeroclaw-labs/zeroclaw`.
+   `gh secret set SCOOP_BUCKET_TOKEN --repo max-labs/max`.
 5. Verify without touching the bucket by dispatching
    [Scoop Bucket Canary](#weekly-scoop-bucket-canary-scoop-bucket-canaryyml).
    A green run proves the new token can push.
@@ -276,9 +276,9 @@ an expired token within a week regardless, but only after it has already broken.
 ### AUR package ownership
 
 The project-owned package is currently
-[`zeroclawlabs`](https://aur.archlinux.org/packages/zeroclawlabs), maintained by
-`zeroclaw-bot`. The canonical-name
-[`zeroclaw`](https://aur.archlinux.org/packages/zeroclaw) package is a
+[`maxlabs`](https://aur.archlinux.org/packages/maxlabs), maintained by
+`max-bot`. The canonical-name
+[`max`](https://aur.archlinux.org/packages/max) package is a
 third-party package and cannot be taken over by rotating `AUR_SSH_KEY`. If that
 maintainer remains inactive, follow the
 [AUR orphan-request process](https://wiki.archlinux.org/title/AUR_submission_guidelines#Requests)
@@ -359,8 +359,8 @@ Export the current effective policy:
 ### sh
 
 ```sh
-gh api repos/zeroclaw-labs/zeroclaw/actions/permissions
-gh api repos/zeroclaw-labs/zeroclaw/actions/permissions/selected-actions
+gh api repos/max-labs/max/actions/permissions
+gh api repos/max-labs/max/actions/permissions/selected-actions
 ```
 
 </div>

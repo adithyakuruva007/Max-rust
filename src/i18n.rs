@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::i18n::*;
+pub use max_runtime::i18n::*;

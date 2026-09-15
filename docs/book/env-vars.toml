@@ -1,9 +1,9 @@
-# Env-var override examples. One row per `ZEROCLAW_*` example rendered on the
+# Env-var override examples. One row per `MAX_*` example rendered on the
 # reference/env-vars.md page. The generator (the `peer-groups` mdBook
 # preprocessor, `{{#env-var}}` / `{{#env-var-table}}` directives) renders each
 # row from its dotted schema `path`, so the page holds zero literal env-var
 # names. Every `path` is validated against the canonical schema in
-# zeroclaw-config at load time: a path that no longer resolves to a real
+# max-config at load time: a path that no longer resolves to a real
 # prop-field or map section fails the build loudly, the same way a typo'd
 # channel key fails the peer-group generator.
 #
@@ -59,7 +59,7 @@ group = "example"
 [[var]]
 path = "gateway.web_dist_dir"
 comment = "Point the gateway at a built web dashboard (absolute path; no ~ / $HOME)"
-value = "/srv/zeroclaw/web/dist"
+value = "/srv/max/web/dist"
 group = "example"
 table = true
 
@@ -87,7 +87,7 @@ group = "example"
 
 [[var]]
 path = "storage.qdrant.home.collection"
-value = "zeroclaw"
+value = "max"
 group = "example"
 
 [[var]]
@@ -99,18 +99,18 @@ group = "example"
 path = "providers.models.ollama.home.uri"
 value = "http://ollama:11434"
 group = "container"
-suffix = " zeroclaw agent -a assistant"
+suffix = " max agent -a assistant"
 
 [[var]]
 path = "gateway.web_dist_dir"
 comment = "Equivalent env-var override (in-memory only, never persisted)"
-value = "\"/absolute/path/to/zeroclaw/web/dist\""
+value = "\"/absolute/path/to/max/web/dist\""
 group = "web_dist"
 prefix = "export "
 
 [[var]]
 path = "gateway.web_dist_dir"
-value = "\"$HOME/zeroclaw/web/dist\""
+value = "\"$HOME/max/web/dist\""
 group = "web_dist_home"
 prefix = "export "
 suffix = "   # shell expands $HOME"

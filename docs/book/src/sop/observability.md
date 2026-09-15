@@ -22,9 +22,9 @@ Common key patterns:
 #### sh
 
 ```sh
-zeroclaw sop list
-zeroclaw sop validate [name]
-zeroclaw sop show <name>
+max sop list
+max sop validate [name]
+max sop show <name>
 ```
 
 </div>
@@ -41,5 +41,5 @@ SOP run state is queried from in-agent tools:
 ## 3. Metrics
 
 - `/metrics` exposes observer metrics when `[observability] backend = "prometheus"`.
-- Current exported names are `zeroclaw_*` families (general runtime metrics).
+- Current exported names are `max_*` families (general runtime metrics).
 - SOP-specific aggregates are available through `sop_status` with `include_metrics: true`.

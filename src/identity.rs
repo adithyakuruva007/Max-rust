@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::identity::*;
+pub use max_runtime::identity::*;

@@ -1,13 +1,13 @@
 use std::process::{Command, Output};
 
-fn run_zeroclaw(config_dir: &std::path::Path, args: &[&str]) -> Output {
-    let bin = env!("CARGO_BIN_EXE_zeroclaw");
+fn run_max(config_dir: &std::path::Path, args: &[&str]) -> Output {
+    let bin = env!("CARGO_BIN_EXE_max");
     Command::new(bin)
-        .env("ZEROCLAW_CONFIG_DIR", config_dir)
+        .env("MAX_CONFIG_DIR", config_dir)
         .env("RUST_LOG", "off")
         .args(args)
         .output()
-        .expect("run zeroclaw")
+        .expect("run max")
 }
 
 #[test]
@@ -46,7 +46,7 @@ Review release readiness before signoff.
     .expect("write skill");
 
     let source_arg = source_skill.to_string_lossy().to_string();
-    let install = run_zeroclaw(
+    let install = run_max(
         config_dir.path(),
         &["skills", "install", &source_arg, "--bundle", "smoke"],
     );
@@ -70,7 +70,7 @@ Review release readiness before signoff.
         installed_skill.display()
     );
 
-    let list = run_zeroclaw(config_dir.path(), &["skills", "list", "--agent", "default"]);
+    let list = run_max(config_dir.path(), &["skills", "list", "--agent", "default"]);
     assert!(
         list.status.success(),
         "list should succeed\nstdout:\n{}\nstderr:\n{}",

@@ -42,7 +42,7 @@ run_crate() {
   done
 }
 
-run_crate crates/zeroclaw-relay-proto control_from_json decode_data
-run_crate crates/zeroclaw-tls sign_csr client_cert_node_id
+run_crate crates/max-relay-proto control_from_json decode_data
+run_crate crates/max-tls sign_csr client_cert_node_id
 
 echo "fuzz smoke complete"

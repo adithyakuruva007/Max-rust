@@ -7,9 +7,9 @@ use anyhow::Result;
 use std::fmt::Write as _;
 use std::path::Path;
 
-use zeroclaw_hardware::catalog::BASE_TOOLS;
-use zeroclaw_hardware::registry::known_boards;
-use zeroclaw_hardware::transport::TransportKind;
+use max_hardware::catalog::BASE_TOOLS;
+use max_hardware::registry::known_boards;
+use max_hardware::transport::TransportKind;
 
 const SNIPPET_DIR: &str = "docs/book/src/_snippets";
 

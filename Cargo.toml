@@ -1,46 +1,46 @@
 [workspace]
-members = [".", "crates/zeroclaw-api", "crates/zeroclaw-infra", "crates/zeroclaw-config", "crates/zeroclaw-log", "crates/zeroclaw-log/tests/fixtures/attribution-macro-support", "crates/zeroclaw-log/tests/fixtures/attribution-macro-consumer", "crates/zeroclaw-tls", "crates/zeroclaw-relay-proto", "apps/zerorelay", "crates/zeroclaw-spawn", "crates/zeroclaw-commands", "crates/zeroclaw-providers", "crates/zeroclaw-memory", "crates/zeroclaw-channels", "crates/zeroclaw-tools", "crates/zeroclaw-sop-graph", "crates/zeroclaw-runtime", "crates/zeroclaw-eval", "apps/zerocode", "crates/zeroclaw-plugins", "crates/zeroclaw-plugins/tests/fixtures/channel-fixture", "crates/zeroclaw-plugins/tests/fixtures/egress-fixture", "crates/zeroclaw-plugins/tests/fixtures/tool-fixture", "crates/zeroclaw-plugins/tests/fixtures/tool-timeout-fixture", "crates/zeroclaw-plugins/tests/fixtures/tool-sequential-fixture", "crates/zeroclaw-plugins/tests/fixtures/tool-secret-fixture", "crates/zeroclaw-gateway", "crates/zeroclaw-hardware", "crates/zeroclaw-tool-call-parser", "crates/zeroclaw-macros", "apps/tauri", "tools/fill-translations", "xtask"]
+members = [".", "crates/max-api", "crates/max-infra", "crates/max-config", "crates/max-log", "crates/max-log/tests/fixtures/attribution-macro-support", "crates/max-log/tests/fixtures/attribution-macro-consumer", "crates/max-tls", "crates/max-relay-proto", "apps/maxrelay", "crates/max-spawn", "crates/max-commands", "crates/max-providers", "crates/max-memory", "crates/max-channels", "crates/max-tools", "crates/max-sop-graph", "crates/max-runtime", "crates/max-eval", "apps/maxcode", "crates/max-plugins", "crates/max-plugins/tests/fixtures/channel-fixture", "crates/max-plugins/tests/fixtures/egress-fixture", "crates/max-plugins/tests/fixtures/tool-fixture", "crates/max-plugins/tests/fixtures/tool-timeout-fixture", "crates/max-plugins/tests/fixtures/tool-sequential-fixture", "crates/max-plugins/tests/fixtures/tool-secret-fixture", "crates/max-gateway", "crates/max-hardware", "crates/max-tool-call-parser", "crates/max-macros", "apps/tauri", "tools/fill-translations", "xtask"]
 resolver = "2"
 
 [workspace.package]
 version = "0.8.5"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/zeroclaw-labs/zeroclaw"
-homepage = "https://www.zeroclaw.com"
+repository = "https://github.com/max-labs/max"
+homepage = "https://www.max.com"
 rust-version = "1.96.0"
 
 [workspace.dependencies]
-zeroclaw-api = { path = "crates/zeroclaw-api", version = "0.8.5" }
-zeroclaw-infra = { path = "crates/zeroclaw-infra", version = "0.8.5" }
-zeroclaw-config = { path = "crates/zeroclaw-config", version = "0.8.5", default-features = false }
-zeroclaw-log = { path = "crates/zeroclaw-log", version = "0.8.5" }
-zeroclaw-tls = { path = "crates/zeroclaw-tls", version = "0.8.5" }
-zeroclaw-relay-proto = { path = "crates/zeroclaw-relay-proto", version = "0.8.5" }
-zerorelay = { path = "apps/zerorelay", version = "0.8.5" }
-zeroclaw-spawn = { path = "crates/zeroclaw-spawn", version = "0.8.5" }
-zeroclaw-commands = { path = "crates/zeroclaw-commands", version = "0.8.5" }
-zeroclaw-providers = { path = "crates/zeroclaw-providers", version = "0.8.5" }
-zeroclaw-memory = { path = "crates/zeroclaw-memory", version = "0.8.5" }
-zeroclaw-channels = { path = "crates/zeroclaw-channels", version = "0.8.5", default-features = false }
-zeroclaw-tools = { path = "crates/zeroclaw-tools", version = "0.8.5" }
-zeroclaw-sop-graph = { path = "crates/zeroclaw-sop-graph", version = "0.8.5", default-features = false }
-zeroclaw-runtime = { path = "crates/zeroclaw-runtime", version = "0.8.5", default-features = false }
-zeroclaw-eval = { path = "crates/zeroclaw-eval", version = "0.8.5" }
-zeroclaw-plugins = { path = "crates/zeroclaw-plugins", version = "0.8.5" }
-zeroclaw-gateway = { path = "crates/zeroclaw-gateway", version = "0.8.5" }
-zeroclaw-hardware = { path = "crates/zeroclaw-hardware", version = "0.8.5" }
-zeroclaw-tool-call-parser = { path = "crates/zeroclaw-tool-call-parser", version = "0.8.5" }
-zeroclaw-macros = { path = "crates/zeroclaw-macros", version = "0.8.5" }
-zerocode = { path = "apps/zerocode", version = "0.8.5" }
+max-api = { path = "crates/max-api", version = "0.8.5" }
+max-infra = { path = "crates/max-infra", version = "0.8.5" }
+max-config = { path = "crates/max-config", version = "0.8.5", default-features = false }
+max-log = { path = "crates/max-log", version = "0.8.5" }
+max-tls = { path = "crates/max-tls", version = "0.8.5" }
+max-relay-proto = { path = "crates/max-relay-proto", version = "0.8.5" }
+maxrelay = { path = "apps/maxrelay", version = "0.8.5" }
+max-spawn = { path = "crates/max-spawn", version = "0.8.5" }
+max-commands = { path = "crates/max-commands", version = "0.8.5" }
+max-providers = { path = "crates/max-providers", version = "0.8.5" }
+max-memory = { path = "crates/max-memory", version = "0.8.5" }
+max-channels = { path = "crates/max-channels", version = "0.8.5", default-features = false }
+max-tools = { path = "crates/max-tools", version = "0.8.5" }
+max-sop-graph = { path = "crates/max-sop-graph", version = "0.8.5", default-features = false }
+max-runtime = { path = "crates/max-runtime", version = "0.8.5", default-features = false }
+max-eval = { path = "crates/max-eval", version = "0.8.5" }
+max-plugins = { path = "crates/max-plugins", version = "0.8.5" }
+max-gateway = { path = "crates/max-gateway", version = "0.8.5" }
+max-hardware = { path = "crates/max-hardware", version = "0.8.5" }
+max-tool-call-parser = { path = "crates/max-tool-call-parser", version = "0.8.5" }
+max-macros = { path = "crates/max-macros", version = "0.8.5" }
+maxcode = { path = "apps/maxcode", version = "0.8.5" }
 directories = "6.0"
 sys-locale = "0.3"
 
 [package]
-name = "zeroclaw"
+name = "max"
 # Workspace crates are publish = false during microkernel transition.
 publish = true
-default-run = "zeroclaw"
+default-run = "max"
 version.workspace = true
 edition.workspace = true
 authors = ["theonlyhennygod"]
@@ -48,7 +48,7 @@ license.workspace = true
 description = "Zero overhead. Zero compromise. 100% Rust. The fastest, smallest AI assistant."
 repository.workspace = true
 homepage.workspace = true
-documentation = "https://docs.zeroclaw.com"
+documentation = "https://docs.max.com"
 readme = "README.md"
 keywords = ["ai", "agent", "cli", "assistant", "chatbot"]
 categories = ["command-line-utilities", "api-bindings"]
@@ -65,37 +65,37 @@ include = [
 ]
 
 [[bin]]
-name = "zeroclaw"
+name = "max"
 path = "src/main.rs"
 
 [[bin]]
-name = "zeroclaw-acp-bridge"
-path = "src/bin/zeroclaw-acp-bridge.rs"
+name = "max-acp-bridge"
+path = "src/bin/max-acp-bridge.rs"
 required-features = ["acp-bridge"]
 
 [lib]
-name = "zeroclaw"
+name = "max"
 path = "src/lib.rs"
 
 [dependencies]
 # Internal workspace crates — versions and paths declared once in [workspace.dependencies]
-zeroclaw-api.workspace = true
-zeroclaw-spawn.workspace = true
-zeroclaw-infra.workspace = true
-zeroclaw-config = { workspace = true, features = ["clap"] }
-zeroclaw-log.workspace = true
-zeroclaw-providers.workspace = true
-zeroclaw-memory.workspace = true
-zeroclaw-channels = { workspace = true, optional = true }
-zeroclaw-tools = { workspace = true, optional = true }
-zeroclaw-runtime = { workspace = true, optional = true }
-zeroclaw-tls = { workspace = true }
-zeroclaw-eval = { workspace = true, optional = true }
-zeroclaw-plugins = { workspace = true, optional = true }
-zeroclaw-gateway = { workspace = true, optional = true }
-zeroclaw-hardware = { workspace = true, optional = true }
-zeroclaw-tool-call-parser.workspace = true
-zeroclaw-macros.workspace = true
+max-api.workspace = true
+max-spawn.workspace = true
+max-infra.workspace = true
+max-config = { workspace = true, features = ["clap"] }
+max-log.workspace = true
+max-providers.workspace = true
+max-memory.workspace = true
+max-channels = { workspace = true, optional = true }
+max-tools = { workspace = true, optional = true }
+max-runtime = { workspace = true, optional = true }
+max-tls = { workspace = true }
+max-eval = { workspace = true, optional = true }
+max-plugins = { workspace = true, optional = true }
+max-gateway = { workspace = true, optional = true }
+max-hardware = { workspace = true, optional = true }
+max-tool-call-parser.workspace = true
+max-macros.workspace = true
 # CLI - minimal and fast
 clap = { version = "4.5", features = ["derive"] }
 clap_complete = "4.5"
@@ -187,7 +187,7 @@ libc = "0.2"
 # identical single cross-crate refs but one is meta and one is a real row), so
 # it lives here in the canonical registry. install.sh and `cargo cmd convert`
 # both read this; neither shadows it with its own list.
-[package.metadata.zeroclaw]
+[package.metadata.max]
 non_row_features = [
     "default",
     "default-channels",
@@ -219,7 +219,7 @@ container_excluded_features = [
 
 # Compatibility exclusions for standard distribution artifacts. Release
 # workflows pass only their target triple; feature policy stays here.
-[package.metadata.zeroclaw.dist_target_exclusions]
+[package.metadata.max.dist_target_exclusions]
 aarch64-linux-android = ["whatsapp-web"]
 arm-unknown-linux-gnueabihf = ["observability-prometheus"]
 armv7-unknown-linux-gnueabihf = ["observability-prometheus"]
@@ -239,7 +239,7 @@ default = [
 # Channels are opt-in via the lean `default-channels` bundle, `channels-full`,
 # or individual `channel-*` features.
 agent-runtime = [
-    "dep:zeroclaw-runtime", "dep:zeroclaw-eval", "dep:zeroclaw-channels", "dep:zeroclaw-tools",
+    "dep:max-runtime", "dep:max-eval", "dep:max-channels", "dep:max-tools",
     "dep:rusqlite",
     "dep:which",
     "dep:crossterm",
@@ -257,7 +257,7 @@ default-channels = [
 
 # Historical broad channel bundle. Preserves the older default channel surface.
 channels-full = [
-    "default-channels", "zeroclaw-channels/channels-full", "channel-lark",
+    "default-channels", "max-channels/channels-full", "channel-lark",
     "channel-line",
     "channel-slack", "channel-signal",
     "channel-mattermost", "channel-irc", "channel-imessage",
@@ -270,79 +270,79 @@ channels-full = [
 
 # Major subsystems — each forwards to exactly ONE crate
 gateway = [
-    "dep:zeroclaw-gateway",
+    "dep:max-gateway",
     "dep:axum", "dep:tower",
 ]
-schema-export = ["dep:schemars", "zeroclaw-config/schema-export"]
+schema-export = ["dep:schemars", "max-config/schema-export"]
 acp-bridge = ["dep:tokio-tungstenite"]
 
-# Channels — each forwards to zeroclaw-channels.
-channel-email = ["zeroclaw-channels/channel-email", "zeroclaw-gateway?/channel-email"]
-channel-telegram = ["zeroclaw-channels/channel-telegram"]
-channel-lark = ["zeroclaw-channels/channel-lark"]
-channel-nostr = ["zeroclaw-channels/channel-nostr"]
-channel-matrix = ["zeroclaw-channels/channel-matrix"]
-channel-discord = ["zeroclaw-channels/channel-discord"]
-channel-slack = ["zeroclaw-channels/channel-slack"]
-channel-signal = ["zeroclaw-channels/channel-signal"]
-channel-mattermost = ["zeroclaw-channels/channel-mattermost"]
-channel-irc = ["zeroclaw-channels/channel-irc"]
-channel-twitch = ["zeroclaw-channels/channel-twitch"]
-channel-imessage = ["zeroclaw-channels/channel-imessage"]
-channel-dingtalk = ["zeroclaw-channels/channel-dingtalk"]
-channel-qq = ["zeroclaw-channels/channel-qq"]
-channel-bluesky = ["zeroclaw-channels/channel-bluesky"]
-channel-git = ["zeroclaw-channels/channel-git"]
-provider-github = ["zeroclaw-channels/provider-github"]
-provider-gitea = ["zeroclaw-channels/provider-gitea"]
-channel-twitter = ["zeroclaw-channels/channel-twitter"]
-channel-reddit = ["zeroclaw-channels/channel-reddit"]
-channel-notion = ["zeroclaw-channels/channel-notion"]
-channel-mqtt = ["zeroclaw-channels/channel-mqtt"]
-channel-filesystem = ["zeroclaw-channels/channel-filesystem"]
-channel-amqp = ["zeroclaw-channels/channel-amqp"]
-channel-linq = ["zeroclaw-channels/channel-linq", "zeroclaw-gateway?/channel-linq"]
-channel-nextcloud = ["zeroclaw-channels/channel-nextcloud", "zeroclaw-gateway?/channel-nextcloud"]
-channel-mochat = ["zeroclaw-channels/channel-mochat"]
-channel-wechat = ["zeroclaw-channels/channel-wechat", "zeroclaw-gateway?/channel-wechat"]
-channel-wecom = ["zeroclaw-channels/channel-wecom"]
-channel-wecom-ws = ["zeroclaw-channels/channel-wecom-ws"]
-channel-clawdtalk = ["zeroclaw-channels/channel-clawdtalk"]
-channel-webhook = ["zeroclaw-channels/channel-webhook"]
-channel-acp-server = ["zeroclaw-channels/channel-acp-server", "zeroclaw-gateway?/channel-acp-server"]
-channel-whatsapp-cloud = ["zeroclaw-channels/channel-whatsapp-cloud", "zeroclaw-gateway?/channel-whatsapp-cloud"]
-channel-voice-call = ["zeroclaw-channels/channel-voice-call"]
-channel-line = ["zeroclaw-channels/channel-line"]
+# Channels — each forwards to max-channels.
+channel-email = ["max-channels/channel-email", "max-gateway?/channel-email"]
+channel-telegram = ["max-channels/channel-telegram"]
+channel-lark = ["max-channels/channel-lark"]
+channel-nostr = ["max-channels/channel-nostr"]
+channel-matrix = ["max-channels/channel-matrix"]
+channel-discord = ["max-channels/channel-discord"]
+channel-slack = ["max-channels/channel-slack"]
+channel-signal = ["max-channels/channel-signal"]
+channel-mattermost = ["max-channels/channel-mattermost"]
+channel-irc = ["max-channels/channel-irc"]
+channel-twitch = ["max-channels/channel-twitch"]
+channel-imessage = ["max-channels/channel-imessage"]
+channel-dingtalk = ["max-channels/channel-dingtalk"]
+channel-qq = ["max-channels/channel-qq"]
+channel-bluesky = ["max-channels/channel-bluesky"]
+channel-git = ["max-channels/channel-git"]
+provider-github = ["max-channels/provider-github"]
+provider-gitea = ["max-channels/provider-gitea"]
+channel-twitter = ["max-channels/channel-twitter"]
+channel-reddit = ["max-channels/channel-reddit"]
+channel-notion = ["max-channels/channel-notion"]
+channel-mqtt = ["max-channels/channel-mqtt"]
+channel-filesystem = ["max-channels/channel-filesystem"]
+channel-amqp = ["max-channels/channel-amqp"]
+channel-linq = ["max-channels/channel-linq", "max-gateway?/channel-linq"]
+channel-nextcloud = ["max-channels/channel-nextcloud", "max-gateway?/channel-nextcloud"]
+channel-mochat = ["max-channels/channel-mochat"]
+channel-wechat = ["max-channels/channel-wechat", "max-gateway?/channel-wechat"]
+channel-wecom = ["max-channels/channel-wecom"]
+channel-wecom-ws = ["max-channels/channel-wecom-ws"]
+channel-clawdtalk = ["max-channels/channel-clawdtalk"]
+channel-webhook = ["max-channels/channel-webhook"]
+channel-acp-server = ["max-channels/channel-acp-server", "max-gateway?/channel-acp-server"]
+channel-whatsapp-cloud = ["max-channels/channel-whatsapp-cloud", "max-gateway?/channel-whatsapp-cloud"]
+channel-voice-call = ["max-channels/channel-voice-call"]
+channel-line = ["max-channels/channel-line"]
 # Feishu uses the same channel implementation as Lark; `use_feishu = true`
 # selects Feishu endpoints at runtime.
 channel-feishu = ["channel-lark"]
-whatsapp-web = ["zeroclaw-channels/whatsapp-web", "zeroclaw-gateway?/whatsapp-web"]
-voice-wake = ["zeroclaw-channels/voice-wake"]
-memory-postgres = ["zeroclaw-memory/memory-postgres"]
+whatsapp-web = ["max-channels/whatsapp-web", "max-gateway?/whatsapp-web"]
+voice-wake = ["max-channels/voice-wake"]
+memory-postgres = ["max-memory/memory-postgres"]
 
 # Backends and platform flags — each forwards to ONE crate
 observability-prometheus = [
-    "zeroclaw-runtime/observability-prometheus",
-    "zeroclaw-gateway/observability-prometheus",
+    "max-runtime/observability-prometheus",
+    "max-gateway/observability-prometheus",
 ]
-observability-otel = ["zeroclaw-runtime/observability-otel"]
-hardware = ["dep:zeroclaw-hardware", "zeroclaw-hardware/hardware"]
-peripheral-rpi = ["dep:zeroclaw-hardware", "zeroclaw-hardware/peripheral-rpi"]
-# Forwards `zeroclaw-hardware/dev-sim`: extends the serial allow-list with
+observability-otel = ["max-runtime/observability-otel"]
+hardware = ["dep:max-hardware", "max-hardware/hardware"]
+peripheral-rpi = ["dep:max-hardware", "max-hardware/peripheral-rpi"]
+# Forwards `max-hardware/dev-sim`: extends the serial allow-list with
 # `/tmp/zc-sim-*` for hardware-free simulation. Off by default; opt-in for the
 # simulator and demo.
-dev-sim = ["dep:zeroclaw-hardware", "zeroclaw-hardware/dev-sim"]
-sandbox-landlock = ["zeroclaw-runtime/sandbox-landlock"]
-sandbox-bubblewrap = ["zeroclaw-runtime/sandbox-bubblewrap"]
-browser-native = ["zeroclaw-tools/browser-native"]
+dev-sim = ["dep:max-hardware", "max-hardware/dev-sim"]
+sandbox-landlock = ["max-runtime/sandbox-landlock"]
+sandbox-bubblewrap = ["max-runtime/sandbox-bubblewrap"]
+browser-native = ["max-tools/browser-native"]
 plugins-wasm = [
-    "dep:zeroclaw-plugins",
-    "zeroclaw-runtime/plugins-wasm",
-    "zeroclaw-gateway?/plugins-wasm",
+    "dep:max-plugins",
+    "max-runtime/plugins-wasm",
+    "max-gateway?/plugins-wasm",
 ]
-probe = ["dep:zeroclaw-hardware", "zeroclaw-hardware/probe"]
-webauthn = ["zeroclaw-runtime/webauthn", "zeroclaw-gateway?/webauthn"]
-embedded-web = ["zeroclaw-gateway/embedded-web"]
+probe = ["dep:max-hardware", "max-hardware/probe"]
+webauthn = ["max-runtime/webauthn", "max-gateway?/webauthn"]
+embedded-web = ["max-gateway/embedded-web"]
 
 # Backward-compatible aliases
 fantoccini = ["browser-native"]
@@ -372,9 +372,9 @@ metrics = ["observability-prometheus"]
 # - `plugins-wasm-pulley`: Most flexible, supports JIT compilation on targets
 #   where Cranelift isn't available (e.g., ARM32), but has the slowest runtime
 #   performance.
-plugins-wasm-runtime-only = ["plugins-wasm", "zeroclaw-plugins/plugins-wasmtime"]
-plugins-wasm-cranelift    = ["plugins-wasm", "zeroclaw-plugins/plugins-wasm-cranelift", "zeroclaw-runtime/plugins-wasm-cranelift"]
-plugins-wasm-pulley       = ["plugins-wasm", "zeroclaw-plugins/plugins-wasm-pulley"]
+plugins-wasm-runtime-only = ["plugins-wasm", "max-plugins/plugins-wasmtime"]
+plugins-wasm-cranelift    = ["plugins-wasm", "max-plugins/plugins-wasm-cranelift", "max-runtime/plugins-wasm-cranelift"]
+plugins-wasm-pulley       = ["plugins-wasm", "max-plugins/plugins-wasm-pulley"]
 
 # CI meta-feature
 ci-all = [
@@ -424,7 +424,7 @@ panic = "abort"
 # so this package's integration-test helpers can mint the now-sealed engine tool
 # registry. dev-dependency only: resolver v2 keeps `test-util` out of the shipped
 # binary build, so the assemble()-only seal holds in production.
-zeroclaw-runtime = { workspace = true, features = ["test-util"] }
+max-runtime = { workspace = true, features = ["test-util"] }
 tempfile = "3.26"
 criterion = { version = "0.8", features = ["async_tokio"] }
 wiremock = "0.6"

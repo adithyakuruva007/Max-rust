@@ -11,7 +11,7 @@ mandatory.
 This guide assumes you have built the [tool plugin](./writing-a-tool-plugin.md)
 and understand crate setup, the `__config` rule, logging, and install. It is
 checked against `wit/v0/channel.wit` and the host adapter in
-`crates/zeroclaw-plugins/src/wasm_channel.rs`.
+`crates/max-plugins/src/wasm_channel.rs`.
 
 > **Wiring status.** Channel plugins are constructed by a running daemon. An
 > installed package bound through `[channels.plugin.<alias>]` is admitted at
@@ -159,14 +159,14 @@ mod component {
         features: ["plugins-wit-v0"],
     });
 
-    use exports::zeroclaw::plugin::channel::{
+    use exports::max::plugin::channel::{
         ApprovalRequest, ApprovalResponse, ChannelCapabilities,
         Guest as Channel, InboundMessage, SendMessage,
     };
-    use exports::zeroclaw::plugin::plugin_info::Guest as PluginInfo;
-    use zeroclaw::plugin::config::get as config_get;
-    use zeroclaw::plugin::inbound::inbound_poll;
-    use zeroclaw::plugin::secrets::get as secret_get;
+    use exports::max::plugin::plugin_info::Guest as PluginInfo;
+    use max::plugin::config::get as config_get;
+    use max::plugin::inbound::inbound_poll;
+    use max::plugin::secrets::get as secret_get;
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
@@ -390,13 +390,13 @@ denial, the inbound queue handoff, capability-gated dispatch, and poll-health
 accounting.
 
 To run your own component under those exact semantics, write an integration
-test that instantiates it through the real host adapter. `zeroclaw-plugins`
+test that instantiates it through the real host adapter. `max-plugins`
 is not published to crates.io, so pull it as a git dev-dependency pinned to
 the tag matching your target host:
 
 ```bash
-cargo add --dev zeroclaw-plugins \
-  --git https://github.com/zeroclaw-labs/zeroclaw --tag <host-version> \
+cargo add --dev max-plugins \
+  --git https://github.com/max-labs/max --tag <host-version> \
   --no-default-features --features plugins-wasm-cranelift
 ```
 

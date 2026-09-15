@@ -1,1 +1,1 @@
-pub use zeroclaw_runtime::verifiable_intent::*;
+pub use max_runtime::verifiable_intent::*;

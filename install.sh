@@ -1,12 +1,12 @@
 #!/bin/sh
 set -eu
 
-# ── ZeroClaw installer ───────────────────────────────────────────
-# Builds and installs ZeroClaw from source.
+# ── Max installer ───────────────────────────────────────────
+# Builds and installs Max from source.
 # All feature lists and version info read from Cargo.toml — nothing hardcoded.
 # POSIX sh — no bash required. Works on Alpine, Debian, macOS, everywhere.
 
-REPO_URL="https://github.com/zeroclaw-labs/zeroclaw.git"
+REPO_URL="https://github.com/max-labs/max.git"
 
 # ── Output helpers (terminal-aware) ──────────────────────────────
 
@@ -25,10 +25,10 @@ die() {
 bold() { printf "${BOLD}%s${RESET}" "$*"; }
 
   # >>> generated:route-contract by `cargo generate installers` - do not edit <<<
-TUI_BIN_NAME="zerocode"
-DEFAULT_APPS="zerocode"
+TUI_BIN_NAME="maxcode"
+DEFAULT_APPS="maxcode"
 PIPED_INSTALL_MODE="prebuilt"
-QUICKSTART_COMMAND="zeroclaw quickstart"
+QUICKSTART_COMMAND="max quickstart"
 QUICKSTART_SUBCOMMAND="quickstart"
 GUIDED_INSTALL_MODE="choice"
 GUIDED_QUICKSTART_MODE="offer"
@@ -94,8 +94,8 @@ expand_default_features() {
 # Apps are standalone binaries under `apps/<dir>` installed via
 # `cargo install --path apps/<dir>` — they are NOT cargo features of the
 # main binary. The installable set is discovered from `apps/*/Cargo.toml`
-# so adding an app surfaces here without editing this script. `zerocode`
-# (the TUI) is the default app. Tauri-based apps (e.g. zeroclaw-desktop)
+# so adding an app surfaces here without editing this script. `maxcode`
+# (the TUI) is the default app. Tauri-based apps (e.g. max-desktop)
 # need the Tauri toolchain + system webview deps and are excluded from the
 # simple `cargo install` path.
 discover_apps() {
@@ -161,7 +161,7 @@ selected_feature_enabled() {
 list_features() {
   parse_cargo_toml "$1"
   echo
-  printf "%s — available build features\n" "$(bold "ZeroClaw v${VERSION}")"
+  printf "%s — available build features\n" "$(bold "Max v${VERSION}")"
   echo
 
   printf "  %s\n" "$(bold "Default") (included unless --minimal):"
@@ -299,7 +299,7 @@ install_prebuilt() {
   fi
 
   # Resolve latest release version via GitHub API
-  version=$(curl -fsSL "https://api.github.com/repos/zeroclaw-labs/zeroclaw/releases/latest" |
+  version=$(curl -fsSL "https://api.github.com/repos/max-labs/max/releases/latest" |
     grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\(.*\)".*/\1/')
 
   if [ -z "$version" ]; then
@@ -307,16 +307,16 @@ install_prebuilt() {
     return 1
   fi
 
-  asset_name="zeroclaw-${triple}.tar.gz"
-  asset_url="https://github.com/zeroclaw-labs/zeroclaw/releases/download/${version}/${asset_name}"
-  sha256_url="https://github.com/zeroclaw-labs/zeroclaw/releases/download/${version}/SHA256SUMS"
+  asset_name="max-${triple}.tar.gz"
+  asset_url="https://github.com/max-labs/max/releases/download/${version}/${asset_name}"
+  sha256_url="https://github.com/max-labs/max/releases/download/${version}/SHA256SUMS"
 
   echo
-  printf "%s\n" "$(bold "Installing ZeroClaw ${version} (pre-built)")"
+  printf "%s\n" "$(bold "Installing Max ${version} (pre-built)")"
   info "Platform: $triple"
   info "Source:   $asset_url"
   info "Channels: pre-built binaries ship the lean standard distribution set; availability is target-specific."
-  info "Run 'zeroclaw channel list' to inspect this binary. For other channels such as Slack, build from source with --preset full."
+  info "Run 'max channel list' to inspect this binary. For other channels such as Slack, build from source with --preset full."
   echo
 
   # Resolve platform-correct web data directory to match gateway auto-detect
@@ -324,7 +324,7 @@ install_prebuilt() {
 
   if [ "$DRY_RUN" = true ]; then
     info "[dry-run] Would download $asset_url"
-    info "[dry-run] Would install to $CARGO_HOME/bin/zeroclaw"
+    info "[dry-run] Would install to $CARGO_HOME/bin/max"
     info "[dry-run] Would install $TUI_BIN_NAME to $CARGO_HOME/bin/$TUI_BIN_NAME (if in tarball)"
     info "[dry-run] Would install web dashboard to $web_data_dir"
     return 0
@@ -375,7 +375,7 @@ install_prebuilt() {
 
   tar -xzf "$tmp_dir/$asset_name" -C "$tmp_dir"
   mkdir -p "$CARGO_HOME/bin"
-  install -m 755 "$tmp_dir/zeroclaw" "$CARGO_HOME/bin/zeroclaw"
+  install -m 755 "$tmp_dir/max" "$CARGO_HOME/bin/max"
   if [ -f "$tmp_dir/$TUI_BIN_NAME" ]; then
     install -m 755 "$tmp_dir/$TUI_BIN_NAME" "$CARGO_HOME/bin/$TUI_BIN_NAME"
   fi
@@ -396,7 +396,7 @@ install_prebuilt() {
 
 usage() {
   cat <<EOF
-$(bold "ZeroClaw installer")
+$(bold "Max installer")
 
 Usage: $0 [options]
 
@@ -410,7 +410,7 @@ Options:
                        installable app (implies --source)
   --minimal            Alias for --preset minimal
   --features X,Y       Select specific features — source only (comma-separated)
-  --apps X,Y           Select apps to install (e.g. zerocode); "none" to skip all
+  --apps X,Y           Select apps to install (e.g. maxcode); "none" to skip all
   --with-gateway       Force the gateway feature on (overrides preset/feature default)
   --without-gateway    Force the gateway feature off (overrides preset/feature default)
   --without-tui        Skip building the TUI ($TUI_BIN_NAME) [alias for --apps without it]
@@ -418,10 +418,10 @@ Options:
   --prefix PATH        Install everything under PATH (default: \$HOME)
                        Sets CARGO_HOME, RUSTUP_HOME, source checkout, config
   --dry-run            Show what would happen without building or installing
-  --no-modify-path     Don't add ZeroClaw to PATH in your shell profile; just
+  --no-modify-path     Don't add Max to PATH in your shell profile; just
                        print the line to add manually
   --skip-quickstart       Skip the post-install quickstart prompt
-  --uninstall          Remove ZeroClaw binary and optionally config/data
+  --uninstall          Remove Max binary and optionally config/data
   -h, --help           Show this help
   -V, --version        Show version from Cargo.toml
 
@@ -436,11 +436,11 @@ Examples:
   $0 --skip-quickstart                            # install only, configure later
   $0 --prefix /tmp/zc-test --skip-quickstart      # isolated test install
   $0 --dry-run --prebuilt                      # preview without installing
-  $0 --uninstall                               # remove ZeroClaw
+  $0 --uninstall                               # remove Max
 
 Environment:
-  ZEROCLAW_INSTALL_DIR   Source checkout override (default: PREFIX/.zeroclaw/src)
-  ZEROCLAW_CARGO_FEATURES  Extra cargo features (legacy; prefer --features)
+  MAX_INSTALL_DIR   Source checkout override (default: PREFIX/.max/src)
+  MAX_CARGO_FEATURES  Extra cargo features (legacy; prefer --features)
 EOF
 }
 
@@ -448,10 +448,10 @@ EOF
 
 do_uninstall() {
   echo
-  printf "%s\n" "$(bold "Uninstalling ZeroClaw")"
+  printf "%s\n" "$(bold "Uninstalling Max")"
   echo
 
-  local bin="$CARGO_HOME/bin/zeroclaw"
+  local bin="$CARGO_HOME/bin/max"
 
   if [ -f "$bin" ]; then
     "$bin" service stop 2>/dev/null || true
@@ -468,7 +468,7 @@ do_uninstall() {
     info "Removed $tui_bin"
   fi
 
-  local config_dir="$PREFIX/.zeroclaw"
+  local config_dir="$PREFIX/.max"
   if [ -d "$config_dir" ]; then
     if [ -t 0 ]; then
       printf "  Remove config and data (%s)? [y/N] " "$config_dir"
@@ -488,44 +488,44 @@ do_uninstall() {
   # Strip the PATH marker block this installer may have added to the profile.
   local profile
   profile=$(detect_shell_profile)
-  if [ -f "$profile" ] && grep -q "# >>> zeroclaw >>>" "$profile" 2>/dev/null; then
+  if [ -f "$profile" ] && grep -q "# >>> max >>>" "$profile" 2>/dev/null; then
     local tmp_profile
     tmp_profile=$(mktemp)
-    if sed '/# >>> zeroclaw >>>/,/# <<< zeroclaw <<</d' "$profile" >"$tmp_profile" 2>/dev/null &&
+    if sed '/# >>> max >>>/,/# <<< max <<</d' "$profile" >"$tmp_profile" 2>/dev/null &&
       cat "$tmp_profile" >"$profile" 2>/dev/null; then
       info "Removed PATH entry from $profile"
     else
-      warn "Could not edit $profile — remove the zeroclaw PATH block manually"
+      warn "Could not edit $profile — remove the max PATH block manually"
     fi
     rm -f "$tmp_profile"
   fi
 
-  # Check if another zeroclaw still lurks in PATH
+  # Check if another max still lurks in PATH
   local other_bin
-  other_bin=$(PATH="$ORIGINAL_PATH" command -v zeroclaw 2>/dev/null || true)
+  other_bin=$(PATH="$ORIGINAL_PATH" command -v max 2>/dev/null || true)
   if [ -n "$other_bin" ]; then
     local other_version
     other_version=$("$other_bin" --version 2>/dev/null | awk '{print $NF}' || echo "unknown")
     echo
-    warn "Another zeroclaw found at $other_bin (v$other_version)"
+    warn "Another max found at $other_bin (v$other_version)"
     warn "Remove it manually if you want a full uninstall"
   fi
 
   echo
-  info "ZeroClaw uninstalled"
+  info "Max uninstalled"
   exit 0
 }
 
 # ── Quickstart-needed status check ───────────────────────────────
 #
-# Detect whether the operator already has a configured ZeroClaw so the
+# Detect whether the operator already has a configured Max so the
 # 3-way "how would you like to complete setup?" prompt can skip silently
 # on a re-install. We treat setup as complete when a config file exists
 # at the expected path AND it contains at least one `[providers.models.*]`
 # or `[providers.fallback]` line — i.e. some provider is configured.
 # Empty or default config files still trigger the prompt.
 quickstart_needed() {
-  cfg="$PREFIX/.zeroclaw/config.toml"
+  cfg="$PREFIX/.max/config.toml"
   [ -f "$cfg" ] || return 0 # no config → run quickstart
   # Already-configured signal: any of these patterns means a provider was set.
   if grep -qE '^\[providers\.models\.|^fallback *=|^default_provider *=' "$cfg" 2>/dev/null; then
@@ -562,7 +562,7 @@ interactive_feature_picker() {
     esac
   done
 
-  # Apps default-on set (zerocode); features pre-checked from the crate's
+  # Apps default-on set (maxcode); features pre-checked from the crate's
   # `default = [...]` list, expanded transitively so aggregate defaults like
   # `default-channels` pre-check their leaf channel-* rows.
   selected_apps="$DEFAULT_APPS"
@@ -650,13 +650,13 @@ interactive_feature_picker() {
 resolve_web_data_dir() {
   case "$(uname -s)" in
   Darwin)
-    printf '%s' "${HOME}/Library/Application Support/zeroclaw/web/dist"
+    printf '%s' "${HOME}/Library/Application Support/max/web/dist"
     ;;
   MINGW* | CYGWIN* | MSYS*)
-    printf '%s' "${LOCALAPPDATA}/zeroclaw/web/dist"
+    printf '%s' "${LOCALAPPDATA}/max/web/dist"
     ;;
   *)
-    printf '%s' "${XDG_DATA_HOME:-${PREFIX}/.local/share}/zeroclaw/web/dist"
+    printf '%s' "${XDG_DATA_HOME:-${PREFIX}/.local/share}/max/web/dist"
     ;;
   esac
 }
@@ -771,12 +771,12 @@ INSTALL_MODE="" # ""=ask, "prebuilt"=force prebuilt, "source"=force source
 PRESET=""       # ""=unset, "minimal"=alias for --minimal, "full"=default-features
 WITH_GATEWAY="" # ""=unset (preset/feature default applies), "true"/"false"=explicit toggle
 WITHOUT_TUI=""  # ""=unset (default: install TUI), "true"=skip TUI
-USER_APPS=""    # ""=unset (default apps), "none"=skip all, or comma list (e.g. "zerocode")
+USER_APPS=""    # ""=unset (default apps), "none"=skip all, or comma list (e.g. "maxcode")
 FULL_APPS=false # true when --full: install every discovered app, not just the defaults
 
 # Support legacy env var
-if [ -n "${ZEROCLAW_CARGO_FEATURES:-}" ]; then
-  USER_FEATURES="${USER_FEATURES:+$USER_FEATURES,}$ZEROCLAW_CARGO_FEATURES"
+if [ -n "${MAX_CARGO_FEATURES:-}" ]; then
+  USER_FEATURES="${USER_FEATURES:+$USER_FEATURES,}$MAX_CARGO_FEATURES"
 fi
 
 while [ $# -gt 0 ]; do
@@ -810,7 +810,7 @@ while [ $# -gt 0 ]; do
     ;;
   --apps)
     if [ $# -lt 2 ]; then
-      die "Missing value for --apps. Expected: --apps zerocode[,...] or --apps none"
+      die "Missing value for --apps. Expected: --apps maxcode[,...] or --apps none"
     fi
     shift
     USER_APPS="${USER_APPS:+$USER_APPS,}$1"
@@ -841,7 +841,7 @@ while [ $# -gt 0 ]; do
   -V | --version)
     if [ -f "Cargo.toml" ]; then
       parse_cargo_toml "Cargo.toml"
-      echo "install.sh for ZeroClaw v$VERSION"
+      echo "install.sh for Max v$VERSION"
     else
       echo "install.sh (version unknown — not in repo)"
     fi
@@ -856,7 +856,7 @@ done
 
 CARGO_HOME="${CARGO_HOME:-$PREFIX/.cargo}"
 RUSTUP_HOME="${RUSTUP_HOME:-$PREFIX/.rustup}"
-INSTALL_DIR="${ZEROCLAW_INSTALL_DIR:-$PREFIX/.zeroclaw/src}"
+INSTALL_DIR="${MAX_INSTALL_DIR:-$PREFIX/.max/src}"
 ORIGINAL_PATH="$PATH"
 PATH="$CARGO_HOME/bin:$PATH"
 export CARGO_HOME RUSTUP_HOME PATH
@@ -892,7 +892,7 @@ if [ "$INSTALL_MODE" = "" ]; then
   if [ -n "$triple" ]; then
     if [ "$GUIDED_INSTALL_MODE" = "choice" ] && [ -t 0 ]; then
       echo
-      printf "  %s\n" "$(bold "How would you like to install ZeroClaw?")"
+      printf "  %s\n" "$(bold "How would you like to install Max?")"
       printf "  [P] Pre-built binary  — fast, no Rust required  %s\n" "$(bold "(default)")"
       printf "  [s] Build from source — custom features, latest code\n"
       printf "\n  Choice [P/s]: "
@@ -922,7 +922,7 @@ fi
   # >>> end generated:route-decision <<<
 
 [ "${PREBUILT_OK:-false}" = true ] && [ "$DRY_RUN" != true ] && {
-  BIN="$CARGO_HOME/bin/zeroclaw"
+  BIN="$CARGO_HOME/bin/max"
   if [ -f "$BIN" ]; then
     NEW_VERSION=$("$BIN" --version 2>/dev/null | awk '{print $NF}' || echo "?")
     SIZE=$(du -h "$BIN" | awk '{print $1}')
@@ -943,13 +943,13 @@ if [ "${PREBUILT_OK:-false}" != true ]; then
   # >>> end generated:source-dispatch-open <<<
 
   echo
-  printf "%s\n" "$(bold "ZeroClaw — source install")"
+  printf "%s\n" "$(bold "Max — source install")"
   if [ "$PREFIX" != "$HOME" ]; then
     printf "  prefix: %s\n" "$(bold "$PREFIX")"
   fi
   echo
 
-  if [ -f "Cargo.toml" ] && grep -q "zeroclaw" "Cargo.toml" 2>/dev/null; then
+  if [ -f "Cargo.toml" ] && grep -q "max" "Cargo.toml" 2>/dev/null; then
     INSTALL_DIR="$(pwd)"
     info "Building from $(pwd)"
   elif [ -d "$INSTALL_DIR/.git" ]; then
@@ -997,7 +997,7 @@ if [ "${PREBUILT_OK:-false}" != true ]; then
   if [ "$DRY_RUN" != true ]; then
     RUST_VERSION=$(rustc --version | awk '{print $2}')
     if ! version_gte "$RUST_VERSION" "$MSRV"; then
-      die "Rust $RUST_VERSION is too old. ZeroClaw requires $MSRV+ (edition $EDITION). Run: rustup update stable"
+      die "Rust $RUST_VERSION is too old. Max requires $MSRV+ (edition $EDITION). Run: rustup update stable"
     fi
     info "Rust $RUST_VERSION (>= $MSRV)"
   fi
@@ -1108,12 +1108,12 @@ See all available features:
 
   # ── Detect existing installs ──────────────────────────────────────
 
-  PATH_BIN=$(PATH="$ORIGINAL_PATH" command -v zeroclaw 2>/dev/null || true)
+  PATH_BIN=$(PATH="$ORIGINAL_PATH" command -v max 2>/dev/null || true)
   if [ -n "$PATH_BIN" ]; then
     PATH_VERSION=$("$PATH_BIN" --version 2>/dev/null | awk '{print $NF}' || echo "unknown")
-    TARGET_BIN="$CARGO_HOME/bin/zeroclaw"
+    TARGET_BIN="$CARGO_HOME/bin/max"
     if [ "$PATH_BIN" != "$TARGET_BIN" ]; then
-      warn "zeroclaw found at $PATH_BIN (v$PATH_VERSION)"
+      warn "max found at $PATH_BIN (v$PATH_VERSION)"
       warn "This install targets $TARGET_BIN"
       warn "The old binary will shadow the new one unless removed or PATH is reordered"
     else
@@ -1148,7 +1148,7 @@ See all available features:
   fi
 
   echo
-  printf "%s\n" "$(bold "Building ZeroClaw v$VERSION")"
+  printf "%s\n" "$(bold "Building Max v$VERSION")"
   if [ -n "$CARGO_FLAGS" ]; then
     info "Feature flags: $CARGO_FLAGS"
   else
@@ -1157,7 +1157,7 @@ See all available features:
   echo
 
   # embedded-web includes web/dist at Rust compile time, so the dashboard must
-  # exist before cargo install reaches zeroclaw-gateway's build script.
+  # exist before cargo install reaches max-gateway's build script.
   if [ "$WANT_EMBEDDED_WEB" = true ]; then
     if [ "$DRY_RUN" = true ]; then
       info "[dry-run] Would build web dashboard before cargo install for embedded-web"
@@ -1205,7 +1205,7 @@ See all available features:
   fi
 
   # ── Apps (standalone binaries under apps/<dir>) ──────────────────
-  # Apps connect to zeroclaw-runtime's RPC server, so they need the
+  # Apps connect to max-runtime's RPC server, so they need the
   # agent-runtime feature. Without it there's no daemon — skip apps.
   discover_apps
 
@@ -1269,18 +1269,18 @@ See all available features:
   # ── Summary ───────────────────────────────────────────────────────
 
   if [ "$DRY_RUN" != true ]; then
-    BIN="$CARGO_HOME/bin/zeroclaw"
+    BIN="$CARGO_HOME/bin/max"
     if [ -f "$BIN" ]; then
       SIZE=$(du -h "$BIN" | awk '{print $1}')
       NEW_VERSION=$("$BIN" --version 2>/dev/null | awk '{print $NF}' || echo "$VERSION")
       echo
       info "Installed: $BIN (v$NEW_VERSION, $SIZE)"
 
-      ACTIVE_BIN=$(PATH="$ORIGINAL_PATH" command -v zeroclaw 2>/dev/null || true)
+      ACTIVE_BIN=$(PATH="$ORIGINAL_PATH" command -v max 2>/dev/null || true)
       if [ -n "$ACTIVE_BIN" ] && [ "$ACTIVE_BIN" != "$BIN" ]; then
         ACTIVE_VERSION=$("$ACTIVE_BIN" --version 2>/dev/null | awk '{print $NF}' || echo "unknown")
         echo
-        warn "$(bold "WARNING:") zeroclaw in your PATH is $ACTIVE_BIN (v$ACTIVE_VERSION)"
+        warn "$(bold "WARNING:") max in your PATH is $ACTIVE_BIN (v$ACTIVE_VERSION)"
         warn "It will shadow the v$NEW_VERSION binary you just installed at $BIN"
         warn "Fix: remove the old binary or put $CARGO_HOME/bin earlier in your PATH"
       fi
@@ -1298,7 +1298,7 @@ See all available features:
 fi # end source build block
   # >>> end generated:source-dispatch-close <<<
 
-BIN="$CARGO_HOME/bin/zeroclaw"
+BIN="$CARGO_HOME/bin/max"
 
 # ── PATH setup ────────────────────────────────────────────────────
 
@@ -1333,9 +1333,9 @@ elif [ "$MODIFY_PATH" = true ] && [ "$PREFIX" = "$HOME" ]; then
   if [ "$DRY_RUN" = true ]; then
     info "[dry-run] Would add $CARGO_HOME/bin to PATH in $PROFILE"
   elif {
-    printf '\n# >>> zeroclaw >>>\n'
+    printf '\n# >>> max >>>\n'
     printf '%s\n' "$EXPORT_LINE"
-    printf '# <<< zeroclaw <<<\n'
+    printf '# <<< max <<<\n'
   } >>"$PROFILE" 2>/dev/null; then
     info "Added $CARGO_HOME/bin to PATH in $PROFILE"
     if [ "$UNIX_PATH_RELOAD" = true ]; then
@@ -1356,9 +1356,9 @@ fi
   # >>> generated:quickstart-handoff by `cargo generate installers` - do not edit <<<
 if [ "$SKIP_QUICKSTART" = false ] && [ "$DRY_RUN" != true ] && [ -f "$BIN" ]; then
   # Skip the prompt entirely when the operator already has a configured
-  # ZeroClaw — re-installs should not re-prompt.
+  # Max — re-installs should not re-prompt.
   if ! quickstart_needed; then
-    info "Existing ZeroClaw config detected at $PREFIX/.zeroclaw/config.toml — skipping setup prompt."
+    info "Existing Max config detected at $PREFIX/.max/config.toml — skipping setup prompt."
     info "Run '$QUICKSTART_COMMAND' to reconfigure."
   elif [ "$GUIDED_QUICKSTART_MODE" = "offer" ] && [ -t 0 ]; then
     # 3-way setup choice. Bare Enter accepts the [1] CLI quickstart default;
@@ -1366,9 +1366,9 @@ if [ "$SKIP_QUICKSTART" = false ] && [ "$DRY_RUN" != true ] && [ -f "$BIN" ]; th
     # browser and Ctrl+C to return; [3] skips and prints a follow-up hint.
     # Non-TTY runs fall through to the silent skip in the else branch.
     echo
-    printf "%s\n" "$(bold "ZeroClaw installed. How would you like to complete setup?")"
+    printf "%s\n" "$(bold "Max installed. How would you like to complete setup?")"
     printf "  [1] CLI quickstart  ($QUICKSTART_COMMAND)\n"
-    printf "  [2] Open gateway in browser (zeroclaw daemon + dashboard)\n"
+    printf "  [2] Open gateway in browser (max daemon + dashboard)\n"
     printf "  [3] Skip for now\n"
     printf "  Choice [1-3, default 1]: "
     read -r quickstart_choice
@@ -1381,11 +1381,11 @@ if [ "$SKIP_QUICKSTART" = false ] && [ "$DRY_RUN" != true ] && [ -f "$BIN" ]; th
       echo
       info "Starting gateway daemon for browser-based setup..."
       info "Open the dashboard in your browser; pair with the code shown in logs."
-      info "Stop the daemon with Ctrl+C when done; then run 'zeroclaw service install' for always-on."
-      "$BIN" daemon || warn "Daemon exited with an error — run 'zeroclaw daemon' manually"
+      info "Stop the daemon with Ctrl+C when done; then run 'max service install' for always-on."
+      "$BIN" daemon || warn "Daemon exited with an error — run 'max daemon' manually"
       ;;
     3)
-      info "Skipped setup. Run '$QUICKSTART_COMMAND' (CLI) or 'zeroclaw daemon' (browser) when ready."
+      info "Skipped setup. Run '$QUICKSTART_COMMAND' (CLI) or 'max daemon' (browser) when ready."
       ;;
     *)
       warn "Unknown choice '$quickstart_choice' — skipping. Run '$QUICKSTART_COMMAND' to configure."
@@ -1398,15 +1398,15 @@ fi
   # >>> end generated:quickstart-handoff <<<
 
 echo
-# Next-step hint, smartest-first: if zerocode (the TUI) was installed, that's
+# Next-step hint, smartest-first: if maxcode (the TUI) was installed, that's
 # the best place to start; otherwise point at the daemon + web dashboard, then
 # fall back to a one-off CLI agent run.
 if [ -f "$CARGO_HOME/bin/$TUI_BIN_NAME" ]; then
   info "Done. Run $(bold "$TUI_BIN_NAME") to launch the terminal UI and start working."
-elif [ -f "$CARGO_HOME/bin/zeroclaw" ] && "$CARGO_HOME/bin/zeroclaw" --help 2>/dev/null | grep -q '\bdaemon\b'; then
-  info "Done. Run $(bold "zeroclaw daemon") for the always-on daemon + web dashboard,"
-  info "or $(bold "zeroclaw agent") for a one-off CLI chat."
+elif [ -f "$CARGO_HOME/bin/max" ] && "$CARGO_HOME/bin/max" --help 2>/dev/null | grep -q '\bdaemon\b'; then
+  info "Done. Run $(bold "max daemon") for the always-on daemon + web dashboard,"
+  info "or $(bold "max agent") for a one-off CLI chat."
 else
-  info "Done. Run $(bold "zeroclaw agent") to start chatting."
+  info "Done. Run $(bold "max agent") to start chatting."
 fi
 echo

@@ -1,4 +1,4 @@
-IMAGE_NAME    = zeroclaw
+IMAGE_NAME    = max
 IMAGE_TAG     = stagex
 IMAGE_FAT_TAG = stagex-fat
 
@@ -14,22 +14,22 @@ extract:
 	@if ! podman image exists $(IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null; then \
 		$(MAKE) build; \
 	fi
-	podman create --name zeroclaw-extract $(IMAGE_NAME):$(IMAGE_TAG)
-	podman cp zeroclaw-extract:/usr/bin/zeroclaw .
-	podman cp zeroclaw-extract:/usr/bin/zerocode .
-	podman rm zeroclaw-extract
-	ls -lh zeroclaw zerocode
+	podman create --name max-extract $(IMAGE_NAME):$(IMAGE_TAG)
+	podman cp max-extract:/usr/bin/max .
+	podman cp max-extract:/usr/bin/maxcode .
+	podman rm max-extract
+	ls -lh max maxcode
 
 extract-fat:
 	@if ! podman image exists $(IMAGE_NAME):$(IMAGE_FAT_TAG) 2>/dev/null; then \
 		$(MAKE) build-fat; \
 	fi
-	podman create --name zeroclaw-fat-extract $(IMAGE_NAME):$(IMAGE_FAT_TAG)
-	podman cp zeroclaw-fat-extract:/usr/bin/zeroclaw .
-	podman cp zeroclaw-fat-extract:/usr/bin/zerocode .
-	podman rm zeroclaw-fat-extract
-	mv zeroclaw zeroclaw-fat
-	ls -lh zeroclaw-fat
+	podman create --name max-fat-extract $(IMAGE_NAME):$(IMAGE_FAT_TAG)
+	podman cp max-fat-extract:/usr/bin/max .
+	podman cp max-fat-extract:/usr/bin/maxcode .
+	podman rm max-fat-extract
+	mv max max-fat
+	ls -lh max-fat
 
 shell-debug:
 	podman run --rm -it \
@@ -38,4 +38,4 @@ shell-debug:
 
 clean:
 	-podman rmi $(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_NAME):$(IMAGE_FAT_TAG) 2>/dev/null
-	rm -f zeroclaw zerocode zeroclaw-fat
+	rm -f max maxcode max-fat

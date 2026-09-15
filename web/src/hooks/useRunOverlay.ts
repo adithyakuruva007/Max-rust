@@ -1,5 +1,5 @@
 // Shared live-overlay polling for a SOP run. One implementation drives the
-// run detail page and any future surface (zerocode web bridge included):
+// run detail page and any future surface (maxcode web bridge included):
 // poll every 2s, stop on a terminal status, expose a refresh for
 // post-decision updates.
 import { useCallback, useEffect, useRef, useState } from 'react';

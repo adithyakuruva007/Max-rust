@@ -1,12 +1,12 @@
-//! `zeroclaw eval` — run the agent evaluation harness.
+//! `max eval` — run the agent evaluation harness.
 
 use anyhow::Result;
 use std::path::PathBuf;
-use zeroclaw_eval::{Mode, SuiteReport};
+use max_eval::{Mode, SuiteReport};
 
 /// Run a suite of eval cases and return the aggregated report.
 pub async fn run(suite: PathBuf, mode: Mode) -> Result<SuiteReport> {
-    Box::pin(zeroclaw_eval::run_suite(&suite, mode)).await
+    Box::pin(max_eval::run_suite(&suite, mode)).await
 }
 
 /// Output format for the eval report.

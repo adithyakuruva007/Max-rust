@@ -5,14 +5,14 @@
 ### Unix fast path
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/max-labs/max/master/install.sh | sh
 ```
 
 This route is noninteractive and does not open a picker.
 
 It prefers a matching prebuilt binary and falls back to a source build when needed.
 
-A prebuilt archive may contain zerocode; a noninteractive source fallback installs the default app without opening a picker.
+A prebuilt archive may contain maxcode; a noninteractive source fallback installs the default app without opening a picker.
 
 The command uses a fixed feature set.
 
@@ -20,15 +20,15 @@ If a source build is needed, the installer can bootstrap Rust when it is missing
 
 On Unix, the installer updates the shell profile when allowed; reload the parent shell before relying on the new PATH.
 
-The installer skips setup and prints `zeroclaw quickstart` as the next step.
+The installer skips setup and prints `max quickstart` as the next step.
 <!-- ANCHOR_END: unix-fast -->
 
 <!-- ANCHOR: unix-guided -->
 ### Unix guided path
 
 ```sh
-git clone https://github.com/zeroclaw-labs/zeroclaw.git
-cd zeroclaw
+git clone https://github.com/max-labs/max.git
+cd max
 ./install.sh
 ```
 
@@ -36,7 +36,7 @@ This route is guided and may offer supported choices.
 
 On supported targets, it offers prebuilt or source installation.
 
-A prebuilt archive may contain zerocode; a source choice selects it by default and allows app selection.
+A prebuilt archive may contain maxcode; a source choice selects it by default and allows app selection.
 
 The source path also lets you select optional Cargo features.
 
@@ -44,7 +44,7 @@ If a source build is needed, the installer can bootstrap Rust when it is missing
 
 On Unix, the installer updates the shell profile when allowed; reload the parent shell before relying on the new PATH.
 
-For an unconfigured install, it offers `zeroclaw quickstart` or browser-based Quickstart.
+For an unconfigured install, it offers `max quickstart` or browser-based Quickstart.
 <!-- ANCHOR_END: unix-guided -->
 <!-- ANCHOR_END: linux -->
 
@@ -57,7 +57,7 @@ This route is noninteractive and does not open a picker.
 
 This route installs a prebuilt release archive.
 
-The archive may also contain zerocode; availability depends on the release asset.
+The archive may also contain maxcode; availability depends on the release asset.
 
 The command uses a fixed feature set.
 
@@ -65,7 +65,7 @@ This prebuilt route does not require a Rust toolchain.
 
 On Windows, the PowerShell path updates the current process and the persistent user PATH.
 
-The PowerShell block finishes by running `zeroclaw quickstart` automatically.
+The PowerShell block finishes by running `max quickstart` automatically.
 <!-- ANCHOR_END: windows-prebuilt -->
 
 <!-- ANCHOR: advanced-source -->
@@ -81,7 +81,7 @@ This route is guided and may offer supported choices.
 
 This route always builds from source.
 
-Source installation selects zerocode by default and lets you change the app selection.
+Source installation selects maxcode by default and lets you change the app selection.
 
 The source path also lets you select optional Cargo features.
 
@@ -89,7 +89,7 @@ If a source build is needed, the installer can bootstrap Rust when it is missing
 
 On Unix, the installer updates the shell profile when allowed; reload the parent shell before relying on the new PATH.
 
-For an unconfigured install, it offers `zeroclaw quickstart` or browser-based Quickstart.
+For an unconfigured install, it offers `max quickstart` or browser-based Quickstart.
 
 #### Windows
 
@@ -101,7 +101,7 @@ This route is noninteractive and does not open a picker.
 
 This route always builds from source.
 
-This command installs the core `zeroclaw` binary; it does not install optional apps.
+This command installs the core `max` binary; it does not install optional apps.
 
 The command uses a fixed feature set.
 
@@ -109,5 +109,5 @@ A Rust toolchain is required before using this command.
 
 This Cargo command does not edit PATH; make sure Cargo's bin directory is already available in your shell.
 
-After installation, run `zeroclaw quickstart`.
+After installation, run `max quickstart`.
 <!-- ANCHOR_END: advanced-source -->

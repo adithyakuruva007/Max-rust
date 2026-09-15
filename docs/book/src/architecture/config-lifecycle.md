@@ -4,10 +4,10 @@ Configuration is both an operator interface and a runtime contract. Treat it as
 state with a clear owner, not as loose settings copied into whichever subsystem
 needs them.
 
-The canonical source is `zeroclaw_config::schema::Config`, loaded from
+The canonical source is `max_config::schema::Config`, loaded from
 `config.toml`. User-facing config surfaces, the generated config reference, the
-gateway config editor, env-var overrides, `zeroclaw config set`,
-`zeroclaw config patch`, Quickstart, and RPC config methods all route through
+gateway config editor, env-var overrides, `max config set`,
+`max config patch`, Quickstart, and RPC config methods all route through
 that same typed schema.
 
 For the build order, tracked-output rules, and drift checks that turn the typed schema into the config reference, see [Generated documentation pipeline](./generated-documentation-pipeline.md).
@@ -16,13 +16,13 @@ For the build order, tracked-output rules, and drift checks that turn the typed 
 
 | Surface | Owner | Persistence boundary | Runtime apply boundary |
 | --- | --- | --- | --- |
-| Config schema | `crates/zeroclaw-config/src/schema.rs` plus `Configurable` derives | Code, not generated docs | New binary build |
+| Config schema | `crates/max-config/src/schema.rs` plus `Configurable` derives | Code, not generated docs | New binary build |
 | Generated reference | `cargo mdbook refs` / `markdown-schema` | `docs/book/src/reference/config.md` at build time | Documentation only |
-| Bootstrap location | `ZEROCLAW_CONFIG_DIR`, `ZEROCLAW_DATA_DIR`, deprecated `ZEROCLAW_WORKSPACE` | Environment only | Before `Config` exists |
-| Schema-mirror overrides | `ZEROCLAW_<lowercase_path>` with `__` for dots | In-memory only | Each `Config::load_or_init()` |
-| CLI config writes | `zeroclaw config set`, `config patch`, aliases, model helpers | `save_dirty()` to `config.toml` | Next load/reload unless the current command uses the new in-memory value |
-| RPC and TUI config writes | `config/*` RPC methods used by zerocode | `save_dirty()` to `config.toml` | RPC context updates immediately; daemon-owned subsystems need reload |
-| Quickstart apply | Shared web, CLI, and zerocode apply path | `save_dirty()` to `config.toml` | Web and RPC can signal daemon reload; standalone CLI applies on next load/reload |
+| Bootstrap location | `MAX_CONFIG_DIR`, `MAX_DATA_DIR`, deprecated `MAX_WORKSPACE` | Environment only | Before `Config` exists |
+| Schema-mirror overrides | `MAX_<lowercase_path>` with `__` for dots | In-memory only | Each `Config::load_or_init()` |
+| CLI config writes | `max config set`, `config patch`, aliases, model helpers | `save_dirty()` to `config.toml` | Next load/reload unless the current command uses the new in-memory value |
+| RPC and TUI config writes | `config/*` RPC methods used by maxcode | `save_dirty()` to `config.toml` | RPC context updates immediately; daemon-owned subsystems need reload |
+| Quickstart apply | Shared web, CLI, and maxcode apply path | `save_dirty()` to `config.toml` | Web and RPC can signal daemon reload; standalone CLI applies on next load/reload |
 | Gateway config writes | Config API handlers and `persist_and_swap()` | `save_dirty()` to `config.toml` | Gateway-visible state updates immediately; daemon subsystems apply after reload |
 | Daemon reload | `/admin/reload`, RPC `config/reload`, or the in-process reload channel | Re-reads `config.toml` | Recreates daemon subsystems in the same PID |
 
@@ -41,7 +41,7 @@ Config load has a few distinct phases:
    secrets, and record any malformed security-critical sections as degraded
    security.
 3. Apply schema-mirror overrides to the in-memory config. In env vars,
-   `__` maps to `.`, so `ZEROCLAW_providers__models__openai__api_key`
+   `__` maps to `.`, so `MAX_providers__models__openai__api_key`
    targets `providers.models.openai.api_key`.
 4. Validate and warn without locking the operator out of the gateway editor.
 
@@ -62,18 +62,18 @@ the env value or with a masked display string.
 
 Review config changes with this invariant in mind:
 
-- `ZEROCLAW_*` schema-mirror values affect the running process after load.
+- `MAX_*` schema-mirror values affect the running process after load.
 - They do not become durable config.
 - Save paths must preserve encrypted secrets and external secret references
   unless the same path was intentionally edited.
 
 ## Credential inputs stay typed
 
-Credential-like runtime values are still config values. API keys, OAuth tokens, endpoint URLs, and other provider/channel credentials should flow through the typed config schema, config secret handling, or schema-mirror `ZEROCLAW_*` overrides before a runtime constructor sees them.
+Credential-like runtime values are still config values. API keys, OAuth tokens, endpoint URLs, and other provider/channel credentials should flow through the typed config schema, config secret handling, or schema-mirror `MAX_*` overrides before a runtime constructor sees them.
 
 Do not add ad-hoc `std::env::var("PROVIDER_API_KEY")` reads inside provider, channel, tool, transcription, TTS, memory, or gateway constructors. That creates a second credential source outside `Config`, bypasses env-override visibility, and can make CLI, gateway, RPC/TUI, quickstart, and reload behavior disagree.
 
-If ZeroClaw intentionally supports a native environment bridge for an integration family, document that bridge at the integration boundary and map it into the same typed config value before construction. Otherwise, ecosystem-default shell names such as `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or `QDRANT_URL` should be bridged by operators into the corresponding `ZEROCLAW_*` schema-mirror variable; see [Environment variables](../reference/env-vars.md#bridging-ecosystem-default-env-vars).
+If Max intentionally supports a native environment bridge for an integration family, document that bridge at the integration boundary and map it into the same typed config value before construction. Otherwise, ecosystem-default shell names such as `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or `QDRANT_URL` should be bridged by operators into the corresponding `MAX_*` schema-mirror variable; see [Environment variables](../reference/env-vars.md#bridging-ecosystem-default-env-vars).
 
 ## Dirty paths and incremental writes
 
@@ -112,7 +112,7 @@ editor reflect the write immediately, while the reload banner tells the operator
 that channels, providers, scheduler, or other daemon-owned components may still
 be running from the previous subsystem instance.
 
-Standalone `zeroclaw gateway start` has no daemon supervisor. Its reload
+Standalone `max gateway start` has no daemon supervisor. Its reload
 endpoint returns a restart-required response because there is no outer daemon
 loop to signal.
 
@@ -177,13 +177,13 @@ For config-schema, env-var, default, or reload changes, ask:
 
 ## Source pointers
 
-- Config schema and persistence: `crates/zeroclaw-config/src/schema.rs`
-- Env override grammar: `crates/zeroclaw-config/src/env_overrides.rs`
+- Config schema and persistence: `crates/max-config/src/schema.rs`
+- Env override grammar: `crates/max-config/src/env_overrides.rs`
 - Config CLI commands: `src/main.rs`
-- RPC and TUI config methods: `crates/zeroclaw-runtime/src/rpc/dispatch.rs`
-- Shared Quickstart apply path: `crates/zeroclaw-runtime/src/quickstart/mod.rs`
-- Web Quickstart reload signaling: `crates/zeroclaw-gateway/src/api_quickstart.rs`
-- Gateway config API and reload banner: `crates/zeroclaw-gateway/src/api_config.rs`
-- Reload endpoint and access gate: `crates/zeroclaw-gateway/src/lib.rs`
-- Gateway bearer auth helper: `crates/zeroclaw-gateway/src/api.rs`
+- RPC and TUI config methods: `crates/max-runtime/src/rpc/dispatch.rs`
+- Shared Quickstart apply path: `crates/max-runtime/src/quickstart/mod.rs`
+- Web Quickstart reload signaling: `crates/max-gateway/src/api_quickstart.rs`
+- Gateway config API and reload banner: `crates/max-gateway/src/api_config.rs`
+- Reload endpoint and access gate: `crates/max-gateway/src/lib.rs`
+- Gateway bearer auth helper: `crates/max-gateway/src/api.rs`
 - Generated reference pipeline: `xtask/src/cmd/mdbook/refs.rs`

@@ -1,5 +1,5 @@
-//! JSON trace fixture types — re-exported from the shipped `zeroclaw-eval` crate.
+//! JSON trace fixture types — re-exported from the shipped `max-eval` crate.
 
-pub use zeroclaw_eval::case::{
+pub use max_eval::case::{
     LlmTrace, TraceExpects, TraceResponse, TraceStep, TraceToolCall, TraceTurn,
 };

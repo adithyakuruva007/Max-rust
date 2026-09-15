@@ -134,7 +134,7 @@ mod tests {
         );
         assert!(
             relay.contains("RELEASE_REF: ${{ inputs.release_ref }}")
-                && relay.contains("-zerorelay:${RELEASE_REF}"),
+                && relay.contains("-maxrelay:${RELEASE_REF}"),
             "publish-relay must derive its pinned tag from inputs.release_ref"
         );
     }
@@ -143,13 +143,13 @@ mod tests {
     // newer semver-compatible deps than the reviewed Cargo.lock.
     #[test]
     fn relay_dockerfile_build_is_lockfile_enforced() {
-        let dockerfile = std::fs::read_to_string(root().join("apps/zerorelay/Dockerfile")).unwrap();
+        let dockerfile = std::fs::read_to_string(root().join("apps/maxrelay/Dockerfile")).unwrap();
         assert!(
-            dockerfile.contains("cargo build --release --locked -p zerorelay"),
+            dockerfile.contains("cargo build --release --locked -p maxrelay"),
             "the relay image build must use --locked for a reproducible signed artifact"
         );
         assert!(
-            !dockerfile.contains("cargo build --release -p zerorelay"),
+            !dockerfile.contains("cargo build --release -p maxrelay"),
             "the relay image build must not have an unlocked cargo build path"
         );
     }

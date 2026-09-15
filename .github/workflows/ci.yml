@@ -210,7 +210,7 @@ jobs:
               ;;
           esac
 
-          if grep -Eq '^(apps/zerorelay/(Dockerfile|compose\.yaml|relay\.example\.toml|src/main\.rs|src/lib\.rs|src/ws_accept\.rs|build\.rs)|scripts/ci/smoke_relay_fresh_volume\.sh|\.github/workflows/ci\.yml$)' "$changed_files"; then
+          if grep -Eq '^(apps/maxrelay/(Dockerfile|compose\.yaml|relay\.example\.toml|src/main\.rs|src/lib\.rs|src/ws_accept\.rs|build\.rs)|scripts/ci/smoke_relay_fresh_volume\.sh|\.github/workflows/ci\.yml$)' "$changed_files"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -224,7 +224,7 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Build the zerorelay image
+      - name: Build the maxrelay image
         shell: bash
         # The Dockerfile uses BuildKit-only RUN --mount cache instructions.
         # Modern Docker defaults to BuildKit, but a legacy builder fails the
@@ -232,10 +232,10 @@ jobs:
         # reproducible anywhere.
         env:
           DOCKER_BUILDKIT: "1"
-        run: docker build -f apps/zerorelay/Dockerfile -t zerorelay:smoke .
+        run: docker build -f apps/maxrelay/Dockerfile -t maxrelay:smoke .
       - name: Fresh-volume non-root startup smoke (self-provisions TLS + healthcheck)
         shell: bash
-        run: ZERORELAY_SMOKE_IMAGE=zerorelay:smoke bash scripts/ci/smoke_relay_fresh_volume.sh
+        run: MAXRELAY_SMOKE_IMAGE=maxrelay:smoke bash scripts/ci/smoke_relay_fresh_volume.sh
 
   # ── Post-format required quality gate ─────────────────────────────────────
 
@@ -276,9 +276,9 @@ jobs:
         env:
           RUST_CACHE_HIT: ${{ steps.rust-cache.outputs.cache-hit }}
       - name: Rustdoc warnings gate
-        # Exclude zeroclaw-desktop: same surface as xtask build_api / docs-deploy.
+        # Exclude max-desktop: same surface as xtask build_api / docs-deploy.
         # Desktop pulls glib-sys on Linux; the lint runner does not install GTK libs.
-        run: cargo doc --no-deps --workspace --exclude zeroclaw-desktop
+        run: cargo doc --no-deps --workspace --exclude max-desktop
       - name: Comment hygiene gate (no issue refs / review notes / truncation artifacts)
         run: |
           bash scripts/ci/comment_hygiene_gate.test.sh
@@ -323,7 +323,7 @@ jobs:
               ;;
           esac
 
-          if grep -Eq '^(crates/zeroclaw-tools/|scripts/ci/run_clippy\.sh$|\.github/workflows/(ci|cross-platform-clippy)\.yml$)' "$changed_files"; then
+          if grep -Eq '^(crates/max-tools/|scripts/ci/run_clippy\.sh$|\.github/workflows/(ci|cross-platform-clippy)\.yml$)' "$changed_files"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -413,7 +413,7 @@ jobs:
           duration_seconds=$SECONDS
           set -e
 
-          workspace_path_compiles="$(grep -E -c 'Compiling.*\([^)]*zeroclaw' "$cargo_log" || true)"
+          workspace_path_compiles="$(grep -E -c 'Compiling.*\([^)]*max' "$cargo_log" || true)"
           total_compiles="$(grep -c 'Compiling' "$cargo_log" || true)"
           downloaded_crates="$(grep -c 'Downloaded' "$cargo_log" || true)"
           cache_hit="${RUST_CACHE_HIT:-unknown}"
@@ -442,11 +442,11 @@ jobs:
       - name: Check voice-wake
         if: runner.os != 'Linux'
         shell: bash
-        run: cargo check --locked -p zeroclaw-channels --no-default-features --features voice-wake --target ${{ matrix.target }}
+        run: cargo check --locked -p max-channels --no-default-features --features voice-wake --target ${{ matrix.target }}
       - name: Test voice-wake
         if: runner.os == 'Linux'
         shell: bash
-        run: cargo test --locked -p zeroclaw-channels --no-default-features --features voice-wake --target ${{ matrix.target }} --lib voice_wake
+        run: cargo test --locked -p max-channels --no-default-features --features voice-wake --target ${{ matrix.target }} --lib voice_wake
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -454,7 +454,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: >-
-           cargo test --profile ci --locked -p zeroclaw-runtime --lib
+           cargo test --profile ci --locked -p max-runtime --lib
            --target x86_64-pc-windows-msvc
            control_plane::authority::tests::windows_process_exit_is_detected -- --exact
 
@@ -470,7 +470,7 @@ jobs:
       matrix:
         include:
           - name: no default features
-            args: --workspace --exclude zeroclaw-desktop --no-default-features
+            args: --workspace --exclude max-desktop --no-default-features
             sys_deps: ""
             rustflags: -D warnings
           # Lint already denies warnings with --all-targets, but only at
@@ -479,7 +479,7 @@ jobs:
           # drift lands green. This row compiles the test targets on the
           # default surface, where that mismatch is visible.
           - name: default features, all targets
-            args: --workspace --exclude zeroclaw-desktop --all-targets
+            args: --workspace --exclude max-desktop --all-targets
             sys_deps: ""
             rustflags: -D warnings
     steps:
@@ -544,20 +544,20 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
       - name: Check
         if: steps.changed.outputs.run == 'true'
-        run: cargo check --locked -p zeroclaw-plugins --no-default-features --features ${{ matrix.features }}
+        run: cargo check --locked -p max-plugins --no-default-features --features ${{ matrix.features }}
       - name: Run plugin component tests
         if: steps.changed.outputs.run == 'true' && matrix.features == 'plugins-wasm-cranelift'
-        run: cargo test --locked -p zeroclaw-plugins --features plugins-wasm-cranelift --test channel_plugin_e2e --test egress_plugin_e2e --test tool_plugin_timeout_e2e --test reference_plugin --test reference_plugin_e2e --test tool_plugin_e2e
+        run: cargo test --locked -p max-plugins --features plugins-wasm-cranelift --test channel_plugin_e2e --test egress_plugin_e2e --test tool_plugin_timeout_e2e --test reference_plugin --test reference_plugin_e2e --test tool_plugin_e2e
       - name: Run plugins lib unit tests
         if: steps.changed.outputs.run == 'true' && matrix.features == 'plugins-wasm-cranelift'
-        run: cargo test --locked -p zeroclaw-plugins --no-default-features --features plugins-wasm-cranelift --lib
+        run: cargo test --locked -p max-plugins --no-default-features --features plugins-wasm-cranelift --lib
       - name: Run runtime live-config plugin regressions
         if: steps.changed.outputs.run == 'true' && matrix.features == 'plugins-wasm-cranelift'
         # Module filter, not a single test name: agent::plugin_live_config holds
         # every production-constructor live-config regression (direct Agent and
         # independently delegated registries today), and a filter pinned to one
         # test name silently skips the others.
-        run: cargo test --locked -p zeroclaw-runtime --features plugins-wasm-cranelift --lib agent::plugin_live_config
+        run: cargo test --locked -p max-runtime --features plugins-wasm-cranelift --lib agent::plugin_live_config
       # Feature-gated admission proofs. These only compile under plugins-wasm, so
       # the default-feature workspace Test job never runs them: the activation
       # plan (plugin_runtime), the shared instance ceiling, the auto_discover
@@ -566,10 +566,10 @@ jobs:
       # `cargo test` accepts only one positional TESTNAME; the harness ORs them.
       - name: Run runtime plugin admission regressions
         if: steps.changed.outputs.run == 'true' && matrix.features == 'plugins-wasm-cranelift'
-        run: 'cargo test --locked -p zeroclaw-runtime --features plugins-wasm-cranelift --lib -- plugin_runtime:: tools::tests::shared_ceiling tools::tests::repeated_loader tools::tests::auto_discover tools::tests::colliding_plugin'
-      # Cross-crate activation proof. This lives in the root `zeroclaw` package
-      # rather than the line above because it drives `zeroclaw-runtime`, which
-      # `zeroclaw-plugins` cannot depend on without inverting the crate graph.
+        run: 'cargo test --locked -p max-runtime --features plugins-wasm-cranelift --lib -- plugin_runtime:: tools::tests::shared_ceiling tools::tests::repeated_loader tools::tests::auto_discover tools::tests::colliding_plugin'
+      # Cross-crate activation proof. This lives in the root `max` package
+      # rather than the line above because it drives `max-runtime`, which
+      # `max-plugins` cannot depend on without inverting the crate graph.
       - name: Run channel plugin activation e2e
         if: steps.changed.outputs.run == 'true' && matrix.features == 'plugins-wasm-cranelift'
         run: cargo test --locked --features plugins-wasm-cranelift --test plugin_channel_runtime_e2e
@@ -612,7 +612,7 @@ jobs:
       # Containerfile or rebuild the generator under the MSRV toolchain.
       - name: Check at the declared MSRV
         run: |
-          cargo check --locked --workspace --exclude zeroclaw-desktop \
+          cargo check --locked --workspace --exclude max-desktop \
             --no-default-features \
             --features "${{ needs.installer-drift.outputs.all_features }}"
 
@@ -676,7 +676,7 @@ jobs:
           duration_seconds=$SECONDS
           set -e
 
-          workspace_path_compiles="$(grep -E -c 'Compiling.*\([^)]*zeroclaw' "$cargo_log" || true)"
+          workspace_path_compiles="$(grep -E -c 'Compiling.*\([^)]*max' "$cargo_log" || true)"
           total_compiles="$(grep -c 'Compiling' "$cargo_log" || true)"
           downloaded_crates="$(grep -c 'Downloaded' "$cargo_log" || true)"
           cache_hit="${RUST_CACHE_HIT:-unknown}"
@@ -728,7 +728,7 @@ jobs:
       - name: Install cargo-nextest
         run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ~/.cargo/bin
       - name: Run tests
-        run: cargo nextest run --locked --workspace --exclude zeroclaw-desktop
+        run: cargo nextest run --locked --workspace --exclude max-desktop
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -737,7 +737,7 @@ jobs:
       # Adding it to `ci-all` gives Lint and Check compile coverage; this step
       # is what actually executes the tests.
       - name: Run WeChat channel lib unit tests
-        run: "cargo nextest run --locked -p zeroclaw-channels --features channel-wechat --lib wechat::"
+        run: "cargo nextest run --locked -p max-channels --features channel-wechat --lib wechat::"
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -745,7 +745,7 @@ jobs:
       # does not execute Lark's feature-gated library regressions. This step
       # exercises the URL-verification handler coverage added by PR #9110.
       - name: Run Lark channel URL-verification tests
-        run: "cargo nextest run --locked -p zeroclaw-channels --no-default-features --features channel-lark --lib lark_url_verification"
+        run: "cargo nextest run --locked -p max-channels --no-default-features --features channel-lark --lib lark_url_verification"
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -753,7 +753,7 @@ jobs:
       # above does not execute Matrix's feature-gated library regressions. This
       # step is what actually executes them.
       - name: Run Matrix channel lib unit tests
-        run: "cargo nextest run --locked -p zeroclaw-channels --features channel-matrix --lib matrix::"
+        run: "cargo nextest run --locked -p max-channels --features channel-matrix --lib matrix::"
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -766,7 +766,7 @@ jobs:
       # `qq::` module reaches the real auth endpoint and spends the four-attempt
       # backoff, which would put the network in the job.
       - name: Run QQ channel lib unit tests
-        run: "cargo nextest run --locked -p zeroclaw-channels --features channel-qq --lib qq::tests::health_check one_off_send_resolves_dotted_qq_alias deliver_announcement_routes_qq_to_qq_arm deliver_announcement_rejects_disabled_qq_alias compiled_channel_keys_have_intentional_announcement_delivery_registration compiled_channel_keys_have_intentional_one_shot_builder_support"
+        run: "cargo nextest run --locked -p max-channels --features channel-qq --lib qq::tests::health_check one_off_send_resolves_dotted_qq_alias deliver_announcement_routes_qq_to_qq_arm deliver_announcement_rejects_disabled_qq_alias compiled_channel_keys_have_intentional_announcement_delivery_registration compiled_channel_keys_have_intentional_one_shot_builder_support"
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -918,7 +918,7 @@ jobs:
               ;;
             full)
               set +e
-              cargo nextest run --locked --no-fail-fast --workspace --exclude zeroclaw-desktop 2>&1 | tee "$baseline_log"
+              cargo nextest run --locked --no-fail-fast --workspace --exclude max-desktop 2>&1 | tee "$baseline_log"
               baseline_status=${PIPESTATUS[0]}
               set -e
               ;;
@@ -942,7 +942,7 @@ jobs:
             plugin_started_at=$SECONDS
             set +e
             cargo nextest run --locked --no-fail-fast \
-              -p zeroclaw-plugins \
+              -p max-plugins \
               --features plugins-wasm-cranelift \
               --test channel_plugin_e2e \
               --test tool_plugin_timeout_e2e \
@@ -951,19 +951,19 @@ jobs:
               --test tool_plugin_e2e 2>&1 | tee "$plugin_components_log"
             plugin_components_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
-              -p zeroclaw-plugins \
+              -p max-plugins \
               --no-default-features \
               --features plugins-wasm-cranelift \
               --lib 2>&1 | tee "$plugin_lib_log"
             plugin_lib_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
-              -p zeroclaw-runtime \
+              -p max-runtime \
               --features plugins-wasm-cranelift \
               --lib \
               live_agent_plugin_tool_observes_config_reload_after_construction 2>&1 | tee "$plugin_runtime_config_log"
             plugin_runtime_config_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
-              -p zeroclaw-runtime \
+              -p max-runtime \
               --features plugins-wasm-cranelift \
               --lib \
               plugin_runtime:: \
@@ -973,13 +973,13 @@ jobs:
               tools::tests::colliding_plugin 2>&1 | tee "$plugin_runtime_admission_log"
             plugin_runtime_admission_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
-              -p zeroclaw-gateway \
+              -p max-gateway \
               --features plugins-wasm \
               --lib 2>&1 | tee "$plugin_gateway_log"
             plugin_gateway_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
               --features plugins-wasm-cranelift \
-              --bin zeroclaw \
+              --bin max \
               plugin_registry:: 2>&1 | tee "$plugin_cli_log"
             plugin_cli_status=${PIPESTATUS[0]}
             cargo nextest run --locked --no-fail-fast \
@@ -1060,13 +1060,13 @@ jobs:
       postgres:
         image: postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73 # 17.11-alpine3.24
         env:
-          POSTGRES_USER: zeroclaw_test
-          POSTGRES_PASSWORD: zeroclaw_test
-          POSTGRES_DB: zeroclaw_test
+          POSTGRES_USER: max_test
+          POSTGRES_PASSWORD: max_test
+          POSTGRES_DB: max_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U zeroclaw_test -d zeroclaw_test"
+          --health-cmd "pg_isready -U max_test -d max_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -1088,14 +1088,14 @@ jobs:
       - name: Install cargo-nextest
         run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ~/.cargo/bin
       - name: Run memory-postgres feature tests
-        run: cargo nextest run --locked -p zeroclaw-memory --features memory-postgres
+        run: cargo nextest run --locked -p max-memory --features memory-postgres
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
       - name: Run PostgreSQL acceptance tests
-        run: cargo test --locked -p zeroclaw-memory --features memory-postgres -- --ignored --test-threads=1
+        run: cargo test --locked -p max-memory --features memory-postgres -- --ignored --test-threads=1
         env:
-          ZEROCLAW_TEST_POSTGRES_URL: postgres://zeroclaw_test:zeroclaw_test@127.0.0.1:5432/zeroclaw_test
+          MAX_TEST_POSTGRES_URL: postgres://max_test:max_test@127.0.0.1:5432/max_test
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
 
@@ -1171,7 +1171,7 @@ jobs:
       - name: Repeat parallel runtime tests
         run: ./scripts/ci/parallel_runtime_test_gate.sh
         env:
-          ZEROCLAW_PARALLEL_TEST_SCOPE: ${{ needs.parallel-runtime-test-changes.outputs.scope }}
+          MAX_PARALLEL_TEST_SCOPE: ${{ needs.parallel-runtime-test-changes.outputs.scope }}
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
 
@@ -1197,7 +1197,7 @@ jobs:
       - name: Install cargo-nextest
         run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ~/.cargo/bin
       - name: Run Landlock tests
-        run: cargo nextest run --locked -p zeroclaw-runtime --features sandbox-landlock -- landlock
+        run: cargo nextest run --locked -p max-runtime --features sandbox-landlock -- landlock
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
@@ -1319,7 +1319,7 @@ jobs:
           # The generated dashboard contract includes schemas owned by the
           # config, runtime, and SOP graph crates and is rendered by the xtask generator.
           # Keep this trigger aligned with every source that can change it.
-          emit web      "^web/|^crates/zeroclaw-(config|gateway|runtime|sop-graph)/|^xtask/|^Cargo\.(toml|lock)$|^\.nvmrc$|${wf}"
+          emit web      "^web/|^crates/max-(config|gateway|runtime|sop-graph)/|^xtask/|^Cargo\.(toml|lock)$|^\.nvmrc$|${wf}"
 
   nix-eval:
     name: Nix Module Eval
@@ -1404,8 +1404,8 @@ jobs:
       - name: Docs link checker unit tests
         run: python3 scripts/ci/check_internal_docs_links_test.py
 
-  zerocode-rpc-boundary:
-    name: Zerocode RPC Boundary
+  maxcode-rpc-boundary:
+    name: MaxCode RPC Boundary
     needs: [fmt]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1413,12 +1413,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-      - name: Detect zerocode changes
+      - name: Detect maxcode changes
         id: changed
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="$(git merge-base origin/master HEAD)"
-            if git diff --name-only "$base" HEAD | grep -q '^apps/zerocode/'; then
+            if git diff --name-only "$base" HEAD | grep -q '^apps/maxcode/'; then
               echo "run=true" >> "$GITHUB_OUTPUT"
             else
               echo "run=false" >> "$GITHUB_OUTPUT"
@@ -1426,9 +1426,9 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Guard zerocode RPC-only boundary
+      - name: Guard maxcode RPC-only boundary
         if: steps.changed.outputs.run == 'true'
-        run: bash scripts/ci/zerocode_no_zeroclaw_dep_gate.sh
+        run: bash scripts/ci/maxcode_no_max_dep_gate.sh
 
   installer-drift:
     name: Installer Drift
@@ -1505,7 +1505,7 @@ jobs:
   gate:
     name: CI Required Gate
     if: always()
-    needs: [fmt, history-guard, repo-structure, relay-container-smoke-changes, relay-container-smoke, path-changes, lint, windows-clippy-tools-changes, windows-clippy-tools, build, check, check-plugin-backends, msrv, check-32bit, bench, test, memory-postgres-test, parallel-runtime-test-changes, parallel-runtime-test, test-landlock, security, nix-eval, nix-hash-drift, docs-style, installer-drift, zerocode-rpc-boundary, web-permission-tests]
+    needs: [fmt, history-guard, repo-structure, relay-container-smoke-changes, relay-container-smoke, path-changes, lint, windows-clippy-tools-changes, windows-clippy-tools, build, check, check-plugin-backends, msrv, check-32bit, bench, test, memory-postgres-test, parallel-runtime-test-changes, parallel-runtime-test, test-landlock, security, nix-eval, nix-hash-drift, docs-style, installer-drift, maxcode-rpc-boundary, web-permission-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Check results

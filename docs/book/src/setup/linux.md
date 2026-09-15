@@ -16,7 +16,7 @@ That is the whole install. Run it from a clone, or pipe it from `curl`:
 
 <!-- >>> generated:unix-fast-command by `cargo generate installers` - do not edit <<< -->
 ```sh
-curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/max-labs/max/master/install.sh | sh
 ```
 <!-- >>> end generated:unix-fast-command <<< -->
 
@@ -31,12 +31,12 @@ The [canonical installation paths](../getting-started/quickstart.md#install) exp
 #### sh
 
 ```sh
-brew install zeroclaw
+brew install max
 ```
 
 </div>
 
-Homebrew-on-Linux installs follow Homebrew's service path convention, your workspace lives under `$HOMEBREW_PREFIX/var/zeroclaw/` instead of `~/.zeroclaw/`. See [Service management](./service.md) for why this matters.
+Homebrew-on-Linux installs follow Homebrew's service path convention, your workspace lives under `$HOMEBREW_PREFIX/var/max/` instead of `~/.max/`. See [Service management](./service.md) for why this matters.
 
 ### NixOS
 
@@ -44,11 +44,11 @@ A multi-instance NixOS module is shipped in-tree. See [NixOS](./nixos.md).
 
 ### A note on `cargo binstall` and `nix run`
 
-Neither works yet. `cargo binstall zeroclaw` resolves crate metadata from
-crates.io, but ZeroClaw is not published there (`publish = false`), so there is
-nothing for it to fetch; `nix run github:zeroclaw-labs/zeroclaw` does not launch
+Neither works yet. `cargo binstall max` resolves crate metadata from
+crates.io, but Max is not published there (`publish = false`), so there is
+nothing for it to fetch; `nix run github:max-labs/max` does not launch
 the agent because the flake exposes only a dev toolchain, not a runnable package
-([#5987](https://github.com/zeroclaw-labs/zeroclaw/issues/5987)). `install.sh`
+([#5987](https://github.com/max-labs/max/issues/5987)). `install.sh`
 already does what `binstall` would (download a prebuilt release binary), so it
 remains the supported one-liner.
 
@@ -75,9 +75,9 @@ Systemd is the default. OpenRC is detected and supported as a fallback.
 #### sh
 
 ```sh
-zeroclaw service install
-zeroclaw service start
-zeroclaw service status
+max service install
+max service start
+max service status
 ```
 
 </div>
@@ -89,7 +89,7 @@ Logs go to the systemd journal by default:
 #### sh
 
 ```sh
-journalctl --user -u zeroclaw -f
+journalctl --user -u max -f
 ```
 
 </div>
@@ -110,7 +110,7 @@ On a Raspberry Pi or similar SBC, build with the hardware feature:
 
 </div>
 
-For hardware access without running as root, the service user needs the `gpio`, `spi`, and `i2c` groups. The user-level unit that `zeroclaw service install` writes does not set these; use the system-level Pi unit template at [`scripts/zeroclaw.service`](https://github.com/zeroclaw-labs/zeroclaw/blob/master/scripts/zeroclaw.service), which includes `SupplementaryGroups=gpio spi i2c`. Either way, verify your user is in those groups:
+For hardware access without running as root, the service user needs the `gpio`, `spi`, and `i2c` groups. The user-level unit that `max service install` writes does not set these; use the system-level Pi unit template at [`scripts/max.service`](https://github.com/max-labs/max/blob/master/scripts/max.service), which includes `SupplementaryGroups=gpio spi i2c`. Either way, verify your user is in those groups:
 
 <div class="os-tabs-src">
 
@@ -133,7 +133,7 @@ Re-run the installer, it detects the existing install and upgrades in place:
 #### sh
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | sh -s -- --skip-quickstart
+curl -fsSL https://raw.githubusercontent.com/max-labs/max/master/install.sh | sh -s -- --skip-quickstart
 ```
 
 </div>
@@ -145,7 +145,7 @@ Or from a clone:
 #### sh
 
 ```sh
-cd /path/to/zeroclaw
+cd /path/to/max
 git pull
 ./install.sh --skip-quickstart
 ```
@@ -159,7 +159,7 @@ If installed via Homebrew instead:
 #### sh
 
 ```sh
-brew update && brew upgrade zeroclaw
+brew update && brew upgrade max
 ```
 
 </div>
@@ -171,7 +171,7 @@ After updating, restart the service:
 #### sh
 
 ```sh
-zeroclaw service restart
+max service restart
 ```
 
 </div>
@@ -197,8 +197,8 @@ Stop and remove the service:
 #### sh
 
 ```sh
-zeroclaw service stop
-zeroclaw service uninstall
+max service stop
+max service uninstall
 ```
 
 </div>
@@ -211,10 +211,10 @@ Remove the binary:
 
 ```sh
 # cargo install / bootstrap
-rm ~/.cargo/bin/zeroclaw
+rm ~/.cargo/bin/max
 
 # Homebrew
-brew uninstall zeroclaw
+brew uninstall max
 ```
 
 </div>
@@ -226,7 +226,7 @@ Remove config and workspace (optional: this deletes conversation history):
 #### sh
 
 ```sh
-rm -rf ~/.zeroclaw ~/.config/zeroclaw
+rm -rf ~/.max ~/.config/max
 ```
 
 </div>

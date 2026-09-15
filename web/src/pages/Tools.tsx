@@ -27,7 +27,7 @@ import { Badge, Card, PageHeader } from '@/components/ui';
 
 // ── Risk-profile tool access ────────────────────────────────────────────
 // Per-profile allow/exclude state for the tool-access matrix in each expanded
-// tool card. zeroclaw's gate (crates/zeroclaw-config policy + runtime):
+// tool card. max's gate (crates/max-config policy + runtime):
 //   • allowed_tools EMPTY  → unrestricted (every tool allowed)
 //   • allowed_tools [list] → only those tools allowed
 //   • excluded_tools       → denylist, wins over allow

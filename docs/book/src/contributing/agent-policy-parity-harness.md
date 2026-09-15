@@ -2,17 +2,17 @@
 
 An agent's policy - which tools it may call, when it must ask for approval, its
 runtime budgets, its memory scope, and its skills - must be enforced identically
-no matter which code path assembles and runs the turn. ZeroClaw builds a turn
+no matter which code path assembles and runs the turn. Max builds a turn
 through several distinct construction paths, and historically each applied the
 policy itself. When the same policy is re-derived in several places, a setting
 honored on one path can be silently skipped on another.
 
-[#8120](https://github.com/zeroclaw-labs/zeroclaw/pull/8120) (MCP tools from one
+[#8120](https://github.com/max-labs/max/pull/8120) (MCP tools from one
 agent appearing in another agent's session) was one such divergence: the
 per-agent tool scoping that the channel path applied was missing on another
 construction path. The agent-policy parity harness exists to make that class of
 bug visible before it ships, and the trunk it builds on
-([#8156](https://github.com/zeroclaw-labs/zeroclaw/pull/8156)) exists to make it
+([#8156](https://github.com/max-labs/max/pull/8156)) exists to make it
 impossible by construction.
 
 ## The construction paths
@@ -82,7 +82,7 @@ PRs do.
 ## The tool-assembly seam (Epic A, the first surface)
 
 The per-agent tool registry is the first surface with a single gated constructor:
-`ScopedToolRegistry::assemble` (`crates/zeroclaw-runtime/src/tools/scoped.rs`). The
+`ScopedToolRegistry::assemble` (`crates/max-runtime/src/tools/scoped.rs`). The
 registry has historically been assembled by hand at six construction sites - the
 reason the built-in filter and MCP scoping had to be patched per-site (#7064,
 \#6960, #8120). `assemble` applies, in order: the agent's `config.peripherals`
@@ -138,7 +138,7 @@ that every path routed through it shares one implementation.
 
 ## The harness
 
-The parity harness lives at `crates/zeroclaw-runtime/src/agent/parity.rs`, a
+The parity harness lives at `crates/max-runtime/src/agent/parity.rs`, a
 `#[cfg(test)]` sibling of the `#7415` `safety_net.rs` turn-engine oracle, reusing
 its fixtures. It carries an INDEX of parity rows - each naming its owner epic, a
 public tracking reference, and the test (or tracked-divergence record) that backs

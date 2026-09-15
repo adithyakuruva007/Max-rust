@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use xtask::cmd;
 
 #[derive(Parser)]
-#[command(name = "fluent", about = "ZeroClaw Fluent app UI translation")]
+#[command(name = "fluent", about = "Max Fluent app UI translation")]
 struct Cli {
     #[command(subcommand)]
     command: Cmd,
@@ -12,7 +12,7 @@ struct Cli {
 enum Cmd {
     /// Scan Rust source for user-facing strings and report en.ftl coverage
     Scan {
-        /// Restrict to one catalogue family (`runtime` or `zerocode`).
+        /// Restrict to one catalogue family (`runtime` or `maxcode`).
         /// Defaults to all catalogues.
         #[arg(long)]
         catalog: Option<String>,
@@ -30,10 +30,10 @@ enum Cmd {
         #[arg(long)]
         model_provider: Option<String>,
         /// Config directory holding config.toml and .secret-key (default:
-        /// ~/.zeroclaw). Mirrors `zeroclaw --config-dir`.
+        /// ~/.max). Mirrors `max --config-dir`.
         #[arg(long)]
         config_dir: Option<String>,
-        /// Restrict to one catalogue family (`runtime` or `zerocode`).
+        /// Restrict to one catalogue family (`runtime` or `maxcode`).
         /// Defaults to all catalogues.
         #[arg(long)]
         catalog: Option<String>,
@@ -43,14 +43,14 @@ enum Cmd {
     },
     /// Show translation coverage per locale
     Stats {
-        /// Restrict to one catalogue family (`runtime` or `zerocode`).
+        /// Restrict to one catalogue family (`runtime` or `maxcode`).
         /// Defaults to all catalogues.
         #[arg(long)]
         catalog: Option<String>,
     },
     /// Validate .ftl syntax for all locales
     Check {
-        /// Restrict to one catalogue family (`runtime` or `zerocode`).
+        /// Restrict to one catalogue family (`runtime` or `maxcode`).
         /// Defaults to all catalogues.
         #[arg(long)]
         catalog: Option<String>,

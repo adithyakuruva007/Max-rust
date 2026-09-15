@@ -15,7 +15,7 @@ pub mod setup_bat;
 pub mod sop_syntax;
 pub mod spec;
 pub mod tools_ftl;
-pub mod zerocode_themes;
+pub mod maxcode_themes;
 
 use container::ContainerSurface;
 use spec::Selection as Sel;
@@ -53,12 +53,12 @@ fn registry() -> Vec<Surface> {
         },
         Surface {
             name: "runtime-locales",
-            file: "crates/zeroclaw-runtime/src/generated_locales.rs",
+            file: "crates/max-runtime/src/generated_locales.rs",
             render: runtime_locales::render_file,
         },
         Surface {
             name: "tools-en-ftl",
-            file: "crates/zeroclaw-tools/locales/en/tools.ftl",
+            file: "crates/max-tools/locales/en/tools.ftl",
             render: tools_ftl::render_file,
         },
         Surface {
@@ -106,12 +106,12 @@ fn registry() -> Vec<Surface> {
             file: "Dockerfile.alpine",
             render: |root, cur| render_docker_arg(root, cur),
         },
-        // Base-image pins only: the relay builds `-p zerorelay` with no feature
+        // Base-image pins only: the relay builds `-p maxrelay` with no feature
         // selection, so it carries no `docker-features-arg` zone and must not go
         // through `render_docker_arg`.
         Surface {
-            name: "dockerfile-zerorelay",
-            file: "apps/zerorelay/Dockerfile",
+            name: "dockerfile-maxrelay",
+            file: "apps/maxrelay/Dockerfile",
             render: |root, cur| container_base::splice_zones(root, cur),
         },
         Surface {
@@ -126,7 +126,7 @@ fn registry() -> Vec<Surface> {
         },
         Surface {
             name: "scoop",
-            file: "dist/scoop/zeroclaw.json",
+            file: "dist/scoop/max.json",
             render: |root, cur| packaging::render_scoop(root, cur),
         },
         Surface {
@@ -140,9 +140,9 @@ fn registry() -> Vec<Surface> {
             render: |root, cur| docker_tags::render_file(root, cur),
         },
         Surface {
-            name: "zerocode-themes",
-            file: "apps/zerocode/src/generated_themes.rs",
-            render: zerocode_themes::render_file,
+            name: "maxcode-themes",
+            file: "apps/maxcode/src/generated_themes.rs",
+            render: maxcode_themes::render_file,
         },
     ]
 }

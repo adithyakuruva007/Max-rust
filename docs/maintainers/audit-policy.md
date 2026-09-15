@@ -101,7 +101,7 @@ Live, deny+audit (both files):
   Present in both `deny.toml` and `audit.toml`.
 - **`proc-macro-error2` (`RUSTSEC-2026-0173`)**: unmaintained
   derive/attribute macro helper. Still in `cargo deny`'s resolved graph
-  via `matrix-sdk` dev-deps (`aquamarine`) in `zeroclaw-channels`, so it
+  via `matrix-sdk` dev-deps (`aquamarine`) in `max-channels`, so it
   needs the ignore in both files.
 - **`bitmaps` (`RUSTSEC-2026-0247`)**: unmaintained; all versions are
   affected and no patched version is available. Locked `matrix-sdk`
@@ -129,7 +129,7 @@ per the advisory):
   dependency graph. `cargo deny` does not flag it; `cargo audit` does.
 - **GTK3 stack (11 entries, `RUSTSEC-2024-0411..-0420`, `-0429`)**:
   `gdk`/`gtk`/`atk`-family gtk-rs bindings and `glib`. Present in
-  `Cargo.lock` — `zeroclaw-desktop` (Tauri) was removed in PR #8544
+  `Cargo.lock` — `max-desktop` (Tauri) was removed in PR #8544
   and reintroduced in PR #8565 — but not needed by `cargo deny`'s
   current default-target resolved graph (`cargo deny check bans` and
   `check advisories` both pass clean without these ignores). Do not
@@ -161,7 +161,7 @@ unaffected by the advisory):
 **Process for this category:**
 
 - Use a short reason naming the crate role, e.g.
-  `gtk-rs GTK3 bindings; transitive via zeroclaw-desktop/tauri`.
+  `gtk-rs GTK3 bindings; transitive via max-desktop/tauri`.
 - Do not add `; tracking #...` for entries that are stable
   unmaintained warnings and unlikely to be resolved in the next
   release cycle.
@@ -265,7 +265,7 @@ two tools have drifted again. Open or update the tracking issue.
   remains an audit-only ignore here.
 - 2026-07-31: Corrected the 07-19 pass for `proc-macro-error2`
   (`RUSTSEC-2026-0173`): it is still in `cargo deny`'s resolved graph
-  via `matrix-sdk` dev-deps (`aquamarine`) in `zeroclaw-channels`, so it
+  via `matrix-sdk` dev-deps (`aquamarine`) in `max-channels`, so it
   is a live deny+audit ignore, not audit-only drift — removed from
   `deny.toml` in the 07-06/07-19 passes, it re-fails `cargo deny check`.
   Restored it in `deny.toml`. Also moved `wasmtime` (`RUSTSEC-2026-0222`)
@@ -293,7 +293,7 @@ two tools have drifted again. Open or update the tracking issue.
   still present in `Cargo.lock` and still reported by `cargo audit`.
   Restored those 20 as audit-only ignores; they remain removed from
   `deny.toml`, where `cargo deny`'s resolved graph still doesn't need
-  them even after the `zeroclaw-desktop` (Tauri) reintroduction in PR
+  them even after the `max-desktop` (Tauri) reintroduction in PR
   #8565 (`cargo deny check advisories`/`bans` verified clean). `rand`
   (`RUSTSEC-2026-0097`) stays removed from both files: it is still
   resolved in `Cargo.lock` (0.8.6, 0.9.4, 0.10.1), but the advisory

@@ -39,10 +39,10 @@ impl Invocation {
     pub fn command(self) -> Option<&'static str> {
         match self {
             Self::PipedScript => Some(
-                "curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | sh",
+                "curl -fsSL https://raw.githubusercontent.com/max-labs/max/master/install.sh | sh",
             ),
             Self::InteractiveScript => Some(
-                "git clone https://github.com/zeroclaw-labs/zeroclaw.git\ncd zeroclaw\n./install.sh",
+                "git clone https://github.com/max-labs/max.git\ncd max\n./install.sh",
             ),
             Self::ManualPrebuilt => None,
             Self::SourceScript => Some("./install.sh --source"),
@@ -116,8 +116,8 @@ pub enum QuickstartHandoff {
     RunExplicitly,
 }
 
-pub const QUICKSTART_COMMAND: &str = "zeroclaw quickstart";
-pub const ZEROCODE_APP: &str = "zerocode";
+pub const QUICKSTART_COMMAND: &str = "max quickstart";
+pub const MAXCODE_APP: &str = "maxcode";
 
 /// Platform-specific first-run semantics within one user-visible route.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -250,7 +250,7 @@ impl InstallRoute {
     }
 }
 
-const ZEROCODE_APPS: &[&str] = &[ZEROCODE_APP];
+const MAXCODE_APPS: &[&str] = &[MAXCODE_APP];
 
 const UNIX_FAST_ROUTE: InstallRoute = InstallRoute {
     id: RouteId::UnixFast,
@@ -259,7 +259,7 @@ const UNIX_FAST_ROUTE: InstallRoute = InstallRoute {
         invocation: Invocation::PipedScript,
         interaction: Interaction::NonInteractive,
         branch: BranchPolicy::PreferPrebuiltThenSource,
-        apps: AppPolicy::ArchiveOptionalOrSourceDefaults(ZEROCODE_APPS),
+        apps: AppPolicy::ArchiveOptionalOrSourceDefaults(MAXCODE_APPS),
         features: FeaturePolicy::Fixed,
         path_effect: PathEffect::ProfileUpdateRequiresReload,
         handoff: QuickstartHandoff::PrintCommand,
@@ -275,7 +275,7 @@ const UNIX_GUIDED_ROUTE: InstallRoute = InstallRoute {
         invocation: Invocation::InteractiveScript,
         interaction: Interaction::Guided,
         branch: BranchPolicy::UserChoice,
-        apps: AppPolicy::ArchiveOptionalOrSourceDefaultsSelectable(ZEROCODE_APPS),
+        apps: AppPolicy::ArchiveOptionalOrSourceDefaultsSelectable(MAXCODE_APPS),
         features: FeaturePolicy::Selectable,
         path_effect: PathEffect::ProfileUpdateRequiresReload,
         handoff: QuickstartHandoff::OfferCliOrBrowser,
@@ -291,7 +291,7 @@ const WINDOWS_PREBUILT_ROUTE: InstallRoute = InstallRoute {
         invocation: Invocation::ManualPrebuilt,
         interaction: Interaction::NonInteractive,
         branch: BranchPolicy::PrebuiltOnly,
-        apps: AppPolicy::ArchiveOptional(ZEROCODE_APPS),
+        apps: AppPolicy::ArchiveOptional(MAXCODE_APPS),
         features: FeaturePolicy::Fixed,
         path_effect: PathEffect::CurrentAndFutureShell,
         handoff: QuickstartHandoff::RunAutomatically,
@@ -308,7 +308,7 @@ const ADVANCED_SOURCE_ROUTE: InstallRoute = InstallRoute {
             invocation: Invocation::SourceScript,
             interaction: Interaction::Guided,
             branch: BranchPolicy::SourceOnly,
-            apps: AppPolicy::SourceDefaultsSelectable(ZEROCODE_APPS),
+            apps: AppPolicy::SourceDefaultsSelectable(MAXCODE_APPS),
             features: FeaturePolicy::Selectable,
             path_effect: PathEffect::ProfileUpdateRequiresReload,
             handoff: QuickstartHandoff::OfferCliOrBrowser,
@@ -390,7 +390,7 @@ pub enum Value {
     CargoFlags,
     /// Platform web/dist data dir (matches gateway auto-detect).
     WebDataDir,
-    /// Install bin dir (cargo bin on Unix, %USERPROFILE%\.zeroclaw\bin on Win).
+    /// Install bin dir (cargo bin on Unix, %USERPROFILE%\.max\bin on Win).
     BinDir,
     /// Literal text that is platform-invariant and not drift-prone.
     Lit(String),
@@ -406,7 +406,7 @@ pub enum Action {
     DownloadPrebuilt,
     /// Install the main binary into BinDir.
     InstallBinary,
-    /// Install a named app binary (e.g. zerocode) into BinDir.
+    /// Install a named app binary (e.g. maxcode) into BinDir.
     InstallApp { app: String },
     /// Bootstrap the Rust toolchain via rustup.
     InstallToolchain,
@@ -566,19 +566,19 @@ pub fn dist_extra_features(pkg: &cargo_metadata::Package) -> anyhow::Result<Vec<
 pub fn dist_target_exclusions(
     pkg: &cargo_metadata::Package,
 ) -> anyhow::Result<std::collections::BTreeMap<String, Vec<String>>> {
-    parse_target_exclusions(pkg.metadata.get("zeroclaw"))
+    parse_target_exclusions(pkg.metadata.get("max"))
 }
 
 /// Features whose build needs system libraries/tooling absent from the minimal
 /// static container image, excluded from `Selection::All`. Read from
-/// `[package.metadata.zeroclaw] container_excluded_features`; never shadowed.
+/// `[package.metadata.max] container_excluded_features`; never shadowed.
 pub fn container_excluded_features(pkg: &cargo_metadata::Package) -> Vec<String> {
     read_registry_list(pkg, "container_excluded_features")
 }
 
 fn read_registry_list(pkg: &cargo_metadata::Package, key: &str) -> Vec<String> {
     pkg.metadata
-        .get("zeroclaw")
+        .get("max")
         .and_then(|z| z.get(key))
         .and_then(|v| v.as_array())
         .map(|a| {
@@ -590,7 +590,7 @@ fn read_registry_list(pkg: &cargo_metadata::Package, key: &str) -> Vec<String> {
 }
 
 fn required_registry_list(pkg: &cargo_metadata::Package, key: &str) -> anyhow::Result<Vec<String>> {
-    parse_required_registry_list(pkg.metadata.get("zeroclaw"), key)
+    parse_required_registry_list(pkg.metadata.get("max"), key)
 }
 
 fn parse_required_registry_list(
@@ -598,9 +598,9 @@ fn parse_required_registry_list(
     key: &str,
 ) -> anyhow::Result<Vec<String>> {
     let value = registry
-        .and_then(|zeroclaw| zeroclaw.get(key))
-        .ok_or_else(|| anyhow::Error::msg(format!("missing [package.metadata.zeroclaw] {key}")))?;
-    parse_nonempty_string_list(value, &format!("[package.metadata.zeroclaw] {key}"))
+        .and_then(|max| max.get(key))
+        .ok_or_else(|| anyhow::Error::msg(format!("missing [package.metadata.max] {key}")))?;
+    parse_nonempty_string_list(value, &format!("[package.metadata.max] {key}"))
 }
 
 fn parse_nonempty_string_list(
@@ -633,12 +633,12 @@ fn parse_target_exclusions(
     registry: Option<&serde_json::Value>,
 ) -> anyhow::Result<std::collections::BTreeMap<String, Vec<String>>> {
     let value = registry
-        .and_then(|zeroclaw| zeroclaw.get("dist_target_exclusions"))
+        .and_then(|max| max.get("dist_target_exclusions"))
         .ok_or_else(|| {
-            anyhow::Error::msg("missing [package.metadata.zeroclaw.dist_target_exclusions]")
+            anyhow::Error::msg("missing [package.metadata.max.dist_target_exclusions]")
         })?;
     let entries = value.as_object().ok_or_else(|| {
-        anyhow::Error::msg("[package.metadata.zeroclaw.dist_target_exclusions] must be a table")
+        anyhow::Error::msg("[package.metadata.max.dist_target_exclusions] must be a table")
     })?;
     anyhow::ensure!(
         !entries.is_empty(),
@@ -1160,8 +1160,8 @@ pub fn web_data_dir_expr(platform: Platform) -> &'static str {
     match platform {
         // Unix renderer's else-arm (Linux). The macOS arm is emitted by the
         // sh renderer's own case; both forms live in the renderer, not baked.
-        Platform::Unix => "${XDG_DATA_HOME:-${PREFIX}/.local/share}/zeroclaw/web/dist",
-        Platform::Windows => "%LOCALAPPDATA%\\zeroclaw\\web\\dist",
+        Platform::Unix => "${XDG_DATA_HOME:-${PREFIX}/.local/share}/max/web/dist",
+        Platform::Windows => "%LOCALAPPDATA%\\max\\web\\dist",
     }
 }
 
@@ -1240,7 +1240,7 @@ mod tests {
                 Platform::Unix,
                 |variant| {
                     variant.apps =
-                        AppPolicy::ArchiveOptionalOrSourceDefaultsSelectable(ZEROCODE_APPS);
+                        AppPolicy::ArchiveOptionalOrSourceDefaultsSelectable(MAXCODE_APPS);
                 },
             ),
             mutated_variant(
@@ -1298,7 +1298,7 @@ mod tests {
         let incompatible_mixed_branch_policy = mutated_variant(
             route(&routes, RouteId::UnixFast),
             Platform::Unix,
-            |variant| variant.apps = AppPolicy::ArchiveOptional(ZEROCODE_APPS),
+            |variant| variant.apps = AppPolicy::ArchiveOptional(MAXCODE_APPS),
         );
         assert!(
             incompatible_mixed_branch_policy
@@ -1311,7 +1311,7 @@ mod tests {
         let source_with_archive_policy = mutated_variant(
             route(&routes, RouteId::AdvancedSource),
             Platform::Unix,
-            |variant| variant.apps = AppPolicy::ArchiveOptional(ZEROCODE_APPS),
+            |variant| variant.apps = AppPolicy::ArchiveOptional(MAXCODE_APPS),
         );
         assert!(
             source_with_archive_policy
@@ -1324,7 +1324,7 @@ mod tests {
         let archive_with_app_selection = mutated_variant(
             route(&routes, RouteId::WindowsPrebuilt),
             Platform::Windows,
-            |variant| variant.apps = AppPolicy::SourceDefaultsSelectable(ZEROCODE_APPS),
+            |variant| variant.apps = AppPolicy::SourceDefaultsSelectable(MAXCODE_APPS),
         );
         assert!(
             archive_with_app_selection
@@ -1693,30 +1693,30 @@ mod tests {
             "$BUILD_CMD --release --locked --no-default-features --features \"${FEATURES}\" --target ${{ matrix.target }}"
         ));
         assert!(manual.contains(
-            "run: $BUILD_CMD --release --locked -p zerocode --target ${{ matrix.target }}"
+            "run: $BUILD_CMD --release --locked -p maxcode --target ${{ matrix.target }}"
         ));
         assert!(manual.contains(
-            "run: $BUILD_CMD --release --locked -p zerorelay --target ${{ matrix.target }}"
+            "run: $BUILD_CMD --release --locked -p maxrelay --target ${{ matrix.target }}"
         ));
         assert_eq!(
             manual
                 .matches("if: matrix.target != 'aarch64-linux-android'")
                 .count(),
             4,
-            "the ZeroCode and ZeroRelay builds and uploads must all skip Android"
+            "the MaxCode and MaxRelay builds and uploads must all skip Android"
         );
         assert!(!manual.contains("excluded_features"));
 
         let target_env = manual.find("- name: Configure target environment").unwrap();
         let release_step = manual.find("- name: Build release").unwrap();
-        let zeroclaw_upload = manual
-            .find("name: zeroclaw-manual-${{ inputs.distribution }}-${{ matrix.target }}")
+        let max_upload = manual
+            .find("name: max-manual-${{ inputs.distribution }}-${{ matrix.target }}")
             .unwrap();
-        let companion = manual.find("- name: Build ZeroCode companion").unwrap();
+        let companion = manual.find("- name: Build MaxCode companion").unwrap();
         assert!(
             target_env < release_step
-                && release_step < zeroclaw_upload
-                && zeroclaw_upload < companion
+                && release_step < max_upload
+                && max_upload < companion
         );
         assert!(
             manual[target_env..release_step]
@@ -1772,8 +1772,8 @@ mod tests {
     #[test]
     fn web_data_dir_expr_matches_data_local_dir_semantics() {
         let win = web_data_dir_expr(Platform::Windows);
-        assert!(win.contains("LOCALAPPDATA") && win.ends_with("zeroclaw\\web\\dist"));
+        assert!(win.contains("LOCALAPPDATA") && win.ends_with("max\\web\\dist"));
         let unix = web_data_dir_expr(Platform::Unix);
-        assert!(unix.contains("XDG_DATA_HOME") && unix.ends_with("zeroclaw/web/dist"));
+        assert!(unix.contains("XDG_DATA_HOME") && unix.ends_with("max/web/dist"));
     }
 }

@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 /// `cargo generate` - maintainer surface generators. Surfaces are derived from
 /// the canonical spec; install.sh@HEAD is the behavioral reference.
 #[derive(Parser)]
-#[command(name = "generate", about = "ZeroClaw maintainer surface generation")]
+#[command(name = "generate", about = "Max maintainer surface generation")]
 struct Cli {
     #[command(subcommand)]
     command: Cmd,

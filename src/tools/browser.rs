@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::browser::*;
+pub use max_tools::browser::*;

@@ -1,11 +1,11 @@
 #[allow(unused_imports)]
 #[cfg(feature = "hardware")]
-pub use zeroclaw_hardware::*;
+pub use max_hardware::*;
 
 use crate::config::Config;
 use anyhow::Result;
 #[allow(unused_imports)]
-use zeroclaw_runtime::i18n::get_required_cli_string;
+use max_runtime::i18n::get_required_cli_string;
 
 #[allow(dead_code)]
 pub fn handle_command(cmd: crate::HardwareCommands, _config: &Config) -> Result<()> {

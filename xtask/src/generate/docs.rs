@@ -81,7 +81,7 @@ fn app_sentence(policy: AppPolicy) -> String {
             apps.join(", ")
         ),
         AppPolicy::CoreOnly => {
-            "This command installs the core `zeroclaw` binary; it does not install optional apps."
+            "This command installs the core `max` binary; it does not install optional apps."
                 .to_owned()
         }
     }
@@ -270,11 +270,11 @@ fn render_readme_unix_fast_block(routes: &[InstallRoute]) -> anyhow::Result<Stri
         .ok_or_else(|| anyhow::Error::msg("Unix fast route must define an entry command"))?;
     let quickstart_subcommand = variant
         .quickstart_command
-        .strip_prefix("zeroclaw ")
+        .strip_prefix("max ")
         .filter(|subcommand| !subcommand.is_empty() && !subcommand.contains(char::is_whitespace))
         .ok_or_else(|| anyhow::Error::msg("Unix Quickstart command must be one subcommand"))?;
     Ok(format!(
-        "```sh\n{command}\n\"${{CARGO_HOME:-$HOME/.cargo}}/bin/zeroclaw\" {quickstart_subcommand}\n```"
+        "```sh\n{command}\n\"${{CARGO_HOME:-$HOME/.cargo}}/bin/max\" {quickstart_subcommand}\n```"
     ))
 }
 
@@ -308,27 +308,27 @@ fn render_windows_prebuilt_block(routes: &[InstallRoute]) -> anyhow::Result<Stri
 
     let quickstart_subcommand = variant
         .quickstart_command
-        .strip_prefix("zeroclaw ")
+        .strip_prefix("max ")
         .filter(|subcommand| !subcommand.is_empty() && !subcommand.contains(char::is_whitespace))
         .ok_or_else(|| anyhow::Error::msg("Windows Quickstart command must be one subcommand"))?;
 
     Ok(r#"```powershell
-# Installation and PATH setup are idempotent. If zeroclaw is already at the
+# Installation and PATH setup are idempotent. If max is already at the
 # latest release and on the user PATH, those steps are skipped; Quickstart
 # still runs at the end.
-$ver = (Invoke-RestMethod 'https://api.github.com/repos/zeroclaw-labs/zeroclaw/releases/latest').tag_name.TrimStart('v')
-$dst = "$env:USERPROFILE\.zeroclaw\bin"
-$exe = "$dst\zeroclaw.exe"
+$ver = (Invoke-RestMethod 'https://api.github.com/repos/max-labs/max/releases/latest').tag_name.TrimStart('v')
+$dst = "$env:USERPROFILE\.max\bin"
+$exe = "$dst\max.exe"
 
 $current = if (Test-Path $exe) {
     ((& $exe --version 2>$null) | Select-String -Pattern '\d+\.\d+\.\d+').Matches.Value
 } else { '' }
 
 if ($current -ne $ver) {
-    $url = "https://github.com/zeroclaw-labs/zeroclaw/releases/download/v$ver/zeroclaw-x86_64-pc-windows-msvc.zip"
+    $url = "https://github.com/max-labs/max/releases/download/v$ver/max-x86_64-pc-windows-msvc.zip"
     New-Item -ItemType Directory -Force -Path $dst | Out-Null
-    Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\zeroclaw.zip" -UseBasicParsing
-    Expand-Archive -Force -Path "$env:TEMP\zeroclaw.zip" -DestinationPath $dst
+    Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\max.zip" -UseBasicParsing
+    Expand-Archive -Force -Path "$env:TEMP\max.zip" -DestinationPath $dst
 }
 
 $environment = [Environment]
@@ -390,12 +390,12 @@ mod tests {
     fn markdown_projects_route_behavior() {
         let markdown = render_markdown().unwrap();
         assert!(markdown.contains("noninteractive"));
-        assert!(markdown.contains("prints `zeroclaw quickstart`"));
-        assert!(markdown.contains("offers `zeroclaw quickstart` or browser-based Quickstart"));
+        assert!(markdown.contains("prints `max quickstart`"));
+        assert!(markdown.contains("offers `max quickstart` or browser-based Quickstart"));
         assert!(markdown.contains("reload the parent shell"));
         assert!(markdown.contains("cargo install --locked --path ."));
         assert!(markdown.contains("does not edit PATH"));
-        assert!(markdown.contains("running `zeroclaw quickstart` automatically"));
+        assert!(markdown.contains("running `max quickstart` automatically"));
         assert!(markdown.contains("lets you change the app selection"));
     }
 
@@ -454,7 +454,7 @@ mod tests {
             ("install guard", "if ($current -ne $ver) {", "if ($false) {"),
             (
                 "archive extraction",
-                "    Expand-Archive -Force -Path \"$env:TEMP\\zeroclaw.zip\" -DestinationPath $dst",
+                "    Expand-Archive -Force -Path \"$env:TEMP\\max.zip\" -DestinationPath $dst",
                 "    # archive extraction removed",
             ),
             (
@@ -470,7 +470,7 @@ mod tests {
             (
                 "automatic Quickstart",
                 "& $exe quickstart",
-                "Write-Host 'Run zeroclaw quickstart later'",
+                "Write-Host 'Run max quickstart later'",
             ),
         ];
 
@@ -532,7 +532,7 @@ mod tests {
         );
         let readme = render_readme_unix_fast_block(&routes).unwrap();
         assert!(readme.contains(command));
-        assert!(readme.contains("/bin/zeroclaw\" quickstart"));
+        assert!(readme.contains("/bin/max\" quickstart"));
     }
 
     fn mutate_variant(

@@ -1,10 +1,10 @@
 #[allow(unused_imports)]
 #[cfg(feature = "hardware")]
-pub use zeroclaw_hardware::peripherals::*;
+pub use max_hardware::peripherals::*;
 
 use crate::config::{Config, PeripheralBoardConfig};
 use anyhow::Result;
-use zeroclaw_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args};
+use max_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args};
 
 pub async fn handle_command(cmd: crate::PeripheralCommands, config: &Config) -> Result<()> {
     match cmd {
@@ -83,10 +83,10 @@ pub async fn handle_command(cmd: crate::PeripheralCommands, config: &Config) -> 
             let port_str = arduino_flash::resolve_port(config, port.as_deref())
                 .or_else(|| port.clone())
                 .ok_or_else(|| {
-                    ::zeroclaw_log::record!(
+                    ::max_log::record!(
                         WARN,
-                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Reject)
-                            .with_outcome(::zeroclaw_log::EventOutcome::Failure),
+                        ::max_log::Event::new(module_path!(), ::max_log::Action::Reject)
+                            .with_outcome(::max_log::EventOutcome::Failure),
                         "peripheral flash refused: no port resolved (no --port flag and no arduino-uno in config)"
                     );
                     anyhow::Error::msg(

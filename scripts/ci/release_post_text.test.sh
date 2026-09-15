@@ -27,9 +27,9 @@ assert_equal() {
 
 # Release notes in the shape the changelog skill writes.
 cat > "$work/notes.md" <<'EOF'
-# ZeroClaw v9.9.9
+# Max v9.9.9
 
-ZeroClaw v9.9.9 is a test release spanning **12 commits** from **3 contributors**.
+Max v9.9.9 is a test release spanning **12 commits** from **3 contributors**.
 
 ## In brief
 

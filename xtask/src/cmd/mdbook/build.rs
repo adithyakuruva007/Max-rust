@@ -124,7 +124,7 @@ pub fn assemble(root: &std::path::Path, tag: Option<&str>) -> anyhow::Result<()>
     copy_dir_all(doc_dir(root), &api_dest)?;
     prune_rustdoc_source_view(&api_dest)?;
 
-    const INDEX_HTML: &str = "<!doctype html>\n<meta charset=\"utf-8\">\n<meta http-equiv=\"refresh\" content=\"0; url=./en/\">\n<link rel=\"canonical\" href=\"./en/\">\n<title>ZeroClaw Docs</title>\n";
+    const INDEX_HTML: &str = "<!doctype html>\n<meta charset=\"utf-8\">\n<meta http-equiv=\"refresh\" content=\"0; url=./en/\">\n<link rel=\"canonical\" href=\"./en/\">\n<title>Max Docs</title>\n";
     let out_dir = book.join("book").join(tag_dir);
     std::fs::create_dir_all(&out_dir)?;
     std::fs::write(out_dir.join("index.html"), INDEX_HTML)?;
@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     fn strips_rustdoc_source_anchor() {
-        let html = r#"<div><a class="src" href="../../src/zeroclaw_tools/x.rs.html#146-177">Source</a></div>"#;
+        let html = r#"<div><a class="src" href="../../src/max_tools/x.rs.html#146-177">Source</a></div>"#;
         assert_eq!(strip_source_anchors(html), "<div></div>");
     }
 

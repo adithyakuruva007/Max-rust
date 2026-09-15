@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::hardware_memory_map::*;
+pub use max_tools::hardware_memory_map::*;

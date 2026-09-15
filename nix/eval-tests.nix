@@ -8,17 +8,17 @@ let
   lib = pkgs.lib;
 
   stubPackage =
-    pkgs.runCommand "zeroclaw-eval-stub"
+    pkgs.runCommand "max-eval-stub"
       {
-        meta.mainProgram = "zeroclaw";
+        meta.mainProgram = "max";
       }
       ''
         mkdir -p $out/bin
-        cat > $out/bin/zeroclaw <<'EOF'
+        cat > $out/bin/max <<'EOF'
         #!${pkgs.runtimeShell}
         exit 0
         EOF
-        chmod +x $out/bin/zeroclaw
+        chmod +x $out/bin/max
       '';
 
   mkInstance =
@@ -44,7 +44,7 @@ let
           system.stateVersion = "26.05";
         }
         {
-          services.zeroclaw.instances = instances;
+          services.max.instances = instances;
         }
       ];
     }).config;
@@ -81,29 +81,29 @@ in
 {
   duplicateCreatedUsersFail = assertFailsWith "duplicate created users" "same `user` while also setting `createUser = true`" {
     first = mkInstance {
-      user = "zeroclaw-shared";
+      user = "max-shared";
     };
     second = mkInstance {
-      user = "zeroclaw-shared";
+      user = "max-shared";
     };
   };
 
   sharedUserWithSingleCreatorPasses = assertPasses "shared user with one creator" {
     owner = mkInstance { };
     shared = mkInstance {
-      user = "zeroclaw-owner";
-      group = "zeroclaw-owner";
+      user = "max-owner";
+      group = "max-owner";
       createUser = false;
-      dataDir = "/var/lib/zeroclaw-shared";
+      dataDir = "/var/lib/max-shared";
     };
   };
 
   distinctCreatedUsersMayShareGroup = assertPasses "distinct created users sharing group" {
     first = mkInstance {
-      group = "zeroclaw-shared-group";
+      group = "max-shared-group";
     };
     second = mkInstance {
-      group = "zeroclaw-shared-group";
+      group = "max-shared-group";
     };
   };
 }

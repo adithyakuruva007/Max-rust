@@ -1,12 +1,12 @@
-# ZeroClaw ESP32 Smart Room demo container.
+# Max ESP32 Smart Room demo container.
 #
 # Full stack:
 # - esp32_sim (axum + socat pty + WebSocket SVG visualizer)
-# - ZeroClaw agent with hardware + dev-sim features
+# - Max agent with hardware + dev-sim features
 # - Uses smartroom tools (set_device / read_device) when board = "esp32-sim"
 #
 # The simulator and agent share /tmp so the pty at /tmp/zc-sim-esp32 is visible
-# to both. Simulator runs by default on :8080; use run-zeroclaw.sh for the agent.
+# to both. Simulator runs by default on :8080; use run-max.sh for the agent.
 
 # ─── Stage 1: build ────────────────────────────────────────────────────────
 # Follows the routine build toolchain (Rust 1.98.0), not the workspace MSRV
@@ -33,18 +33,18 @@ RUN mkdir -p apps/tauri/src \
 # Build the simulator example first, then the main binary.
 # Requires the dev-sim feature (from the split) so /tmp/zc-sim-* paths are allowed.
 # BuildKit cache mounts keep rebuilds fast.
-RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,id=zeroclaw-cargo-git,target=/usr/local/cargo/git,sharing=locked \
-    --mount=type=cache,id=zeroclaw-target-debug,target=/build/target,sharing=locked \
+RUN --mount=type=cache,id=max-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=max-cargo-git,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,id=max-target-debug,target=/build/target,sharing=locked \
     cargo build \
-        -p zeroclaw-hardware \
+        -p max-hardware \
         --example esp32_sim \
         --features "hardware dev-sim" \
     && cargo build \
-        --bin zeroclaw \
+        --bin max \
         --no-default-features \
         --features "agent-runtime hardware dev-sim" \
-    && cp /build/target/debug/zeroclaw /tmp/zeroclaw \
+    && cp /build/target/debug/max /tmp/max \
     && cp /build/target/debug/examples/esp32_sim /tmp/esp32_sim
 
 # ─── Stage 2: runtime ──────────────────────────────────────────────────────
@@ -58,15 +58,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /tmp/zeroclaw /usr/local/bin/zeroclaw
+COPY --from=builder /tmp/max /usr/local/bin/max
 COPY --from=builder /tmp/esp32_sim /usr/local/bin/esp32_sim
 
 RUN mkdir -p /app/data/config /app/data/workspace
-COPY demo/zeroclaw.toml.example /app/data/config/config.toml
+COPY demo/max.toml.example /app/data/config/config.toml
 
-ENV ZEROCLAW_CONFIG_DIR=/app/data/config \
-    ZEROCLAW_WORKSPACE=/app/data/workspace \
-    RUST_LOG=zeroclaw=info,zeroclaw_hardware=info,esp32_sim=info
+ENV MAX_CONFIG_DIR=/app/data/config \
+    MAX_WORKSPACE=/app/data/workspace \
+    RUST_LOG=max=info,max_hardware=info,esp32_sim=info
 
 EXPOSE 8080
 

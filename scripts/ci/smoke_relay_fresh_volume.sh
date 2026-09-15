@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fresh-volume startup smoke test for the zerorelay container image.
+# Fresh-volume startup smoke test for the maxrelay container image.
 #
 # Regression for the finding "the documented non-root relay image cannot create
 # its fresh TLS volume": the image runs as USER nonroot (UID 65532) and the
@@ -14,13 +14,13 @@
 # shell-less healthcheck subcommand reports the listener reachable.
 #
 # Build the image first, then point this script at it:
-#   docker build -f apps/zerorelay/Dockerfile -t zerorelay:smoke .
-#   ZERORELAY_SMOKE_IMAGE=zerorelay:smoke scripts/ci/smoke_relay_fresh_volume.sh
+#   docker build -f apps/maxrelay/Dockerfile -t maxrelay:smoke .
+#   MAXRELAY_SMOKE_IMAGE=maxrelay:smoke scripts/ci/smoke_relay_fresh_volume.sh
 set -euo pipefail
 
-image="${ZERORELAY_SMOKE_IMAGE:?set ZERORELAY_SMOKE_IMAGE to a locally loaded zerorelay image}"
-volume="zerorelay-smoke-vol-$$"
-container="zerorelay-smoke-$$"
+image="${MAXRELAY_SMOKE_IMAGE:?set MAXRELAY_SMOKE_IMAGE to a locally loaded maxrelay image}"
+volume="maxrelay-smoke-vol-$$"
+container="maxrelay-smoke-$$"
 
 cleanup() {
   local status=$?
@@ -72,7 +72,7 @@ echo "ok: relay self-provisioned /data/tls/ca.crt on a fresh volume as nonroot"
 
 # The shell-less healthcheck subcommand is what compose's HEALTHCHECK invokes;
 # a clean exit proves the outer TLS listener actually came up.
-if ! docker exec "$container" /usr/local/bin/zerorelay healthcheck --addr 127.0.0.1:8443; then
+if ! docker exec "$container" /usr/local/bin/maxrelay healthcheck --addr 127.0.0.1:8443; then
   echo "FAIL: relay healthcheck did not report the listener reachable" >&2
   docker logs "$container" >&2 || true
   exit 1

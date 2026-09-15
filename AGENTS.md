@@ -1,4 +1,4 @@
-# AGENTS.md - ZeroClaw
+# AGENTS.md - Max
 
 Core instructions for AI coding assistants working in this repository. Use `docs/book/src/contributing/architecture-map.md` to load only the references needed for a non-trivial task.
 
@@ -37,8 +37,8 @@ Subagents must set their working directory to the repository root before shell o
 
 ## User-Facing Text
 
-- User-facing runtime CLI, tool, and onboarding text uses Fluent keys through `zeroclaw_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args}` rather than bare literals; see `crates/zeroclaw-runtime/src/i18n.rs`.
-- Zerocode uses its independent Fluent catalogue through its documented `crate::i18n` helpers. Web dashboard text follows the TypeScript `web/src/lib/i18n.ts` contract, not the Rust runtime i18n helpers.
+- User-facing runtime CLI, tool, and onboarding text uses Fluent keys through `max_runtime::i18n::{get_required_cli_string, get_required_cli_string_with_args}` rather than bare literals; see `crates/max-runtime/src/i18n.rs`.
+- MaxCode uses its independent Fluent catalogue through its documented `crate::i18n` helpers. Web dashboard text follows the TypeScript `web/src/lib/i18n.ts` contract, not the Rust runtime i18n helpers.
 - Logs, tracing fields, and panic text remain English and use stable error keys where the logging contract requires them.
 - English Markdown is the documentation source of truth. Follow the documented localization workflow instead of editing generated translations by hand.
 

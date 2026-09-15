@@ -68,7 +68,7 @@ cli-agent-long-about =
     Start the AI agent loop.
 
     Examples:
-      zeroclaw agent
+      max agent
 
 cli-about = The fastest, smallest AI assistant.
 "#;

@@ -35,7 +35,7 @@ Allowed examples:
 
 ## Architecture And Ownership
 
-ZeroClaw is a Rust-first, trait-driven agent runtime. Primary extension traits live in `crates/zeroclaw-api/src/`:
+Max is a Rust-first, trait-driven agent runtime. Primary extension traits live in `crates/max-api/src/`:
 
 - `model_provider.rs` (`ModelProvider`)
 - `channel.rs` (`Channel`)
@@ -55,24 +55,24 @@ The stability-tier definitions and versioning policy live in [FND-001](../founda
 
 | Component | Tier | Notes |
 | --- | --- | --- |
-| `zeroclaw-api` | Experimental | Stable at v1.0.0 (formal milestone) |
-| `zeroclaw-config` | Beta | Stable at v0.8.0 |
-| `zeroclaw-log` | Beta | Unified log emission, JSONL persistence, and broadcast hook |
-| `zeroclaw-providers` | Beta | |
-| `zeroclaw-memory` | Beta | |
-| `zeroclaw-infra` | Beta | |
-| `zeroclaw-commands` | Experimental | Built-in command catalog and metadata |
-| `zeroclaw-tool-call-parser` | Beta | Stable at v0.8.0 |
-| `zeroclaw-channels` | Experimental | Plugin migration at v1.0.0 |
-| `zeroclaw-tools` | Experimental | Plugin migration at v1.0.0 |
-| `zeroclaw-runtime` | Experimental | Agent runtime: agent loop, security, cron, SOP, skills, and observability |
-| `zeroclaw-gateway` | Experimental | Separate binary at v0.9.0 |
-| `zerocode` | Experimental | TUI onboarding wizard |
-| `zeroclaw-plugins` | Experimental | WASM plugin system and foundation for the v1.0.0 plugin ecosystem |
-| `zeroclaw-hardware` | Experimental | USB discovery, peripherals, and serial support |
-| `zeroclaw-macros` | Beta | Tightly coupled to the config schema |
-| `zeroclaw-eval` | Experimental | Agent evaluation harness with deterministic replay of LLM trace fixtures |
-| `zeroclaw-spawn` | Beta | Attribution-propagating `tokio::spawn` wrapper layered on `zeroclaw-log` |
+| `max-api` | Experimental | Stable at v1.0.0 (formal milestone) |
+| `max-config` | Beta | Stable at v0.8.0 |
+| `max-log` | Beta | Unified log emission, JSONL persistence, and broadcast hook |
+| `max-providers` | Beta | |
+| `max-memory` | Beta | |
+| `max-infra` | Beta | |
+| `max-commands` | Experimental | Built-in command catalog and metadata |
+| `max-tool-call-parser` | Beta | Stable at v0.8.0 |
+| `max-channels` | Experimental | Plugin migration at v1.0.0 |
+| `max-tools` | Experimental | Plugin migration at v1.0.0 |
+| `max-runtime` | Experimental | Agent runtime: agent loop, security, cron, SOP, skills, and observability |
+| `max-gateway` | Experimental | Separate binary at v0.9.0 |
+| `maxcode` | Experimental | TUI onboarding wizard |
+| `max-plugins` | Experimental | WASM plugin system and foundation for the v1.0.0 plugin ecosystem |
+| `max-hardware` | Experimental | USB discovery, peripherals, and serial support |
+| `max-macros` | Beta | Tightly coupled to the config schema |
+| `max-eval` | Experimental | Agent evaluation harness with deterministic replay of LLM trace fixtures |
+| `max-spawn` | Beta | Attribution-propagating `tokio::spawn` wrapper layered on `max-log` |
 
 Stable components follow the breaking-change policy. Beta components may make breaking changes in a MINOR release with changelog notes. Experimental components carry no stability guarantee. Tiers are promoted, never demoted, through deliberate team decision.
 
@@ -109,4 +109,4 @@ User-facing text and English-only logging rules remain in root `AGENTS.md`. The 
 - [Testing](./testing.md)
 - [Architecture overview](../architecture/overview.md)
 - [Superseding pull requests](../maintainers/superseding.md)
-- [Audit policy](https://github.com/zeroclaw-labs/zeroclaw/blob/master/docs/maintainers/audit-policy.md)
+- [Audit policy](https://github.com/max-labs/max/blob/master/docs/maintainers/audit-policy.md)

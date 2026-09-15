@@ -19,7 +19,7 @@ a pairing-derived bearer token on the task POST:
 
 ```
 curl -X POST http://localhost:42617/a2a/agent_alpha \
-  -H "Authorization: Bearer $ZEROCLAW_TOKEN" \
+  -H "Authorization: Bearer $MAX_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{...}}'
 ```
@@ -57,8 +57,8 @@ Response:
 
 ```json
 {
-    "name": "ZeroClaw agents",
-    "description": "Discovery catalog enumerating published A2A agents on this ZeroClaw install. Not a runnable agent; each entry below serves its own A2A card and endpoint. Skills are aggregated from the published agents, each tagged with its owning alias.",
+    "name": "Max agents",
+    "description": "Discovery catalog enumerating published A2A agents on this Max install. Not a runnable agent; each entry below serves its own A2A card and endpoint. Skills are aggregated from the published agents, each tagged with its owning alias.",
     "supportedInterfaces": [
         {
             "url": "http://localhost:42617/.well-known/agents-card.json",
@@ -88,19 +88,19 @@ Response:
         {
             "id": "agent_beta/github-issue-triage",
             "name": "github-issue-triage",
-            "description": "Issue triage and lifecycle management agent for ZeroClaw.",
+            "description": "Issue triage and lifecycle management agent for Max.",
             "tags": ["github", "issues", "triage", "agent_beta"]
         },
         {
             "id": "agent_beta/github-pr-review-session",
             "name": "github-pr-review-session",
-            "description": "Human-reviewer co-pilot for ZeroClaw PR reviews.",
+            "description": "Human-reviewer co-pilot for Max PR reviews.",
             "tags": ["github", "pull-requests", "review", "agent_beta"]
         },
         {
-            "id": "agent_alpha/zeroclaw",
-            "name": "zeroclaw",
-            "description": "Help users operate and interact with their ZeroClaw agent instance.",
+            "id": "agent_alpha/max",
+            "name": "max",
+            "description": "Help users operate and interact with their Max agent instance.",
             "tags": ["operations", "cli", "gateway", "agent_alpha"]
         },
         {
@@ -112,7 +112,7 @@ Response:
         {
             "id": "agent_alpha/changelog-generation",
             "name": "changelog-generation",
-            "description": "Changelog generation skill for ZeroClaw releases.",
+            "description": "Changelog generation skill for Max releases.",
             "tags": ["changelog", "release", "automation", "agent_alpha"]
         }
     ]
@@ -139,7 +139,7 @@ Response:
 ```json
 {
     "name": "agent_alpha",
-    "description": "ZeroClaw agent 'agent_alpha'.",
+    "description": "Max agent 'agent_alpha'.",
     "supportedInterfaces": [
         {
             "url": "http://localhost:42617/a2a/agent_alpha",
@@ -157,9 +157,9 @@ Response:
     "defaultOutputModes": ["text"],
     "skills": [
         {
-            "id": "zeroclaw",
-            "name": "zeroclaw",
-            "description": "Help users operate and interact with their ZeroClaw agent instance.",
+            "id": "max",
+            "name": "max",
+            "description": "Help users operate and interact with their Max agent instance.",
             "tags": ["operations", "cli", "gateway"]
         },
         {
@@ -171,7 +171,7 @@ Response:
         {
             "id": "changelog-generation",
             "name": "changelog-generation",
-            "description": "Changelog generation skill for ZeroClaw releases.",
+            "description": "Changelog generation skill for Max releases.",
             "tags": ["changelog", "release", "automation"]
         }
     ]
@@ -179,14 +179,14 @@ Response:
 ```
 
 Now you know three things. The agent is named `agent_alpha`. It has three skills,
-`zeroclaw`, `skill-creator`, and `changelog-generation`, with plain descriptions
+`max`, `skill-creator`, and `changelog-generation`, with plain descriptions
 of what each does. And the single `JSONRPC` interface URL,
 `http://localhost:42617/a2a/agent_alpha`, is the address you POST a task to.
 
 The card `description` comes from the alias identity document when one is
 configured: an AIEOS identity's bio supplies the line, falling back to a name
 from that identity. When no identity is set, the card uses the neutral default
-`ZeroClaw agent '<alias>'.` shown above.
+`Max agent '<alias>'.` shown above.
 
 ## What an agent chooses to show
 
@@ -200,7 +200,7 @@ curl http://localhost:42617/a2a/agent_beta/.well-known/agent-card.json
 ```json
 {
     "name": "agent_beta",
-    "description": "ZeroClaw agent 'agent_beta'.",
+    "description": "Max agent 'agent_beta'.",
     "supportedInterfaces": [
         {
             "url": "http://localhost:42617/a2a/agent_beta",
@@ -220,12 +220,12 @@ curl http://localhost:42617/a2a/agent_beta/.well-known/agent-card.json
         {
             "id": "github-issue-triage",
             "name": "github-issue-triage",
-            "description": "Issue triage and lifecycle management agent for ZeroClaw."
+            "description": "Issue triage and lifecycle management agent for Max."
         },
         {
             "id": "github-pr-review-session",
             "name": "github-pr-review-session",
-            "description": "Human-reviewer co-pilot for ZeroClaw PR reviews."
+            "description": "Human-reviewer co-pilot for Max PR reviews."
         }
     ]
 }
@@ -242,7 +242,7 @@ Once you have an agent's interface URL and a skill, you send work as a JSON-RPC
 
 ```
 curl -X POST http://localhost:42617/a2a/agent_alpha \
-  -H "Authorization: Bearer $ZEROCLAW_TOKEN" \
+  -H "Authorization: Bearer $MAX_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
     "jsonrpc": "2.0",

@@ -1,2 +1,2 @@
 #[allow(unused_imports)]
-pub use zeroclaw_runtime::observability::*;
+pub use max_runtime::observability::*;

@@ -1,6 +1,6 @@
-# NixOS module for ZeroClaw
+# NixOS module for Max
 
-`nix/module.nix` is a multi-instance NixOS module that runs ZeroClaw under
+`nix/module.nix` is a multi-instance NixOS module that runs Max under
 systemd with sandboxing defaults appropriate for an internet-facing agent
 process. It is designed to be importable from any NixOS configuration —
 nothing in the module assumes a specific deployment topology.
@@ -10,9 +10,9 @@ already in nixpkgs), and the hardening profile mirrors `services.atticd`
 (another Rust server in nixpkgs).
 
 This module pairs with the packaging work — the package gives you
-`pkgs.zeroclaw`, the module gives you `services.zeroclaw.instances.<name>`.
+`pkgs.max`, the module gives you `services.max.instances.<name>`.
 Either can land first; once both are merged a single-host user can write
-`services.zeroclaw.instances.me = { settings = { ... }; };` and have a
+`services.max.instances.me = { settings = { ... }; };` and have a
 running daemon.
 
 ## Quick start (single instance)
@@ -22,19 +22,19 @@ instance:
 
 ```nix
 { config, pkgs, ... }: {
-  imports = [ ./path/to/zeroclaw/nix/module.nix ];
+  imports = [ ./path/to/max/nix/module.nix ];
 
-  # If pkgs.zeroclaw isn't yet in nixpkgs, set the package explicitly:
-  # services.zeroclaw.instances.me.package = pkgs.callPackage ./zeroclaw.nix { };
+  # If pkgs.max isn't yet in nixpkgs, set the package explicitly:
+  # services.max.instances.me.package = pkgs.callPackage ./max.nix { };
 
-  age.secrets.zeroclaw-bot-token.file = ./secrets/zeroclaw-bot-token.age;
+  age.secrets.max-bot-token.file = ./secrets/max-bot-token.age;
 
-  services.zeroclaw.instances.me = {
-    environmentFile = config.age.secrets.zeroclaw-bot-token.path;
-    # `settings` mirrors `~/.zeroclaw/config.toml` as a Nix attrset. The
+  services.max.instances.me = {
+    environmentFile = config.age.secrets.max-bot-token.path;
+    # `settings` mirrors `~/.max/config.toml` as a Nix attrset. The
     # config schema (section headers, type/alias convention, required
     # fields) is documented at
-    # https://github.com/zeroclaw-labs/zeroclaw/blob/master/docs/book/src/providers/configuration.md
+    # https://github.com/max-labs/max/blob/master/docs/book/src/providers/configuration.md
     settings = {
       providers.models.anthropic.home = {           # type = anthropic; alias = home (you choose)
         model = "claude-sonnet-4-6";
@@ -54,7 +54,7 @@ instance:
         # The unit's ExecStartPre runs `envsubst` over the rendered
         # TOML. `$BOT_TOKEN` is read from the EnvironmentFile= and
         # written into ${dataDir}/config.toml (mode 0600, owner =
-        # zeroclaw-me). The world-readable copy in /nix/store keeps
+        # max-me). The world-readable copy in /nix/store keeps
         # only the literal "$BOT_TOKEN" placeholder.
         bot_token = "$BOT_TOKEN";
         allowed_users = [ "12345" ];
@@ -66,10 +66,10 @@ instance:
 
 After a `nixos-rebuild switch`:
 
-- The unit `zeroclaw-me.service` is started and enabled.
-- `/var/lib/zeroclaw-me/` exists, owned by the per-instance user `zeroclaw-me`.
-- `/var/lib/zeroclaw-me/config.toml` contains the rendered TOML, mode `0600`.
-- ZeroClaw is invoked as `${pkgs.zeroclaw}/bin/zeroclaw daemon`.
+- The unit `max-me.service` is started and enabled.
+- `/var/lib/max-me/` exists, owned by the per-instance user `max-me`.
+- `/var/lib/max-me/config.toml` contains the rendered TOML, mode `0600`.
+- Max is invoked as `${pkgs.max}/bin/max daemon`.
 
 ## Multi-instance usage
 
@@ -77,7 +77,7 @@ The module is `attrsOf submodule`-shaped, so multiple instances on one host
 look identical to one instance:
 
 ```nix
-services.zeroclaw.instances = {
+services.max.instances = {
   alice = { environmentFile = "/run/secrets/alice/identity.env"; settings = { ... }; };
   bob   = { environmentFile = "/run/secrets/bob/identity.env";   settings = { ... }; };
 };
@@ -94,11 +94,11 @@ instance creates it and the others set `createUser = false`.
 
 | Option | Type | Default | Purpose |
 |---|---|---|---|
-| `package` | `package` | `pkgs.zeroclaw` (via `mkPackageOption`) | Override for out-of-tree builds. |
-| `user` | `str` | `"zeroclaw-<name>"` | System user. |
-| `group` | `str` | `"zeroclaw-<name>"` | System group. |
+| `package` | `package` | `pkgs.max` (via `mkPackageOption`) | Override for out-of-tree builds. |
+| `user` | `str` | `"max-<name>"` | System user. |
+| `group` | `str` | `"max-<name>"` | System group. |
 | `createUser` | `bool` | `true` | Set `false` to bring your own user. |
-| `dataDir` | `path` | `"/var/lib/zeroclaw-<name>"` | State directory. Created via `systemd-tmpfiles` so any absolute path works (`/var/lib/...`, `/srv/...`, etc.). |
+| `dataDir` | `path` | `"/var/lib/max-<name>"` | State directory. Created via `systemd-tmpfiles` so any absolute path works (`/var/lib/...`, `/srv/...`, etc.). |
 | `settings` | `submodule { freeformType = (pkgs.formats.toml { }).type; }` | `{}` | Rendered to `${dataDir}/config.toml`. |
 | `environmentFile` | `nullOr path` | `null` | systemd `EnvironmentFile=`. Substituted into `settings` strings at start. |
 | `extraConfig` | `lines` | `""` | Raw TOML appended after rendered `settings` (escape hatch). |
@@ -108,7 +108,7 @@ If you need to override a `serviceConfig` field (e.g. add `MemoryMax`),
 use the standard NixOS pattern rather than a module-level escape hatch:
 
 ```nix
-systemd.services."zeroclaw-me".serviceConfig.MemoryMax = lib.mkForce "1G";
+systemd.services."max-me".serviceConfig.MemoryMax = lib.mkForce "1G";
 ```
 
 See `module.nix`'s inline option `description` blocks for the full
@@ -120,7 +120,7 @@ Two paths, both supported, neither leaks secrets to the world-readable
 Nix store:
 
 1. **`environmentFile` + `$VAR` substitution in `settings` strings**
-   (recommended for channel tokens, webhook secrets, anything ZeroClaw
+   (recommended for channel tokens, webhook secrets, anything Max
    doesn't already resolve from the environment natively). Systemd loads
    the file via `EnvironmentFile=` at unit start. The unit's
    `ExecStartPre` then runs `envsubst` over the rendered TOML, expanding
@@ -129,15 +129,15 @@ Nix store:
    per-instance user. The build-time copy in `/nix/store` only ever
    contains the literal placeholders.
 
-   The substitution is performed by *this module*, not by ZeroClaw —
-   ZeroClaw reads `config.toml` verbatim. So this path turns
+   The substitution is performed by *this module*, not by Max —
+   Max reads `config.toml` verbatim. So this path turns
    `bot_token = "$BOT_TOKEN"` into a working configuration regardless
-   of whether ZeroClaw has a native env-var fallback for that field.
+   of whether Max has a native env-var fallback for that field.
 
-2. **`environmentFile` + ZeroClaw-native env-var lookups** for any config
-   keys ZeroClaw natively resolves from the environment (e.g.
-   `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ZEROCLAW_PROVIDER`,
-   `ZEROCLAW_MODEL` — see `crates/zeroclaw-config/src/schema.rs`
+2. **`environmentFile` + Max-native env-var lookups** for any config
+   keys Max natively resolves from the environment (e.g.
+   `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `MAX_PROVIDER`,
+   `MAX_MODEL` — see `crates/max-config/src/schema.rs`
    upstream for the full list). Same end result — no secret in the
    rendered TOML — and you can omit the field from `settings` entirely.
 
@@ -186,7 +186,7 @@ UMask=0077
 ReadWritePaths=${dataDir}
 ```
 
-`MemoryDenyWriteExecute=yes` is safe because ZeroClaw 0.7.x is a plain
+`MemoryDenyWriteExecute=yes` is safe because Max 0.7.x is a plain
 Rust binary with no JIT; if a future version adopts a JIT (e.g. through a
 WASM plugin host), this single setting will need to flip and that should
 be flagged in the changelog.
@@ -197,7 +197,7 @@ depending on workload, and per-host tuning belongs in the caller's config.
 To add them, override the generated unit directly:
 
 ```nix
-systemd.services."zeroclaw-me".serviceConfig = {
+systemd.services."max-me".serviceConfig = {
   MemoryMax = "1G";
   CPUQuota = "200%";
 };

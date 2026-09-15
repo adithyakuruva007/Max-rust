@@ -4,7 +4,7 @@
 //! setup.bat has three such zones: build-mode routing, per-mode presets, and
 //! post-install guidance.
 
-use super::spec::{self, QUICKSTART_COMMAND, Selection, ZEROCODE_APP};
+use super::spec::{self, QUICKSTART_COMMAND, Selection, MAXCODE_APP};
 use std::path::Path;
 
 /// A named generated zone, delimited by id-tagged sentinels so multiple regions
@@ -40,7 +40,7 @@ const ZONE_LAYOUTS: [ZoneLayout; 3] = [
     },
     ZoneLayout {
         zone: ZONE_POST_INSTALL,
-        range_start: "echo %BOLD%%GREEN%  ZeroClaw setup complete!%RESET%",
+        range_start: "echo %BOLD%%GREEN%  Max setup complete!%RESET%",
         range_end: "echo   Alternative install via Scoop:",
     },
 ];
@@ -124,17 +124,17 @@ if /I \"%INSTALL_ROUTE%\"==\"prebuilt\" (\n\
 echo     1. PATH is ready in this terminal and future terminals\n\
 echo     2. Run: {QUICKSTART_COMMAND}\n\
 echo     3. Configure a model provider during Quickstart\n\
-echo     4. Launch the TUI when installed: {ZEROCODE_APP}\n\
+echo     4. Launch the TUI when installed: {MAXCODE_APP}\n\
 ) else (\n\
 echo     1. PATH is ready in this terminal and future terminals\n\
 if /I \"%MODE%\"==\"minimal\" (\n\
 echo     2. Minimal build excludes quickstart ^({QUICKSTART_COMMAND} is unavailable^)\n\
 echo     3. Configure model providers with the supported config surface\n\
-echo     4. Use reduced CLI path: zeroclaw agent --message \"Hello\"\n\
+echo     4. Use reduced CLI path: max agent --message \"Hello\"\n\
 ) else (\n\
 echo     2. Run: {QUICKSTART_COMMAND}\n\
 echo     3. Configure a model provider during Quickstart\n\
-echo     4. Launch the TUI when installed: {ZEROCODE_APP}\n\
+echo     4. Launch the TUI when installed: {MAXCODE_APP}\n\
 )\n\
 )"
     )
@@ -392,7 +392,7 @@ mod tests {
         assert!(post_install.contains("PATH is ready in this terminal and future terminals"));
         assert!(!post_install.contains("Restart your terminal"));
         assert!(post_install.contains(&format!("Run: {QUICKSTART_COMMAND}")));
-        assert!(post_install.contains(&format!("installed: {ZEROCODE_APP}")));
+        assert!(post_install.contains(&format!("installed: {MAXCODE_APP}")));
     }
 
     #[test]

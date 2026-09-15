@@ -510,7 +510,7 @@ export default function Logs() {
           ) : (
             <ChevronDown className="h-3 w-3" />
           )}
-          zeroclaw.* {activeFieldKeys.length > 0 && `(${activeFieldKeys.length})`}
+          max.* {activeFieldKeys.length > 0 && `(${activeFieldKeys.length})`}
         </button>
       </div>
 
@@ -658,7 +658,7 @@ function LogRow({
   onFilterField: (key: string, value: string) => void;
 }) {
   const level = severityClasses(event.severity_number);
-  const attribution = event.zeroclaw ?? {};
+  const attribution = event.max ?? {};
   const attributionEntries = Object.entries(attribution).filter(
     ([key, value]) => key !== 'duration_ms' && value !== '' && value !== null,
   );

@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::screenshot::*;
+pub use max_tools::screenshot::*;

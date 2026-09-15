@@ -2,33 +2,33 @@
 
 set -euo pipefail
 
-runs="${ZEROCLAW_PARALLEL_TEST_RUNS:-3}"
-threads="${ZEROCLAW_PARALLEL_TEST_THREADS:-16}"
-scope="${ZEROCLAW_PARALLEL_TEST_SCOPE:-all}"
+runs="${MAX_PARALLEL_TEST_RUNS:-3}"
+threads="${MAX_PARALLEL_TEST_THREADS:-16}"
+scope="${MAX_PARALLEL_TEST_SCOPE:-all}"
 
 case "$runs" in
     ''|*[!0-9]*|0)
-        echo "ZEROCLAW_PARALLEL_TEST_RUNS must be a positive integer (got: $runs)."
+        echo "MAX_PARALLEL_TEST_RUNS must be a positive integer (got: $runs)."
         exit 2
         ;;
 esac
 
 case "$threads" in
     ''|*[!0-9]*|0)
-        echo "ZEROCLAW_PARALLEL_TEST_THREADS must be a positive integer (got: $threads)."
+        echo "MAX_PARALLEL_TEST_THREADS must be a positive integer (got: $threads)."
         exit 2
         ;;
 esac
 
 case "$scope" in
     all)
-        crates=(zeroclaw-runtime zeroclaw-channels)
+        crates=(max-runtime max-channels)
         ;;
     channels)
-        crates=(zeroclaw-channels)
+        crates=(max-channels)
         ;;
     *)
-        echo "ZEROCLAW_PARALLEL_TEST_SCOPE must be 'channels' or 'all' (got: $scope)."
+        echo "MAX_PARALLEL_TEST_SCOPE must be 'channels' or 'all' (got: $scope)."
         exit 2
         ;;
 esac

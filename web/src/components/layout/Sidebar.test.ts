@@ -37,7 +37,7 @@ function currentLinks(html: string): string[] {
 }
 
 test('agent config routes select only Agent in both sidebar variants', () => {
-  for (const pathname of ['/config/agents', '/config/agents/zeroclaw_agent']) {
+  for (const pathname of ['/config/agents', '/config/agents/max_agent']) {
     const links = currentLinks(renderSidebarLinks(pathname, '/config/agents'));
 
     assert.equal(links.length, 2);

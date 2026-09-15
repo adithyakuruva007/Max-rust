@@ -5,20 +5,20 @@ last-reviewed: 2026-09-07
 relates-to:
   - FND-001
   - ADR-003
-  - crates/zeroclaw-plugins
+  - crates/max-plugins
 ---
 
 # Plugin Protocol
 
-This document defines the protocol between ZeroClaw's plugin host and WASM
+This document defines the protocol between Max's plugin host and WASM
 plugin components.
 
 ## What a plugin is
 
-A plugin is a self-contained WebAssembly component that ZeroClaw loads at
+A plugin is a self-contained WebAssembly component that Max loads at
 runtime to add a capability the core binary does not ship. It lives in its own
-directory under `~/.zeroclaw/plugins/`, alongside a manifest that names it and
-declares what it provides. ZeroClaw discovers it on startup, verifies it, and
+directory under `~/.max/plugins/`, alongside a manifest that names it and
+declares what it provides. Max discovers it on startup, verifies it, and
 wires its exported functions into the running agent so they behave like
 built-in capabilities: a tool plugin shows up to the model as just another
 callable tool (`WasmTool` implements the same `Tool` trait a native tool does),
@@ -26,7 +26,7 @@ a channel plugin behaves as a messaging channel, a memory plugin as a storage
 backend.
 
 A plugin can provide one or more of the capabilities defined in
-`PluginCapability` (`crates/zeroclaw-plugins/src/lib.rs`): a callable tool, a
+`PluginCapability` (`crates/max-plugins/src/lib.rs`): a callable tool, a
 messaging channel, a memory backend, an observability backend, or a bundle of
 markdown skills. The skill case is special: it ships no WASM at all, just a
 `skills/` directory of markdown, which is why it is the one capability that
@@ -35,7 +35,7 @@ omits the compiled component.
 ### Why build one
 
 - **Extend without forking.** Add a tool or channel without modifying the
-  ZeroClaw source tree or waiting on a release; the plugin is yours and loads
+  Max source tree or waiting on a release; the plugin is yours and loads
   from your install directory.
 - **Native behavior.** A loaded plugin is not a second-class add-on. The bridge
   implements the same runtime traits the built-ins use, so a plugin tool is
@@ -93,13 +93,13 @@ before you design around a capability that is not there.
 
 ## Architecture
 
-ZeroClaw plugins are WebAssembly components defined by WIT interfaces under
-`wit/v0/` and hosted through direct `wasmtime` (`crates/zeroclaw-plugins`). A
+Max plugins are WebAssembly components defined by WIT interfaces under
+`wit/v0/` and hosted through direct `wasmtime` (`crates/max-plugins`). A
 plugin is compiled to a WASI Preview 2 component (`wasm32-wasip2`) that exports
 one of the plugin worlds (`tool-plugin`, `channel-plugin`, `memory-plugin`) and
 imports the host interfaces declared by that world in `wit/v0/`.
 
-The host lives in `crates/zeroclaw-plugins/src/component.rs`. It holds one
+The host lives in `crates/max-plugins/src/component.rs`. It holds one
 async-enabled `wasmtime::Engine`, generates the world bindings with
 `wasmtime::component::bindgen!` from `wit/v0`, and wires a sandboxed WASI p2
 surface into each world's linker. Per-store host state (`PluginState`) carries a
@@ -115,7 +115,7 @@ The three world bridges map each WIT world onto the runtime's native traits:
 
 | World | Bridge module | Runtime surface |
 |-------|---------------|-----------------|
-| `tool-plugin` | `runtime.rs`, `wasm_tool.rs` | `zeroclaw_api::tool::Tool` |
+| `tool-plugin` | `runtime.rs`, `wasm_tool.rs` | `max_api::tool::Tool` |
 | `channel-plugin` | `wasm_channel.rs` | channel trait |
 | `memory-plugin` | `wasm_memory.rs` | memory backend trait |
 
@@ -131,7 +131,7 @@ to register. The runtime now resolves an explicitly declared
 `[channels.plugin.<alias>]` binding, constructs its `WasmChannel`, and registers
 it from the configured alias; that alias-aware construction and runtime config
 resolution landed in
-[#10146](https://github.com/zeroclaw-labs/zeroclaw/pull/10146). A channel can
+[#10146](https://github.com/max-labs/max/pull/10146). A channel can
 also opt into the generic gateway-owned POST webhook ingress described below;
 vendor tunnels, polling clients, and other transports remain follow-ups. The memory bridge
 (`WasmMemory`) is in the same position one step earlier: the adapter implements
@@ -149,7 +149,7 @@ my-plugin/
   plugin.wasm      # Compiled WASM module (optional for skill-only plugins)
 ```
 
-Plugins are discovered from `~/.zeroclaw/plugins/` (configurable via
+Plugins are discovered from `~/.max/plugins/` (configurable via
 `plugins.plugins_dir` in config).
 
 ## Registry search and install
@@ -159,43 +159,43 @@ plugins. A registry is only a JSON index used at command time to discover and
 download a plugin archive:
 
 ```bash
-zeroclaw plugin search calendar
-zeroclaw plugin install team-calendar
-zeroclaw plugin install team-calendar@0.2.0
-zeroclaw plugin search calendar --registry https://example.invalid/registry.json
-zeroclaw plugin install team-calendar --registry https://example.invalid/registry.json
+max plugin search calendar
+max plugin install team-calendar
+max plugin install team-calendar@0.2.0
+max plugin search calendar --registry https://example.invalid/registry.json
+max plugin install team-calendar --registry https://example.invalid/registry.json
 ```
 
-`zeroclaw plugin search` fetches registry metadata and matches the query against
+`max plugin search` fetches registry metadata and matches the query against
 plugin names and descriptions. It does not install, enable, or execute plugin
 code.
 
-The fetched index is cached. `zeroclaw plugin list` reads that cache and shows
+The fetched index is cached. `max plugin list` reads that cache and shows
 one package row alongside the host-admitted installed record, without fetching
 or treating registry metadata as proof that code was installed.
 
-`zeroclaw plugin install <name>` resolves the name from the registry, downloads
+`max plugin install <name>` resolves the name from the registry, downloads
 the selected zip archive, verifies the optional SHA-256 digest, safely extracts
 the archive, and then hands the extracted plugin directory to the existing
 `PluginHost::install` path. Local path installs are unchanged:
 
-When no version is pinned, ZeroClaw chooses the last matching entry in the
+When no version is pinned, Max chooses the last matching entry in the
 registry index, so registry publishers should order repeated names
 intentionally.
 
 ```bash
-zeroclaw plugin install ./my-plugin
-zeroclaw plugin install ./my-plugin/manifest.toml
+max plugin install ./my-plugin
+max plugin install ./my-plugin/manifest.toml
 ```
 
 The default registry URL is:
 
 ```text
-https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw-plugins/main/registry.json
+https://raw.githubusercontent.com/max-labs/max-plugins/main/registry.json
 ```
 
 For private or staged registries, use `--registry <url>` per command or set
-`ZEROCLAW_PLUGIN_REGISTRY_URL`.
+`MAX_PLUGIN_REGISTRY_URL`.
 
 Registry entries use this shape:
 
@@ -219,7 +219,7 @@ The archive must contain either a root-level `manifest.toml` or one nested
 plugin directory containing `manifest.toml`. Archives with traversal paths,
 absolute paths, Windows drive-prefixed paths, or more than one manifest are
 rejected before install. Downloads are capped while streaming, so a server
-without `Content-Length` cannot force ZeroClaw to buffer an oversized archive.
+without `Content-Length` cannot force Max to buffer an oversized archive.
 Extraction is also capped, so a compressed archive cannot expand without bound
 in the temporary install area.
 
@@ -263,7 +263,7 @@ skills and between bundles.
 ### Capabilities
 
 `capabilities` is a non-empty list of `PluginCapability` values, defined in
-`crates/zeroclaw-plugins/src/lib.rs` (serialized `snake_case`). Each value
+`crates/max-plugins/src/lib.rs` (serialized `snake_case`). Each value
 selects the WIT world the plugin exports (`tool`, `channel`, `memory`), names an
 observability backend (`observer`), or marks a markdown-only skill bundle
 (`skill`). Read the enum for the canonical set; it is the source of truth and
@@ -277,7 +277,7 @@ bundle (`validate_manifest_shape` in `host.rs`).
 ### Permissions
 
 `permissions` is a list of `PluginPermission` values, also defined in
-`crates/zeroclaw-plugins/src/lib.rs`. Read the enum for the canonical set.
+`crates/max-plugins/src/lib.rs`. Read the enum for the canonical set.
 
 Be aware of the gap between declared and enforced: in the component host today
 `config_read` and `http_client` have behavioral effect. Requesting
@@ -304,7 +304,7 @@ gate them (see Host imports below).
 ## WIT interfaces
 
 The plugin contract is the set of WIT files in `wit/v0/`, package
-`zeroclaw:plugin@0.1.0`. Every item is gated behind
+`max:plugin@0.1.0`. Every item is gated behind
 `@unstable(feature = plugins-wit-v0)` until the package stabilizes; see
 `wit/VERSIONING.md` for the compatibility rules. The interfaces below are
 summarized for orientation; the `.wit` files are authoritative for the exact
@@ -377,9 +377,9 @@ host functions that would gate them are not yet wired into the linker. A
 plugin's ambient authority is the WASI context (no preopens, no ambient network)
 plus exactly the host imports its grants and adapter opt-ins jointly enable.
 
-ZeroClaw-owned imports share a fixed safety budget per host-dispatched service
+Max-owned imports share a fixed safety budget per host-dispatched service
 frame. The canonical ceiling is `MAX_HOST_CALLS_PER_FRAME` in
-`crates/zeroclaw-plugins/src/component.rs`. On exhaustion, logging becomes a
+`crates/max-plugins/src/component.rs`. On exhaustion, logging becomes a
 no-op, inbound polling reports empty, and public-config or secret reads return
 `unavailable`. A new frame resets the budget. This ceiling is fixed host policy,
 not duplicated operator configuration.
@@ -483,10 +483,10 @@ A full queue, an over-cap record, or an exhausted budget all drop the newest
 record; the drain thread reports the accumulated drop count after each write
 and on an idle wake, so the loss stays observable even when no accepted
 record ever follows the rejected ones. `plugin-action` and `plugin-outcome` mirror the closed
-`Action` / `EventOutcome` taxonomies in `zeroclaw-log`; there is no escape-hatch
+`Action` / `EventOutcome` taxonomies in `max-log`; there is no escape-hatch
 variant on purpose. Do not call `wasi:logging` directly, plugin events would be
 formatted inconsistently and would not reach all of the destinations
-`zeroclaw_log` writes to.
+`max_log` writes to.
 
 ### `config`
 
@@ -608,7 +608,7 @@ ABI and runtime wiring land.
 
 ## WASI Component Host
 
-The host (`crates/zeroclaw-plugins/src/component.rs`) compiles and instantiates
+The host (`crates/max-plugins/src/component.rs`) compiles and instantiates
 components against a single async `wasmtime::Engine`. How a `.wasm` file is
 loaded depends on the build's execution backend:
 
@@ -666,7 +666,7 @@ stating plainly:
   to a future revision. Within that 32-bit space the host applies an explicit
   per-store memory ceiling from `plugins.limits.max_memory_mb` (default 256),
   so a guest is bounded by the smaller of the wasm32 address space and that
-  ZeroClaw-configured cap.
+  Max-configured cap.
 - **The component ABI lowers offsets as 32-bit regardless of host word size.**
   Even on a 64-bit host, list and string offsets in the canonical ABI are
   `i32`. `memory64` widens a guest's linear-memory addressing, not the
@@ -686,7 +686,7 @@ plugin boundary as 32-bit by construction.
 ## Signatures
 
 Plugin manifests may carry an Ed25519 signature
-(`crates/zeroclaw-plugins/src/signature.rs`). The signature is base64url-encoded
+(`crates/max-plugins/src/signature.rs`). The signature is base64url-encoded
 over the canonical manifest bytes (the parsed TOML with only the exact root
 `signature` and `publisher_key` entries removed); the publisher's public key is
 hex-encoded. Nested schema properties with those names remain signed. The host
@@ -732,7 +732,7 @@ backend, precompile the component to a `.cwasm` with a matching wasmtime and shi
 that instead, since such a host deserializes rather than compiles on load.
 
 The host's tool-plugin tests do not depend on a published artifact:
-`crates/zeroclaw-plugins/tests/fixtures/tool-fixture` is an in-tree component
+`crates/max-plugins/tests/fixtures/tool-fixture` is an in-tree component
 built from source at test time, and `reference_plugin.rs` and
 `reference_plugin_e2e.rs` drive it through the same `PluginHost`,
 `config_schema`, and config-resolution paths the daemon runs. If the fixture
@@ -746,10 +746,10 @@ cannot be built, those tests fail.
 
 ```sh
 # Copy to plugin directory
-zeroclaw plugin install /path/to/my-plugin/
+max plugin install /path/to/my-plugin/
 
 # Or manually
-cp -r my-plugin/ ~/.zeroclaw/plugins/my-plugin/
+cp -r my-plugin/ ~/.max/plugins/my-plugin/
 ```
 
 </div>
@@ -757,24 +757,24 @@ cp -r my-plugin/ ~/.zeroclaw/plugins/my-plugin/
 ## Configuration
 
 Operator values currently enter through generic string-map storage: edit
-`[[plugins.entries]]` in TOML, or use `zeroclaw config set` after a tool install
-has seeded its default-binding entry. `zeroclaw plugin info <package>` prints
+`[[plugins.entries]]` in TOML, or use `max config set` after a tool install
+has seeded its default-binding entry. `max plugin info <package>` prints
 the same tool key for migration and later edits. These automatic print and seed
 surfaces are tool-only. A channel key depends on its configured alias, which
 install and info do not own. The alias-aware construction that resolves a
 channel's typed config from that configured alias landed in
-[#10146](https://github.com/zeroclaw-labs/zeroclaw/pull/10146); automatic
+[#10146](https://github.com/max-labs/max/pull/10146); automatic
 display and install-time seeding of the channel key remain manual until the
 grant ceremony in
-[#9584](https://github.com/zeroclaw-labs/zeroclaw/pull/9584), so a channel-only
+[#9584](https://github.com/max-labs/max/pull/9584), so a channel-only
 package still cannot complete this migration through install and info alone.
 Schema-driven forms and inline field help are not
 implemented yet. The current surfaces are:
 
 - **The CLI** handles plugin lifecycle with `list`, `search`, `install`,
-  `remove`, `info`, and `migrate`. `zeroclaw config set` writes individual raw
+  `remove`, `info`, and `migrate`. `max config set` writes individual raw
   plugin values; it does not interpret the plugin's schema.
-- **zerocode** can edit ZeroClaw's static plugin-host settings, but does not yet
+- **maxcode** can edit Max's static plugin-host settings, but does not yet
   generate per-plugin fields from `config_schema`.
 - **The web gateway** is read-only for plugins: `GET /api/plugins` reports the
   loaded plugins and whether the system is enabled.
@@ -787,7 +787,7 @@ implemented yet. The current surfaces are:
 
 The static config schema supplies the generic storage and secret-marking path,
 not a dynamic per-plugin editor. The plugin config types in
-`crates/zeroclaw-config/src/schema.rs` carry `#[prefix = "plugins"]`,
+`crates/max-config/src/schema.rs` carry `#[prefix = "plugins"]`,
 `#[prefix = "plugins.entries"]`, and `#[prefix = "plugins.security"]`, and the
 `Configurable` derive turns each prefixed field into a generic config path.
 Secret fields (a plugin entry's `config` map is marked `#[secret]`) encrypt at
@@ -816,7 +816,7 @@ execution backend ships:
 - `plugins-wasm-pulley` is the most portable, supporting compilation on targets
   Cranelift does not cover.
 
-These delegate to the `zeroclaw-plugins` crate features
+These delegate to the `max-plugins` crate features
 (`plugins-wasmtime`, `plugins-wasm-cranelift`, `plugins-wasm-pulley`) that wire
 up `wasmtime`. The load path keys off whether the Cranelift compiler is in the
 build, as described under WASI Component Host. Read the feature comments in the

@@ -3,14 +3,14 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use std::sync::Arc;
-use zeroclaw::agent::agent::Agent;
-use zeroclaw::agent::dispatcher::{NativeToolDispatcher, XmlToolDispatcher};
-use zeroclaw::config::MemoryConfig;
-use zeroclaw::memory;
-use zeroclaw::memory::Memory;
-use zeroclaw::observability::{NoopObserver, Observer};
-use zeroclaw::providers::{ChatResponse, ModelProvider, ToolCall};
-use zeroclaw::tools::Tool;
+use max::agent::agent::Agent;
+use max::agent::dispatcher::{NativeToolDispatcher, XmlToolDispatcher};
+use max::config::MemoryConfig;
+use max::memory;
+use max::memory::Memory;
+use max::observability::{NoopObserver, Observer};
+use max::providers::{ChatResponse, ModelProvider, ToolCall};
+use max::tools::Tool;
 
 /// Create an in-memory "none" backend for tests.
 pub fn make_memory() -> Arc<dyn Memory> {
@@ -50,7 +50,7 @@ pub fn tool_response(calls: Vec<ToolCall>) -> ChatResponse {
 pub fn build_agent(model_provider: Box<dyn ModelProvider>, tools: Vec<Box<dyn Tool>>) -> Agent {
     Agent::builder()
         .model_provider(model_provider)
-        .tools(zeroclaw::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
+        .tools(max::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
         .memory(make_memory())
         .observer(make_observer())
         .tool_dispatcher(Box::new(NativeToolDispatcher))
@@ -63,7 +63,7 @@ pub fn build_agent(model_provider: Box<dyn ModelProvider>, tools: Vec<Box<dyn To
 pub fn build_agent_xml(model_provider: Box<dyn ModelProvider>, tools: Vec<Box<dyn Tool>>) -> Agent {
     Agent::builder()
         .model_provider(model_provider)
-        .tools(zeroclaw::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
+        .tools(max::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
         .memory(make_memory())
         .observer(make_observer())
         .tool_dispatcher(Box::new(XmlToolDispatcher))
@@ -76,11 +76,11 @@ pub fn build_agent_xml(model_provider: Box<dyn ModelProvider>, tools: Vec<Box<dy
 pub fn build_recording_agent(
     model_provider: Box<dyn ModelProvider>,
     tools: Vec<Box<dyn Tool>>,
-    memory: Option<Arc<dyn zeroclaw::memory::Memory>>,
+    memory: Option<Arc<dyn max::memory::Memory>>,
 ) -> Agent {
     Agent::builder()
         .model_provider(model_provider)
-        .tools(zeroclaw::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
+        .tools(max::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
         .memory(memory.unwrap_or_else(make_memory))
         .observer(make_observer())
         .tool_dispatcher(Box::new(NativeToolDispatcher))
@@ -102,7 +102,7 @@ pub fn build_agent_with_sqlite_memory(
     let mem = Arc::from(memory::create_memory(&cfg, temp_dir, None).unwrap());
     Agent::builder()
         .model_provider(model_provider)
-        .tools(zeroclaw::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
+        .tools(max::tools::scoped::ScopedToolRegistry::from_raw_for_test(tools))
         .memory(mem)
         .observer(make_observer())
         .tool_dispatcher(Box::new(NativeToolDispatcher))
@@ -130,7 +130,7 @@ impl StaticRecallMemory {
 }
 
 #[async_trait]
-impl zeroclaw::memory::Memory for StaticRecallMemory {
+impl max::memory::Memory for StaticRecallMemory {
     fn name(&self) -> &str {
         "static-recall"
     }
@@ -138,7 +138,7 @@ impl zeroclaw::memory::Memory for StaticRecallMemory {
         &self,
         _key: &str,
         _content: &str,
-        _category: zeroclaw::memory::MemoryCategory,
+        _category: max::memory::MemoryCategory,
         _session_id: Option<&str>,
     ) -> anyhow::Result<()> {
         Ok(())
@@ -150,15 +150,15 @@ impl zeroclaw::memory::Memory for StaticRecallMemory {
         _session_id: Option<&str>,
         _since: Option<&str>,
         _until: Option<&str>,
-    ) -> anyhow::Result<Vec<zeroclaw::memory::MemoryEntry>> {
+    ) -> anyhow::Result<Vec<max::memory::MemoryEntry>> {
         Ok(self
             .entries
             .iter()
-            .map(|(k, v)| zeroclaw::memory::MemoryEntry {
+            .map(|(k, v)| max::memory::MemoryEntry {
                 id: k.clone(),
                 key: k.clone(),
                 content: v.clone(),
-                category: zeroclaw::memory::MemoryCategory::Core,
+                category: max::memory::MemoryCategory::Core,
                 timestamp: chrono::Utc::now().to_rfc3339(),
                 session_id: None,
                 score: None,
@@ -173,14 +173,14 @@ impl zeroclaw::memory::Memory for StaticRecallMemory {
             })
             .collect())
     }
-    async fn get(&self, _key: &str) -> anyhow::Result<Option<zeroclaw::memory::MemoryEntry>> {
+    async fn get(&self, _key: &str) -> anyhow::Result<Option<max::memory::MemoryEntry>> {
         Ok(None)
     }
     async fn list(
         &self,
-        _category: Option<&zeroclaw::memory::MemoryCategory>,
+        _category: Option<&max::memory::MemoryCategory>,
         _session_id: Option<&str>,
-    ) -> anyhow::Result<Vec<zeroclaw::memory::MemoryEntry>> {
+    ) -> anyhow::Result<Vec<max::memory::MemoryEntry>> {
         Ok(vec![])
     }
     async fn forget(&self, _key: &str) -> anyhow::Result<bool> {
@@ -199,7 +199,7 @@ impl zeroclaw::memory::Memory for StaticRecallMemory {
         &self,
         _key: &str,
         _content: &str,
-        _category: zeroclaw::memory::MemoryCategory,
+        _category: max::memory::MemoryCategory,
         _session_id: Option<&str>,
         _namespace: Option<&str>,
         _importance: Option<f64>,
@@ -215,14 +215,14 @@ impl zeroclaw::memory::Memory for StaticRecallMemory {
         session_id: Option<&str>,
         since: Option<&str>,
         until: Option<&str>,
-    ) -> anyhow::Result<Vec<zeroclaw::memory::MemoryEntry>> {
+    ) -> anyhow::Result<Vec<max::memory::MemoryEntry>> {
         self.recall(query, limit, session_id, since, until).await
     }
 }
 
-impl zeroclaw_api::attribution::Attributable for StaticRecallMemory {
-    fn role(&self) -> zeroclaw_api::attribution::Role {
-        zeroclaw_api::attribution::Role::Memory(zeroclaw_api::attribution::MemoryKind::InMemory)
+impl max_api::attribution::Attributable for StaticRecallMemory {
+    fn role(&self) -> max_api::attribution::Role {
+        max_api::attribution::Role::Memory(max_api::attribution::MemoryKind::InMemory)
     }
     fn alias(&self) -> &str {
         "StaticRecallMemory"

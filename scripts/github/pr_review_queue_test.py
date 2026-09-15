@@ -25,7 +25,7 @@ def pr(number: int = 1, **extra: object) -> dict[str, object]:
         "title": f"Change {number}",
         "author": {"login": "author"},
         "labels": [],
-        "url": f"https://github.com/zeroclaw-labs/zeroclaw/pull/{number}",
+        "url": f"https://github.com/max-labs/max/pull/{number}",
         "headRefOid": "head",
     }
     value.update(extra)
@@ -214,7 +214,7 @@ class ReviewQueueTest(unittest.TestCase):
         row = queue.base_row(pr(), "maintainer", "unknown", "evidence unavailable")
         table = queue.render_table([row])
         self.assertIn("unknown", table)
-        self.assertIn("https://github.com/zeroclaw-labs/zeroclaw/pull/1", table)
+        self.assertIn("https://github.com/max-labs/max/pull/1", table)
         self.assertIn("mine: omitted", queue.render_links("all", None))
 
     def test_json_rows_are_serializable(self) -> None:

@@ -25,9 +25,9 @@ To run multiple models, run multiple agents, each binding to one model provider.
 
 ## Cross-provider reliability
 
-For non-streaming calls, ZeroClaw can walk an ordered fallback graph across provider profiles. Each fallback profile keeps its own endpoint, credentials, model, headers, capability overrides, and nested fallback declarations. The runtime retries or advances according to the error classification and profile cooldown state.
+For non-streaming calls, Max can walk an ordered fallback graph across provider profiles. Each fallback profile keeps its own endpoint, credentials, model, headers, capability overrides, and nested fallback declarations. The runtime retries or advances according to the error classification and profile cooldown state.
 
-OpenRouter remains a first-class provider and can perform vendor selection behind one endpoint. It is an optional external routing layer, not a requirement for ZeroClaw's first-party fallback.
+OpenRouter remains a first-class provider and can perform vendor selection behind one endpoint. It is an optional external routing layer, not a requirement for Max's first-party fallback.
 
 ## Non-streaming retry and fallback
 
@@ -39,7 +39,7 @@ A streaming call selects the first eligible, non-cooling entry that supports the
 
 ## API key rotation limitation
 
-Do not rely on `reliability.api_keys` for credential failover. On a retryable rate limit, the reliable wrapper selects and logs an alternate key, but the `ModelProvider` trait cannot apply it to the already constructed provider. The retry still uses the original credential. [Issue #9190](https://github.com/zeroclaw-labs/zeroclaw/issues/9190) tracks this limitation.
+Do not rely on `reliability.api_keys` for credential failover. On a retryable rate limit, the reliable wrapper selects and logs an alternate key, but the `ModelProvider` trait cannot apply it to the already constructed provider. The retry still uses the original credential. [Issue #9190](https://github.com/max-labs/max/issues/9190) tracks this limitation.
 
 Use separate provider profiles with their own credentials, or an external routing service, when credential-level failover is required.
 
@@ -47,11 +47,11 @@ Use separate provider profiles with their own credentials, or an external routin
 
 Run a local-Ollama agent and a hosted-provider agent side by side; route each channel to whichever you want it to use.
 
-The `dev` agent runs from the CLI (no channel binding required, `zeroclaw agent -a dev` is enough). When Ollama is down, the dev agent fails fast and surfaces the error. The prod channels are unaffected.
+The `dev` agent runs from the CLI (no channel binding required, `max agent -a dev` is enough). When Ollama is down, the dev agent fails fast and surfaces the error. The prod channels are unaffected.
 
 ## Local-small no-text-fallback profile
 
-Small local models usually need a runtime profile, not a provider-specific mode. Keep the Ollama provider focused on connection details, then use `[runtime_profiles.<alias>]` to tighten the prompt/tool loop behavior. ZeroClaw exposes a built-in `local_small` runtime preset for code paths that install runtime presets directly. If you edit config by hand, use this equivalent block:
+Small local models usually need a runtime profile, not a provider-specific mode. Keep the Ollama provider focused on connection details, then use `[runtime_profiles.<alias>]` to tighten the prompt/tool loop behavior. Max exposes a built-in `local_small` runtime preset for code paths that install runtime presets directly. If you edit config by hand, use this equivalent block:
 
 ```toml
 [providers.models.ollama.local]
@@ -99,7 +99,7 @@ This profile composes existing primitives:
 - `max_actions_per_hour`, `max_cost_per_day_cents`, and the timeout/delegation fields keep local runs on the same budget shape as the built-in preset.
 - `parallel_tools = false` and `keep_tool_context_turns = 1` keep local runs sequential and limit retained tool context.
 
-With Ollama, this is a no-text-fallback profile: authorized tools remain configured in `risk_profile`, but text-form tool markup from the model is not executed. Use it for chat-first local agents, or for providers that return native/structured tool calls. If a local model must use ZeroClaw's text fallback tool syntax, set `strict_tool_parsing = false` and keep the other small-model limits.
+With Ollama, this is a no-text-fallback profile: authorized tools remain configured in `risk_profile`, but text-form tool markup from the model is not executed. Use it for chat-first local agents, or for providers that return native/structured tool calls. If a local model must use Max's text fallback tool syntax, set `strict_tool_parsing = false` and keep the other small-model limits.
 
 ## Cost tiering: heavy model when needed, fast model otherwise
 
@@ -133,9 +133,9 @@ Persisted logs (`"rolling"` is the default) capture retry, cooldown, and fallbac
 #### sh
 
 ```sh
-zeroclaw doctor traces --contains "retry"
-zeroclaw doctor traces --contains "429"
-zeroclaw doctor traces --contains "model_provider"
+max doctor traces --contains "retry"
+max doctor traces --contains "429"
+max doctor traces --contains "model_provider"
 ```
 
 </div>
@@ -144,11 +144,11 @@ zeroclaw doctor traces --contains "model_provider"
 
 1. **One agent per routing intent.** If two channels need different model behavior, name two agents.
 2. **Give fallback profiles explicit ownership.** Keep each endpoint, credential, model, and capability override on the profile that serves it.
-3. **Treat OpenRouter as an optional routing layer.** Use it when server-side vendor selection is useful; use ZeroClaw fallback profiles when the runtime should own the order.
-4. **Do not rely on `reliability.api_keys`.** Use separately constructed profiles until [issue #9190](https://github.com/zeroclaw-labs/zeroclaw/issues/9190) is fixed.
-5. **Smoke-test each agent in isolation.** `zeroclaw agent -a <alias>` runs an agent without channel plumbing in the way.
+3. **Treat OpenRouter as an optional routing layer.** Use it when server-side vendor selection is useful; use Max fallback profiles when the runtime should own the order.
+4. **Do not rely on `reliability.api_keys`.** Use separately constructed profiles until [issue #9190](https://github.com/max-labs/max/issues/9190) is fixed.
+5. **Smoke-test each agent in isolation.** `max agent -a <alias>` runs an agent without channel plumbing in the way.
 6. **Document agent intent.** Add `# comment` lines explaining which channels each agent serves and why.
-7. **Inject secrets via env, not inline.** `ZEROCLAW_providers__models__<type>__<alias>__api_key=...` sets `api_key` at startup; see [Environment variables](../reference/env-vars.md).
+7. **Inject secrets via env, not inline.** `MAX_providers__models__<type>__<alias>__api_key=...` sets `api_key` at startup; see [Environment variables](../reference/env-vars.md).
 8. **Separate dev and prod agents.** Each environment gets its own `[agents.<alias>]` entry bound to its own channels.
 
 ## Credential resolution
@@ -156,8 +156,8 @@ zeroclaw doctor traces --contains "model_provider"
 Each provider entry resolves credentials in this order:
 
 1. **Inline `api_key`** on the provider entry.
-2. **Secrets store** at `~/.zeroclaw/secrets`.
-3. **Generic env override**: `ZEROCLAW_providers__models__<type>__<alias>__api_key=...` at startup. If your shell already exports `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or a similar vendor-default name, bridge it into this schema-mirror variable before startup unless the provider family explicitly documents a native runtime env bridge. See [Environment variables](../reference/env-vars.md) for the full grammar and bridge examples.
+2. **Secrets store** at `~/.max/secrets`.
+3. **Generic env override**: `MAX_providers__models__<type>__<alias>__api_key=...` at startup. If your shell already exports `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or a similar vendor-default name, bridge it into this schema-mirror variable before startup unless the provider family explicitly documents a native runtime env bridge. See [Environment variables](../reference/env-vars.md) for the full grammar and bridge examples.
 
 Credentials are not shared between provider profiles; set them per profile. A route-level `model_routes[].api_key` is a higher-precedence override when its routed target is constructed. Route targets are deduplicated by `model_provider`, so the first matching route credential can construct the provider shared by several hints. Prefer profile-owned credentials when routes share a target.
 

@@ -1,22 +1,22 @@
-//! Locate and launch a `zeroclaw daemon` when none is already running.
+//! Locate and launch a `max daemon` when none is already running.
 
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
 /// Filename of the kernel binary on the current platform.
-fn zeroclaw_exe_name() -> &'static str {
+fn max_exe_name() -> &'static str {
     if cfg!(windows) {
-        "zeroclaw.exe"
+        "max.exe"
     } else {
-        "zeroclaw"
+        "max"
     }
 }
 
-/// Find the `zeroclaw` binary. Checks, in order: the directory next to this
+/// Find the `max` binary. Checks, in order: the directory next to this
 /// app (installed side-by-side), every `PATH` entry, then the common install
 /// locations a GUI launch's minimal `PATH` usually misses.
-pub fn find_zeroclaw_binary() -> Option<PathBuf> {
-    let exe_name = zeroclaw_exe_name();
+pub fn find_max_binary() -> Option<PathBuf> {
+    let exe_name = max_exe_name();
 
     if let Ok(exe) = std::env::current_exe() {
         let sibling = exe.with_file_name(exe_name);
@@ -55,11 +55,11 @@ pub fn find_zeroclaw_binary() -> Option<PathBuf> {
     None
 }
 
-/// Spawn `zeroclaw daemon -p <port>`, detached so it outlives the app, with
+/// Spawn `max daemon -p <port>`, detached so it outlives the app, with
 /// stdio routed to a log file under the OS temp dir. The child handle is
 /// returned but intentionally not reaped — the daemon is a background service.
 pub fn spawn_daemon(binary: &Path, port: u16) -> std::io::Result<Child> {
-    let log_path = std::env::temp_dir().join("zeroclaw-desktop-daemon.log");
+    let log_path = std::env::temp_dir().join("max-desktop-daemon.log");
     let log = std::fs::OpenOptions::new()
         .create(true)
         .append(true)

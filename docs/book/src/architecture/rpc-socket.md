@@ -2,37 +2,37 @@
 
 The daemon exposes a JSON-RPC 2.0 interface over a local IPC stream, a Unix
 domain socket on Unix and a named pipe on Windows. This is the primary
-transport for local clients like zerocode. The HTTP/WS gateway remains for
+transport for local clients like maxcode. The HTTP/WS gateway remains for
 webhooks, the web dashboard, and remote REST consumers.
 
 ## Endpoint resolution
 
 Each data directory gets its own endpoint, so multiple daemon instances on the
 same machine do not collide. The data dir is derived from the config dir
-(`--config-dir` / `ZEROCLAW_CONFIG_DIR`, or `ZEROCLAW_DATA_DIR`).
+(`--config-dir` / `MAX_CONFIG_DIR`, or `MAX_DATA_DIR`).
 
 | OS | Default endpoint |
 |---|---|
 | Linux | `<data_dir>/daemon.sock` (Unix domain socket) |
 | macOS | `<data_dir>/daemon.sock` (Unix domain socket) |
-| Windows | `\\.\pipe\zeroclaw-<hash>` where `<hash>` is derived from `data_dir` |
+| Windows | `\\.\pipe\max-<hash>` where `<hash>` is derived from `data_dir` |
 
-Override with the `ZEROCLAW_SOCKET` environment variable on either platform:
+Override with the `MAX_SOCKET` environment variable on either platform:
 
 <div class="os-tabs-src">
 
 #### sh
 
 ```sh
-export ZEROCLAW_SOCKET=/tmp/my-zeroclaw.sock
-zeroclaw daemon
+export MAX_SOCKET=/tmp/my-max.sock
+max daemon
 ```
 
 #### PowerShell
 
 ```powershell
-$env:ZEROCLAW_SOCKET = '\\.\pipe\my-zeroclaw'
-zeroclaw daemon
+$env:MAX_SOCKET = '\\.\pipe\my-max'
+max daemon
 ```
 
 </div>
@@ -132,7 +132,7 @@ Event types: `agent_message_chunk`, `agent_thought_chunk`, `tool_call`,
 
 ## Ephemeral mode
 
-`zeroclaw daemon --ephemeral` tracks connected clients and self-terminates
+`max daemon --ephemeral` tracks connected clients and self-terminates
 when the last one disconnects (after a 1-second grace period). A reconnect
 during the grace period cancels the shutdown. The daemon will not exit until
 at least one client has connected.
@@ -157,7 +157,7 @@ Start the daemon in one terminal:
 #### sh
 
 ```sh
-zeroclaw daemon
+max daemon
 ```
 
 </div>
@@ -169,7 +169,7 @@ In a second terminal on Unix, connect with `socat`:
 #### sh
 
 ```sh
-socat READLINE UNIX-CONNECT:~/.zeroclaw/data/daemon.sock
+socat READLINE UNIX-CONNECT:~/.max/data/daemon.sock
 ```
 
 </div>
@@ -182,11 +182,11 @@ Paste lines one at a time:
 ```
 
 On Windows, use any named-pipe client (PowerShell `[System.IO.Pipes.NamedPipeClientStream]`,
-`nc` via WSL, or just run `zerocode`).
+`nc` via WSL, or just run `maxcode`).
 
 ## Internals
 
-The dispatch layer lives in `crates/zeroclaw-runtime/src/rpc/`:
+The dispatch layer lives in `crates/max-runtime/src/rpc/`:
 
 | File | Role |
 |---|---|

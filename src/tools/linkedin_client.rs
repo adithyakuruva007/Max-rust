@@ -1,1 +1,1 @@
-pub use zeroclaw_tools::linkedin_client::*;
+pub use max_tools::linkedin_client::*;

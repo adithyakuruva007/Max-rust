@@ -26,7 +26,7 @@ now exposes the same per-element surface that
 - `POST /api/config/map-key/rename?path=mcp.servers&key=<old>&new_key=<new>`
   renames the natural key in place, with validation.
 
-The zerocode TUI uses exactly this surface today (it dispatches
+The maxcode TUI uses exactly this surface today (it dispatches
 `mcp.servers` through the same `OneTierAliasMap` rendering as
 `risk_profiles`, `cron`, etc.). The dashboard should do the
 same.

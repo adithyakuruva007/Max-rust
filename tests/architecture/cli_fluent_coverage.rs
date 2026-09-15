@@ -15,9 +15,9 @@ use syn::{Attribute, Expr, Lit, LitStr, Macro, Meta, Token};
 
 const SCAN_ROOTS: &[&str] = &[
     "src",
-    "crates/zeroclaw-gateway/src",
-    "crates/zeroclaw-providers/src/auth",
-    "crates/zeroclaw-runtime/src/approval",
+    "crates/max-gateway/src",
+    "crates/max-providers/src/auth",
+    "crates/max-runtime/src/approval",
 ];
 const LEGACY_ALLOWLIST: &str = include_str!("cli_fluent_legacy_allowlist.tsv");
 
@@ -48,7 +48,7 @@ fn user_facing_strings_route_through_fluent() {
         problems.is_empty(),
         "Bare user-facing string literal baseline changed. User-facing text must \
          come from the owning localization boundary, not a literal. Root CLI text \
-         uses a `cli-*` Fluent key via `zeroclaw_runtime::i18n`; other presentation \
+         uses a `cli-*` Fluent key via `max_runtime::i18n`; other presentation \
          boundaries must use their documented adapter. Wrap new text in that \
          boundary, or exempt a deliberate line with `// i18n-exempt: <reason>`. \
          Existing debt is count-sensitive: remove stale baseline \
@@ -569,7 +569,7 @@ fn sample() {
     // i18n-exempt: not a line comment
     */ println!("After forged block marker");
     // i18n-exempt: stable command example
-    println!("zeroclaw auth login");
+    println!("max auth login");
     print!("same-line exemption {}", marker); // i18n-exempt: fixed protocol text
     println!("Must not inherit trailing exemption");
 }

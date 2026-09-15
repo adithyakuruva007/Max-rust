@@ -421,7 +421,7 @@ export function AgentProvider({
           ]);
         } else if (outcome?.kind === 'diagnostic') {
           // Clean completion with nothing at all — surface a one-off notice so
-          // the turn does not disappear. Mirrors zerocode's zc-turn-no-output
+          // the turn does not disappear. Mirrors maxcode's zc-turn-no-output
           // fallback (#8779). `skip` (empty + tool calls ran) renders nothing.
           localMessageMutationVersionRef.current += 1;
           setMessages((prev) => [
@@ -763,7 +763,7 @@ export function AgentProvider({
         // `resolved_model_provider_for_agent` logic the gateway uses to build
         // the Agent, so the fallback `status.model` is correct for THIS agent
         // rather than the install-wide default. (Ported from
-        // zeroclaw-labs/zeroclaw#7191.)
+        // max-labs/max#7191.)
         const status = await getStatus(agentAlias);
         if (cancelled) return;
 
@@ -868,7 +868,7 @@ export function AgentProvider({
     // that actually succeeded). Splitting the budget keeps the spinner bounded
     // against a hung request *and* a reconnect that never opens, without the
     // false positive. The `=== model` identity check stops a fired watchdog
-    // from clobbering a newer switch. (Ported from zeroclaw-labs/zeroclaw#7191.)
+    // from clobbering a newer switch. (Ported from max-labs/max#7191.)
     const armWatchdog = () => {
       if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
       switchTimeoutRef.current = setTimeout(() => {

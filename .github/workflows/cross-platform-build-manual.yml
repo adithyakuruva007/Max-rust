@@ -258,7 +258,7 @@ jobs:
           FEATURES="$(cargo run --quiet -p xtask --bin generate -- features --selection "${{ inputs.distribution }}" --target "${{ matrix.target }}")"
           echo "Resolved features: $FEATURES"
           $BUILD_CMD --release --locked --no-default-features --features "${FEATURES}" --target ${{ matrix.target }}
-          binary="target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'zeroclaw.exe' || 'zeroclaw' }}"
+          binary="target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'max.exe' || 'max' }}"
           bytes="$(wc -c < "$binary" | tr -d ' ')"
           {
             echo "### ${{ inputs.distribution }} / ${{ matrix.target }}"
@@ -268,29 +268,29 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: zeroclaw-manual-${{ inputs.distribution }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'zeroclaw.exe' || 'zeroclaw' }}
+          name: max-manual-${{ inputs.distribution }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'max.exe' || 'max' }}
           if-no-files-found: error
           retention-days: 1
-      - name: Build ZeroCode companion
+      - name: Build MaxCode companion
         if: matrix.target != 'aarch64-linux-android'
         shell: bash
-        run: $BUILD_CMD --release --locked -p zerocode --target ${{ matrix.target }}
+        run: $BUILD_CMD --release --locked -p maxcode --target ${{ matrix.target }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: matrix.target != 'aarch64-linux-android'
         with:
-          name: zerocode-manual-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'zerocode.exe' || 'zerocode' }}
+          name: maxcode-manual-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'maxcode.exe' || 'maxcode' }}
           if-no-files-found: error
           retention-days: 1
-      - name: Build ZeroRelay companion
+      - name: Build MaxRelay companion
         if: matrix.target != 'aarch64-linux-android'
         shell: bash
-        run: $BUILD_CMD --release --locked -p zerorelay --target ${{ matrix.target }}
+        run: $BUILD_CMD --release --locked -p maxrelay --target ${{ matrix.target }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: matrix.target != 'aarch64-linux-android'
         with:
-          name: zerorelay-manual-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'zerorelay.exe' || 'zerorelay' }}
+          name: maxrelay-manual-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ runner.os == 'Windows' && 'maxrelay.exe' || 'maxrelay' }}
           if-no-files-found: error
           retention-days: 1

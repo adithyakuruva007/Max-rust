@@ -598,8 +598,8 @@ mod tests {
     #[test]
     fn flags_translated_command_literal_for_6407() {
         let issue = entry(
-            "[`zeroclaw daemon`↴](#zeroclaw-daemon)",
-            "[`zeroclaw 守护进程`↴](#zeroclaw-daemon)",
+            "[`max daemon`↴](#max-daemon)",
+            "[`max 守护进程`↴](#max-daemon)",
         );
         assert_eq!(generated_response_reason(&issue), None);
         assert_eq!(
@@ -655,7 +655,7 @@ mod tests {
 
     #[test]
     fn flags_translated_product_name_for_6407() {
-        let issue = entry("The ZeroClaw Maturity Framework", "零爪成熟度框架");
+        let issue = entry("The Max Maturity Framework", "零爪成熟度框架");
         assert_eq!(
             protected_literal_reason(&issue),
             Some("protected product/protocol name changed")
@@ -665,8 +665,8 @@ mod tests {
     #[test]
     fn allows_translated_prose_around_preserved_literals() {
         let clean = entry(
-            "Run `zeroclaw daemon` after setting `[observability]`.",
-            "设置 `[observability]` 后运行 `zeroclaw daemon`。",
+            "Run `max daemon` after setting `[observability]`.",
+            "设置 `[observability]` 后运行 `max daemon`。",
         );
         assert_eq!(protected_literal_reason(&clean), None);
     }
@@ -674,8 +674,8 @@ mod tests {
     #[test]
     fn allows_translated_cli_placeholders() {
         let clean = entry(
-            "**Usage:** `zeroclaw [OPTIONS] <COMMAND>`",
-            "**Uso:** `zeroclaw [OPCIONES] <COMANDO>`",
+            "**Usage:** `max [OPTIONS] <COMMAND>`",
+            "**Uso:** `max [OPCIONES] <COMANDO>`",
         );
         assert_eq!(protected_literal_reason(&clean), None);
     }
@@ -684,13 +684,13 @@ mod tests {
     fn flags_translation_introduced_posix_local_path() {
         let issue = entry(
             "The failure log is next to the catalog.",
-            "Le journal est dans /Users/alice/zeroclaw/docs/book/po/fr.failures.log.",
+            "Le journal est dans /Users/alice/max/docs/book/po/fr.failures.log.",
         );
         let entries = vec![issue];
         let leaks = audit_local_path_leaks(&entries);
         assert_eq!(
             leaks[0].1.as_str(),
-            "/Users/alice/zeroclaw/docs/book/po/fr.failures.log"
+            "/Users/alice/max/docs/book/po/fr.failures.log"
         );
     }
 
@@ -698,20 +698,20 @@ mod tests {
     fn flags_translation_introduced_private_tmp_and_volume_paths() {
         let private_tmp = entry(
             "The failure log is next to the catalog.",
-            "日志位于 /private/tmp/zeroclaw/zh-CN.failures.log。",
+            "日志位于 /private/tmp/max/zh-CN.failures.log。",
         );
         assert_eq!(
             introduced_local_absolute_path(&private_tmp.msgid, &private_tmp.msgstr).as_deref(),
-            Some("/private/tmp/zeroclaw/zh-CN.failures.log")
+            Some("/private/tmp/max/zh-CN.failures.log")
         );
 
         let volume = entry(
             "The failure log is next to the catalog.",
-            "ログは /Volumes/Example Disk/zeroclaw/ja.failures.log にあります。",
+            "ログは /Volumes/Example Disk/max/ja.failures.log にあります。",
         );
         assert_eq!(
             introduced_local_absolute_path(&volume.msgid, &volume.msgstr).as_deref(),
-            Some("/Volumes/Example Disk/zeroclaw/ja.failures.log")
+            Some("/Volumes/Example Disk/max/ja.failures.log")
         );
     }
 
@@ -719,19 +719,19 @@ mod tests {
     fn flags_translation_introduced_windows_local_path() {
         let issue = entry(
             "The failure log is next to the catalog.",
-            r#"El registro está en C:\Users\Alice\zeroclaw\docs\book\po\es.failures.log."#,
+            r#"El registro está en C:\Users\Alice\max\docs\book\po\es.failures.log."#,
         );
         assert_eq!(
             introduced_local_absolute_path(&issue.msgid, &issue.msgstr).as_deref(),
-            Some(r#"C:\Users\Alice\zeroclaw\docs\book\po\es.failures.log"#)
+            Some(r#"C:\Users\Alice\max\docs\book\po\es.failures.log"#)
         );
     }
 
     #[test]
     fn allows_source_preserved_absolute_path() {
         let clean = entry(
-            "Write `/home/alice/zeroclaw/web/dist` instead of `~/zeroclaw/web/dist`.",
-            "Escriba `/home/alice/zeroclaw/web/dist` en lugar de `~/zeroclaw/web/dist`.",
+            "Write `/home/alice/max/web/dist` instead of `~/max/web/dist`.",
+            "Escriba `/home/alice/max/web/dist` en lugar de `~/max/web/dist`.",
         );
         assert_eq!(protected_literal_reason(&clean), None);
         assert_eq!(
