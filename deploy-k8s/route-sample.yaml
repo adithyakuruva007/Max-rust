@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: max
+  namespace: max
+  labels:
+    app.kubernetes.io/name: max
+    app.kubernetes.io/part-of: max
+spec:
+  to:
+    kind: Service
+    name: max
+    weight: 100
+  port:
+    targetPort: gateway
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

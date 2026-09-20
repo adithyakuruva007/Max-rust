@@ -1,0 +1,3 @@
+[submodule "docs/book/po"]
+	path = docs/book/po
+	url = https://github.com/max-labs/max-docs-translations.git

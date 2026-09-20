@@ -1,0 +1,6 @@
+services:
+  max:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+    image: max:alpine

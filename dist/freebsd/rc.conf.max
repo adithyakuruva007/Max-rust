@@ -1,0 +1,12 @@
+# Per-service rc.conf(5) drop-in for the Max rc.d script.
+#
+# Install as /etc/rc.conf.d/max (the basename must match the rc.d script
+# name, which both max.rc and max-hardened.rc install as "max"):
+#
+#     doas install -m 644 rc.conf.max /etc/rc.conf.d/max
+#
+# Equivalent to the sysrc lines in README.md, but version-controllable as a
+# file. Replace youruser with the account that owns ~/.max.
+
+max_enable="YES"
+max_runas="youruser"

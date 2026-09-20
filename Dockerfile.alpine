@@ -1,0 +1,174 @@
+# syntax=docker/dockerfile:1.7-labs
+
+# >>> generated:base-arg-node-alpine from dev/ci/container-base-images.toml by `cargo generate installers` - do not edit <<<
+ARG MAX_BASE_NODE_ALPINE=node:24-alpine3.23@sha256:0388af2af070cd4736a1567cfed02469ba117848845b4165d87a333edb53d2ca
+# >>> end generated:base-arg-node-alpine <<<
+# >>> generated:base-arg-rust-alpine from dev/ci/container-base-images.toml by `cargo generate installers` - do not edit <<<
+ARG MAX_BASE_RUST_ALPINE=rust:1.98-alpine3.23@sha256:4743b6231029d726d7a0f81d730a7c9f4eff23225a4499c01e275efb5e260235
+# >>> end generated:base-arg-rust-alpine <<<
+# >>> generated:base-arg-alpine from dev/ci/container-base-images.toml by `cargo generate installers` - do not edit <<<
+ARG MAX_BASE_ALPINE=alpine:3.23@sha256:fd791d74b68913cbb027c6546007b3f0d3bc45125f797758156952bc2d6daf40
+# >>> end generated:base-arg-alpine <<<
+
+FROM --platform=$BUILDPLATFORM ${MAX_BASE_NODE_ALPINE} AS web-node
+
+FROM --platform=$BUILDPLATFORM ${MAX_BASE_RUST_ALPINE} AS web-builder
+WORKDIR /app
+COPY --from=web-node /usr/local/bin/node /usr/local/bin/node
+COPY --from=web-node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN apk add --no-cache g++ pkgconfig \
+    && ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+COPY web/package.json web/package-lock.json web/
+RUN cd web && npm ci --ignore-scripts
+COPY . .
+RUN mkdir -p apps/tauri/src \
+    && echo "fn main() {}" > apps/tauri/src/main.rs \
+    && echo "fn main() {}" > apps/tauri/build.rs
+RUN --mount=type=cache,id=max-cargo-registry-alpine,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=max-cargo-git-alpine,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,id=max-web-target-alpine,target=/app/target,sharing=locked \
+    cargo web build
+
+FROM --platform=$BUILDPLATFORM ${MAX_BASE_RUST_ALPINE} AS builder
+
+WORKDIR /app
+ARG TARGETARCH
+ARG CARGO_ZIGBUILD_VERSION=0.23.0
+# >>> generated:docker-features-arg by `cargo generate installers` - do not edit <<<
+ARG MAX_CARGO_FLAGS="--no-default-features --features acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-git,channel-lark,channel-matrix,channel-telegram,channel-webhook,gateway,observability-prometheus,schema-export,whatsapp-web"
+# >>> end generated:docker-features-arg <<<
+
+RUN apk add --no-cache build-base perl pkgconfig zig \
+    && cargo install --locked --version "$CARGO_ZIGBUILD_VERSION" cargo-zigbuild
+
+COPY Cargo.toml Cargo.lock ./
+# The optional WASM plugin host generates bindings from the repository-owned
+# WIT contract during compilation. Keep it in this persistent builder before
+# both the dependency prefetch and the real source build.
+COPY wit/ wit/
+COPY --parents crates/*/Cargo.toml ./
+COPY --parents crates/*/tests/fixtures/*/Cargo.toml ./
+COPY --parents crates/max-macros/src/ ./
+COPY apps/tauri/Cargo.toml apps/tauri/Cargo.toml
+COPY apps/maxcode/Cargo.toml apps/maxcode/Cargo.toml
+# apps/maxrelay: workspace member with lib+bin targets; not shipped in the
+# server image, but Cargo must be able to load its manifest during pre-fetch.
+COPY apps/maxrelay/Cargo.toml apps/maxrelay/Cargo.toml
+COPY tools/fill-translations/Cargo.toml tools/fill-translations/Cargo.toml
+COPY xtask/Cargo.toml xtask/Cargo.toml
+RUN mkdir -p src src/bin benches apps/tauri/src apps/maxcode/src apps/maxrelay/src tools/fill-translations/src xtask/src/bin \
+    && echo "fn main() {}" > src/main.rs \
+    && echo "" > src/lib.rs \
+    && echo "fn main() {}" > src/bin/max-acp-bridge.rs \
+    && echo "fn main() {}" > benches/agent_benchmarks.rs \
+    && echo "fn main() {}" > apps/tauri/src/main.rs \
+    && echo "fn main() {}" > apps/tauri/build.rs \
+    && echo "fn main() {}" > apps/maxcode/src/main.rs \
+    && echo "fn main() {}" > apps/maxcode/build.rs \
+    && echo "fn main() {}" > apps/maxrelay/src/main.rs \
+    && echo "" > apps/maxrelay/src/lib.rs \
+    && echo "fn main() {}" > tools/fill-translations/src/main.rs \
+    && echo "" > xtask/src/lib.rs \
+    && echo "fn main() {}" > xtask/src/bin/mdbook.rs \
+    && echo "fn main() {}" > xtask/src/bin/fluent.rs \
+    && echo "fn main() {}" > xtask/src/bin/web.rs \
+    && mkdir -p crates/max-hardware/examples \
+    && echo "fn main() {}" > crates/max-hardware/examples/esp32_sim.rs \
+    && for d in crates/*/tests/fixtures/*/; do \
+        [ -f "${d}Cargo.toml" ] || continue; \
+        mkdir -p "${d}src"; \
+        printf '' > "${d}src/lib.rs"; \
+    done \
+    && echo "fn main() {}" > crates/max-log/tests/fixtures/attribution-macro-consumer/src/main.rs \
+    && for d in crates/*/; do \
+        [ "$d" = "crates/max-macros/" ] && continue; \
+        mkdir -p "${d}src"; \
+        printf '' > "${d}src/lib.rs"; \
+    done
+RUN --mount=type=cache,id=max-cargo-registry-alpine-${TARGETARCH},target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=max-cargo-git-alpine-${TARGETARCH},target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,id=max-target-alpine-${TARGETARCH},target=/app/target,sharing=locked \
+    case "$TARGETARCH" in \
+      arm64) RUST_TARGET=aarch64-unknown-linux-musl ;; \
+      amd64) RUST_TARGET=x86_64-unknown-linux-musl ;; \
+      *) echo "unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && rustup target add "$RUST_TARGET" \
+    && if [ -n "$MAX_CARGO_FLAGS" ]; then \
+         cargo zigbuild --release --locked --target "$RUST_TARGET" -p max -p maxcode $MAX_CARGO_FLAGS; \
+       else \
+         cargo zigbuild --release --locked --target "$RUST_TARGET" -p max -p maxcode; \
+       fi
+RUN rm -rf src benches crates xtask tools/fill-translations
+
+COPY src/ src/
+COPY benches/ benches/
+COPY crates/ crates/
+COPY xtask/ xtask/
+COPY tools/fill-translations/ tools/fill-translations/
+COPY apps/maxcode/ apps/maxcode/
+COPY web/src/ web/src/
+COPY locales.toml .
+COPY *.rs .
+RUN touch src/main.rs apps/maxcode/src/main.rs
+RUN --mount=type=cache,id=max-cargo-registry-alpine-${TARGETARCH},target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=max-cargo-git-alpine-${TARGETARCH},target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,id=max-target-alpine-${TARGETARCH},target=/app/target,sharing=locked \
+    case "$TARGETARCH" in \
+      arm64) RUST_TARGET=aarch64-unknown-linux-musl ;; \
+      amd64) RUST_TARGET=x86_64-unknown-linux-musl ;; \
+      *) echo "unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && rm -rf target/"$RUST_TARGET"/release/.fingerprint/max-* \
+           target/"$RUST_TARGET"/release/deps/max-* \
+           target/"$RUST_TARGET"/release/incremental/max-* \
+           target/"$RUST_TARGET"/release/deps/max_* \
+           target/"$RUST_TARGET"/release/incremental/max_* \
+           target/"$RUST_TARGET"/release/.fingerprint/xtask-* \
+           target/"$RUST_TARGET"/release/deps/xtask-* \
+           target/"$RUST_TARGET"/release/.fingerprint/fill-translations-* \
+           target/"$RUST_TARGET"/release/deps/fill_translations-* \
+           target/"$RUST_TARGET"/release/.fingerprint/maxcode-* \
+           target/"$RUST_TARGET"/release/deps/maxcode-* \
+           target/"$RUST_TARGET"/release/incremental/maxcode-* \
+           target/"$RUST_TARGET"/release/build/maxcode-* \
+           target/release/.fingerprint/maxcode-* \
+           target/release/build/maxcode-* \
+    && if [ -n "$MAX_CARGO_FLAGS" ]; then \
+         cargo zigbuild --release --locked --target "$RUST_TARGET" -p max -p maxcode $MAX_CARGO_FLAGS; \
+       else \
+         cargo zigbuild --release --locked --target "$RUST_TARGET" -p max -p maxcode; \
+       fi \
+    && cp target/"$RUST_TARGET"/release/max /app/max \
+    && cp target/"$RUST_TARGET"/release/maxcode /app/maxcode
+RUN for binary in max maxcode; do \
+      size=$(stat -c%s "/app/$binary"); \
+      if [ "$size" -lt 1000000 ]; then \
+        echo "ERROR: $binary is only ${size} bytes" >&2; \
+        exit 1; \
+      fi; \
+    done
+
+FROM ${MAX_BASE_ALPINE} AS runtime
+
+RUN apk add --no-cache bash ca-certificates curl git tzdata \
+    && mkdir -p /max-data/.max /max-data/data
+COPY --from=builder /app/max /usr/local/bin/max
+COPY --from=builder /app/maxcode /usr/local/bin/maxcode
+COPY --from=web-builder /app/web/dist /usr/share/maxlabs/web/dist
+COPY dev/config.template.toml /max-data/.max/config.toml
+RUN chown -R 65534:65534 /max-data
+
+ENV LANG=C.UTF-8
+ENV MAX_DATA_DIR=/max-data/data
+ENV HOME=/max-data
+ENV MAX_gateway__port=42617
+
+WORKDIR /max-data
+USER 65534:65534
+EXPOSE 42617
+HEALTHCHECK --interval=60s --timeout=10s --retries=3 --start-period=10s \
+    CMD ["max", "status", "--format=exit-code"]
+ENTRYPOINT ["max"]
+CMD ["daemon"]

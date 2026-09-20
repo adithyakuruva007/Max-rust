@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Max Blog</title>
+  <subtitle>Updates from Max Labs</subtitle>
+  <id>https://www.max.com/blog</id>
+  <link href="https://www.max.com/blog" />
+  <link href="https://www.max.com/blog/atom.xml" rel="self" />
+  <link href="https://www.max.com/blog/rss.xml" rel="alternate" type="application/rss+xml" />
+  <author>
+    <name>Max Labs</name>
+  </author>
+  <updated>2026-05-19T13:55:46Z</updated>
+</feed>

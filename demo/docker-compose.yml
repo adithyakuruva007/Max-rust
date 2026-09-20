@@ -1,0 +1,28 @@
+services:
+  max:
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile
+    container_name: max-demo
+    init: true
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      MAX_providers__models__openrouter__agent_demo__api_key: "${OPENROUTER_API_KEY:-}"
+      RUST_LOG: "${RUST_LOG:-max=info,max_hardware=info,esp32_sim=info}"
+    volumes:
+      # Mount the demo config (constrained hardware-only surface).
+      - ./max.toml.example:/app/data/config/config.toml:ro
+    # The simulator (esp32_sim) is the default process.
+    # This harness completes the split of the original #6148 bundle.
+    # It depends on the three focused PRs:
+    #   - dev-sim serial allowlist
+    #   - smartroom named-device tools (set_device / read_device)
+    #   - esp32_sim example + visualizer
+    #
+    # Quick interaction:
+    #     ./demo/run-sim.sh
+    #     ./demo/run-max.sh
+    #
+    # Then paste the primer from demo/PROMPTS.md and use natural language.
+    # Flow: agent → smartroom tools → pty → simulator → WebSocket → browser SVG.

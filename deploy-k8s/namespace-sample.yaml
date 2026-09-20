@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: max
+  labels:
+    app.kubernetes.io/name: max
+    app.kubernetes.io/part-of: max

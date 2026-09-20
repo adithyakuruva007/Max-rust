@@ -1,0 +1,50 @@
+# Dockerfile.ci — CI/release image using pre-built binaries.
+# Used by release workflows to skip the ~60 min Rust compilation.
+# The main Dockerfile is still used for local dev builds.
+#
+# Variants:
+#   distroless (default): docker build -f Dockerfile.ci .
+#   debian:               docker build -f Dockerfile.ci --build-arg VARIANT=debian .
+
+ARG VARIANT=distroless
+
+# ── Base variants ────────────────────────────────────────────
+FROM gcr.io/distroless/cc-debian13:nonroot@sha256:54df941ed0d06a1bd95ef5e0ce391fd8d9f94b64782dc9a60062727849ee3f97 AS base-distroless
+
+FROM debian:bookworm-slim AS base-debian
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash \
+        ca-certificates \
+        curl \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Runtime ──────────────────────────────────────────────────
+FROM base-${VARIANT} AS runtime
+
+ARG TARGETARCH
+
+# Copy the pre-built binary for this platform (amd64 or arm64)
+COPY bin/${TARGETARCH}/max /usr/local/bin/max
+COPY bin/${TARGETARCH}/maxcode /usr/local/bin/maxcode
+
+# Copy the web dashboard bundled alongside the binary in the release tarball.
+# Installed at /usr/share/maxlabs/web/dist (outside the documented
+# /max-data mount) so a bind mount on /max-data cannot shadow it
+# (#6400). The dashboard was decoupled from the binary in #5665 and is now
+# served from disk at `gateway.web_dist_dir`.
+COPY bin/${TARGETARCH}/web/dist /usr/share/maxlabs/web/dist
+
+# Runtime directory structure and default config
+COPY --chown=65534:65534 max-data/ /max-data/
+
+ENV LANG=C.UTF-8
+ENV MAX_DATA_DIR=/max-data/data
+ENV HOME=/max-data
+ENV MAX_GATEWAY_PORT=42617
+
+WORKDIR /max-data
+USER 65534:65534
+EXPOSE 42617
+ENTRYPOINT ["max"]
+CMD ["daemon"]

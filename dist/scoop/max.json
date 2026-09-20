@@ -1,0 +1,27 @@
+{
+    "version": "0.8.5",
+    "description": "Zero overhead. Zero compromise. 100% Rust. The fastest, smallest AI assistant.",
+    "homepage": "https://github.com/max-labs/max",
+    "license": "MIT|Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/max-labs/max/releases/download/v0.8.5/max-x86_64-pc-windows-msvc.zip",
+            "hash": "",
+            "bin": ["max.exe", "maxcode.exe"]
+        }
+    },
+    "checkver": {
+        "github": "https://github.com/max-labs/max"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/max-labs/max/releases/download/v$version/max-x86_64-pc-windows-msvc.zip"
+            }
+        },
+        "hash": {
+            "url": "https://github.com/max-labs/max/releases/download/v$version/SHA256SUMS",
+            "regex": "([a-f0-9]{64})\\s+max-x86_64-pc-windows-msvc\\.zip"
+        }
+    }
+}
